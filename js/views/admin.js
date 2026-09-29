@@ -1,0 +1,237 @@
+/* =========================================================
+   Panel de administración
+   ========================================================= */
+Views.admin = (() => {
+  const state = { tab: 'usuarios' };
+  const TABS = [
+    ['usuarios', 'Usuarios y roles', 'users'],
+    ['asignacion', 'Asignación de prospectos', 'refresh'],
+    ['config', 'Configuración', 'settings'],
+    ['datos', 'Datos y respaldo', 'download'],
+    ['conexiones', 'Conexiones', 'info']
+  ];
+
+  function render(el) {
+    el.innerHTML = `
+      <div class="page-head"><div><h1>Panel de administración</h1><p>Controla quién usa el CRM, cómo se reparten los clientes y la configuración del negocio</p></div></div>
+      <div class="tabs">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${state.tab === k ? 'active' : ''}"><span class="row" style="gap:6px">${icon(i, 'sm')}${l}</span></button>`).join('')}</div>
+      <div id="adminBody"></div>`;
+    el.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; render(el); });
+    const body = el.querySelector('#adminBody');
+    ({ usuarios, asignacion, config, datos, conexiones })[state.tab](body);
+  }
+
+  /* ---------- Usuarios ---------- */
+  function usuarios(el) {
+    const users = U.sortBy(Store.all('users'), (u) => (u.active ? '0' : '1') + u.role + u.name);
+    const today = [U.startOfDay(), U.endOfDay()];
+    el.innerHTML = `
+      <div class="row between" style="margin-bottom:12px">
+        <div class="muted small">${users.filter((u) => u.active).length} usuarios activos · ${users.filter((u) => !u.active).length} inactivos</div>
+        <button class="btn primary" id="newUser">${icon('userPlus', 'sm')} Nuevo usuario</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table class="table">
+        <thead><tr><th>Usuario</th><th>Rol</th><th>Contacto</th><th class="right">Clientes</th><th class="right">Llamadas hoy</th><th class="right">Meta llamadas/día</th><th class="right">Meta ventas/mes</th><th>Estado</th><th></th></tr></thead>
+        <tbody>${users.map((u) => {
+          const nClients = Store.all('clients').filter((c) => c.ownerId === u.id).length;
+          const calls = Metrics.forUser(u.id, ...today).calls;
+          return `<tr style="${u.active ? '' : 'opacity:.55'}">
+            <td><div class="row">${UI.avatar(u, 'md')}<div><div class="cell-main">${U.esc(u.name)}${u.id === Store.currentUser().id ? ' <span class="badge info">Tú</span>' : ''}</div><div class="cell-sub">Desde ${U.date(u.createdAt)}</div></div></div></td>
+            <td><span class="badge ${u.role === 'admin' ? 'violet' : u.role === 'supervisor' ? 'info' : ''}">${ROLES[u.role].name}</span></td>
+            <td class="small">${U.esc(u.email || '')}<div class="muted">${U.esc(u.phone || '')}</div></td>
+            <td class="right num">${nClients}</td>
+            <td class="right num">${calls}</td>
+            <td class="right num">${u.callGoal || '—'}</td>
+            <td class="right num">${u.salesGoal ? U.money(u.salesGoal) : '—'}</td>
+            <td>${u.active ? '<span class="badge good">Activo</span>' : '<span class="badge">Inactivo</span>'}</td>
+            <td class="nowrap"><button class="btn sm" data-edit="${u.id}">${icon('edit', 'sm')} Editar</button> <button class="btn sm ghost" data-as="${u.id}" title="Ver el CRM como este usuario" ${u.active ? '' : 'disabled'}>Ver como</button></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div></div>
+      <div class="grid cols-3" style="margin-top:16px">
+        ${Object.entries(ROLES).map(([k, r]) => `<div class="card"><div class="card-body"><h3>${r.name}</h3><p class="muted small" style="margin:6px 0 0">${r.desc}</p></div></div>`).join('')}
+      </div>`;
+    el.querySelector('#newUser').onclick = () => userForm();
+    el.querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => userForm(b.dataset.edit));
+    el.querySelectorAll('[data-as]').forEach((b) => b.onclick = () => { Store.setCurrentUser(b.dataset.as); App.shell(); location.hash = '#/dashboard'; App.route(); UI.toast('Viendo como ' + UI.userName(b.dataset.as)); });
+  }
+
+  function userForm(id) {
+    const u = id ? Store.get('users', id) : { role: 'agente', active: true, callGoal: 60, salesGoal: 5000, color: USER_COLORS[Store.all('users').length % USER_COLORS.length] };
+    const isSelf = id === Store.currentUser().id;
+    UI.modal({
+      title: id ? 'Editar usuario' : 'Nuevo usuario',
+      body: `
+        <div class="form-grid">
+          <label class="field full">Nombre completo *<input name="name" required value="${U.esc(u.name)}"></label>
+          <label class="field">Email <span class="hint">(será su usuario de acceso)</span><input name="email" type="email" value="${U.esc(u.email)}"></label>
+          <label class="field">Teléfono<input name="phone" value="${U.esc(u.phone)}"></label>
+          <label class="field">Rol<select name="role" ${isSelf ? 'disabled' : ''}>${Object.entries(ROLES).map(([k, r]) => `<option value="${k}" ${u.role === k ? 'selected' : ''}>${r.name}</option>`).join('')}</select></label>
+          <label class="field">Color<div class="row wrap">${USER_COLORS.map((c) => `<label style="cursor:pointer"><input type="radio" name="color" value="${c}" ${u.color === c ? 'checked' : ''} hidden><span class="avatar" style="background:${c};outline:${u.color === c ? '3px solid var(--text)' : 'none'};outline-offset:2px" data-color="${c}"></span></label>`).join('')}</div></label>
+          <label class="field">Meta de llamadas por día<input name="callGoal" type="number" min="0" value="${u.callGoal ?? 0}"></label>
+          <label class="field">Meta de ventas por mes ($)<input name="salesGoal" type="number" min="0" value="${u.salesGoal ?? 0}"></label>
+          ${u.role === 'admin' ? `<label class="check full"><input type="checkbox" name="sells" ${u.sells ? 'checked' : ''}> También vende (aparece en rankings y reparto de prospectos)</label>` : ''}
+          <label class="check full"><input type="checkbox" name="active" ${u.active ? 'checked' : ''} ${isSelf ? 'disabled' : ''}> Usuario activo (puede entrar al CRM)</label>
+        </div>`,
+      onOpen: (form) => form.querySelectorAll('[data-color]').forEach((s) => s.addEventListener('click', () => form.querySelectorAll('[data-color]').forEach((x) => { x.style.outline = x === s ? '3px solid var(--text)' : 'none'; }))),
+      onSubmit: (d) => {
+        if (isSelf) { d.role = u.role; d.active = true; }
+        if (id) {
+          const wasActive = u.active;
+          Store.update('users', id, d);
+          if (wasActive && !d.active) {
+            const n = Store.all('clients').filter((c) => c.ownerId === id && OPEN_STAGES.includes(c.stage)).length;
+            if (n) setTimeout(() => { state.tab = 'asignacion'; App.refresh(); UI.toast(`${u.name} tiene ${n} prospectos abiertos: reasígnalos aquí`); }, 100);
+          }
+          UI.toast('Usuario actualizado', 'good');
+        } else {
+          Store.insert('users', d);
+          UI.toast('Usuario creado. Cuando activemos el login podrá entrar con su email.', 'good');
+        }
+        App.shell(); App.route();
+      }
+    });
+  }
+
+  /* ---------- Asignación ---------- */
+  function asignacion(el) {
+    const users = Store.all('users');
+    const sellers = Store.sellers();
+    const orphan = Store.all('clients').filter((c) => { const u = Store.get('users', c.ownerId); return !u || !u.active; });
+    const unworked = Store.all('clients').filter((c) => c.stage === 'nuevo' && !c.callCount);
+    el.innerHTML = `
+      <div class="grid span-2-1">
+        <div class="card">
+          <div class="card-head"><h2>Carga de trabajo por vendedor</h2></div>
+          <div class="table-wrap"><table class="table">
+            <thead><tr><th>Vendedor</th><th class="right">Nuevos sin llamar</th><th class="right">Activos</th><th class="right">Calientes</th><th class="right">Vencidos</th><th class="right">Clientes (ganados)</th></tr></thead>
+            <tbody>${users.filter((u) => u.active).map((u) => {
+              const cl = Store.all('clients').filter((c) => c.ownerId === u.id);
+              return `<tr><td><div class="row">${UI.avatar(u)} ${U.esc(u.name)}</div></td>
+                <td class="right num">${cl.filter((c) => c.stage === 'nuevo' && !c.callCount).length}</td>
+                <td class="right num">${cl.filter((c) => OPEN_STAGES.includes(c.stage)).length}</td>
+                <td class="right num">${cl.filter((c) => OPEN_STAGES.includes(c.stage) && c.temperature === 'caliente').length}</td>
+                <td class="right num" style="color:var(--bad)">${cl.filter((c) => OPEN_STAGES.includes(c.stage) && c.nextFollowUp && new Date(c.nextFollowUp) < new Date()).length}</td>
+                <td class="right num">${cl.filter((c) => c.stage === 'ganado').length}</td></tr>`;
+            }).join('')}</tbody>
+          </table></div>
+          ${orphan.length ? `<div class="card-body"><div class="badge bad" style="padding:8px 12px">${icon('alert', 'sm')} ${orphan.length} clientes están asignados a usuarios inactivos o eliminados</div></div>` : ''}
+        </div>
+        <div class="stack">
+          <div class="card"><div class="card-head"><h2>Transferir cartera</h2></div><div class="card-body stack" style="gap:10px">
+            <p class="small muted" style="margin:0">Pasa los clientes de un vendedor a otro (por ejemplo, si alguien se va de la empresa).</p>
+            <label class="field">De<select id="tFrom"><option value="">Seleccionar…</option>${orphan.length ? '<option value="__orphan">Usuarios inactivos / sin asignar</option>' : ''}${users.map((u) => `<option value="${u.id}">${U.esc(u.name)}${u.active ? '' : ' (inactivo)'}</option>`).join('')}</select></label>
+            <label class="field">A<select id="tTo"><option value="">Seleccionar…</option>${UI.userOptions('')}</select></label>
+            <label class="field">¿Cuáles?<select id="tWhich"><option value="open">Solo prospectos abiertos</option><option value="all">Todos (incluye clientes ganados)</option></select></label>
+            <button class="btn primary" id="tGo">Transferir</button>
+          </div></div>
+          <div class="card"><div class="card-head"><h2>Repartir prospectos nuevos</h2></div><div class="card-body stack" style="gap:10px">
+            <p class="small muted" style="margin:0">Hay <strong>${unworked.length}</strong> prospectos nuevos sin llamar. Repártelos en partes iguales entre los vendedores elegidos.</p>
+            <div class="stack" style="gap:6px">${sellers.map((u) => `<label class="check"><input type="checkbox" data-rr="${u.id}" checked> ${U.esc(u.name)}</label>`).join('')}</div>
+            <button class="btn" id="rrGo" ${unworked.length ? '' : 'disabled'}>${icon('refresh', 'sm')} Repartir equitativamente</button>
+          </div></div>
+        </div>
+      </div>`;
+
+    el.querySelector('#tGo').onclick = async () => {
+      const from = el.querySelector('#tFrom').value, to = el.querySelector('#tTo').value, which = el.querySelector('#tWhich').value;
+      if (!from || !to) return UI.toast('Elige origen y destino', 'bad');
+      const list = (from === '__orphan' ? orphan : Store.all('clients').filter((c) => c.ownerId === from)).filter((c) => which === 'all' || OPEN_STAGES.includes(c.stage));
+      if (!list.length) return UI.toast('No hay clientes para transferir', 'bad');
+      if (!(await UI.confirm(`¿Transferir ${list.length} clientes a ${U.esc(UI.userName(to))}?`, { danger: false }))) return;
+      Store.reassign(list.map((c) => c.id), to);
+      UI.toast(`${list.length} clientes transferidos`, 'good');
+    };
+    el.querySelector('#rrGo').onclick = async () => {
+      const ids = [...el.querySelectorAll('[data-rr]:checked')].map((x) => x.dataset.rr);
+      if (!ids.length) return UI.toast('Elige al menos un vendedor', 'bad');
+      if (!(await UI.confirm(`¿Repartir ${unworked.length} prospectos entre ${ids.length} vendedores?`, { danger: false }))) return;
+      U.sortBy(unworked, (c) => c.createdAt).forEach((c, i) => { const to = ids[i % ids.length]; if (c.ownerId !== to) Store.reassign([c.id], to); });
+      UI.toast('Prospectos repartidos', 'good');
+    };
+  }
+
+  /* ---------- Configuración ---------- */
+  function config(el) {
+    const s = Store.settings();
+    el.innerHTML = `
+      <form class="card" id="cfg"><div class="card-body stack">
+        <div class="form-grid">
+          <label class="field">Nombre del negocio<input name="companyName" value="${U.esc(s.companyName)}"></label>
+          <label class="field">Eslogan / descripción<input name="companyTagline" value="${U.esc(s.companyTagline)}"></label>
+          <label class="field">Moneda<select name="currency">${UI.options([{ id: 'USD', name: 'Dólar (USD)' }, { id: 'COP', name: 'Peso colombiano (COP)' }, { id: 'MXN', name: 'Peso mexicano (MXN)' }, { id: 'EUR', name: 'Euro (EUR)' }, { id: 'PEN', name: 'Sol (PEN)' }, { id: 'CLP', name: 'Peso chileno (CLP)' }], s.currency)}</select></label>
+          <label class="field">Formato regional<select name="locale">${UI.options([{ id: 'es-US', name: 'Español (EE. UU.)' }, { id: 'es-CO', name: 'Español (Colombia)' }, { id: 'es-MX', name: 'Español (México)' }, { id: 'es-ES', name: 'Español (España)' }], s.locale)}</select></label>
+          <label class="field">Código de país para WhatsApp<input name="phoneCountryCode" value="${U.esc(s.phoneCountryCode)}" placeholder="1 = EE. UU., 57 = Colombia"></label>
+          <label class="field">Días sin contacto para marcar “olvidado”<input name="staleDays" type="number" min="1" value="${s.staleDays}"></label>
+          <label class="field">Fuentes de prospectos <span class="hint">una por línea</span><textarea name="sources" rows="6">${U.esc(s.sources.join('\n'))}</textarea></label>
+          <label class="field">Motivos de pérdida <span class="hint">una por línea</span><textarea name="lostReasons" rows="6">${U.esc(s.lostReasons.join('\n'))}</textarea></label>
+          <label class="field">Categorías de productos <span class="hint">una por línea</span><textarea name="categories" rows="6">${U.esc(s.categories.join('\n'))}</textarea></label>
+          <label class="field">Guion de llamada <span class="hint">variables: {nombre} {agente} {empresa} {ciudad}</span><textarea name="callScript" rows="6">${U.esc(s.callScript)}</textarea></label>
+        </div>
+        <div class="row"><span class="spacer"></span><button class="btn primary" type="submit">${icon('check', 'sm')} Guardar configuración</button></div>
+      </div></form>`;
+    el.querySelector('#cfg').onsubmit = (e) => {
+      e.preventDefault();
+      const d = UI.formData(e.target);
+      const lines = (t) => t.split('\n').map((x) => x.trim()).filter(Boolean);
+      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), staleDays: d.staleDays || 7 }));
+      App.shell(); App.route();
+      UI.toast('Configuración guardada', 'good');
+    };
+  }
+
+  /* ---------- Datos ---------- */
+  function datos(el) {
+    const counts = COLLECTIONS.map((c) => `${c}: <strong>${Store.all(c).length}</strong>`).join(' · ');
+    el.innerHTML = `
+      <div class="grid cols-2">
+        <div class="card"><div class="card-head"><h2>Respaldo</h2></div><div class="card-body stack" style="gap:10px">
+          <p class="small muted" style="margin:0">${counts}</p>
+          <p class="small" style="margin:0">Descarga una copia completa de toda la información. Guárdala en un lugar seguro.</p>
+          <div class="row wrap">
+            <button class="btn primary" id="bk">${icon('download', 'sm')} Descargar respaldo (.json)</button>
+            <label class="btn">${icon('upload', 'sm')} Restaurar respaldo<input type="file" id="restore" accept=".json,application/json" hidden></label>
+          </div>
+        </div></div>
+        <div class="card"><div class="card-head"><h2>Datos de demostración</h2></div><div class="card-body stack" style="gap:10px">
+          <p class="small" style="margin:0">El CRM trae datos de ejemplo para que puedas explorarlo. Cuando vayas a empezar a usarlo de verdad, bórralos.</p>
+          <div class="row wrap">
+            <button class="btn" id="demo">${icon('refresh', 'sm')} Recargar datos demo</button>
+            <button class="btn danger solid" id="wipe">${icon('trash', 'sm')} Borrar todo y empezar de cero</button>
+          </div>
+          <p class="small muted" style="margin:0">“Empezar de cero” conserva tu usuario administrador y la configuración.</p>
+        </div></div>
+      </div>`;
+    el.querySelector('#bk').onclick = () => U.download(`respaldo-crm-${U.toDateInput(new Date())}.json`, Store.exportJSON(), 'application/json');
+    el.querySelector('#restore').onchange = async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      if (!(await UI.confirm('Restaurar reemplazará TODA la información actual por la del archivo. ¿Continuar?'))) return;
+      try { Store.importJSON(await f.text()); App.shell(); App.route(); UI.toast('Respaldo restaurado', 'good'); } catch (err) { UI.toast('Archivo no válido: ' + err.message, 'bad'); }
+    };
+    el.querySelector('#demo').onclick = async () => { if (await UI.confirm('Esto reemplaza todo por los datos de demostración. ¿Continuar?')) { Store.resetDemo(); App.shell(); App.route(); UI.toast('Datos demo cargados', 'good'); } };
+    el.querySelector('#wipe').onclick = async () => {
+      if (!(await UI.confirm('Se borrarán TODOS los clientes, ventas, pagos, tareas, productos y usuarios (excepto tú). ¿Seguro? Descarga un respaldo antes si lo necesitas.', { okLabel: 'Sí, borrar todo' }))) return;
+      Store.wipeAll(); App.shell(); App.route(); UI.toast('Listo: CRM vacío y listo para usar', 'good');
+    };
+  }
+
+  /* ---------- Conexiones ---------- */
+  function conexiones(el) {
+    const cfg = window.CRM_CONFIG;
+    el.innerHTML = `
+      <div class="grid cols-2">
+        <div class="card"><div class="card-head"><h2>Firebase / Firestore</h2>${cfg.firebase.enabled ? '<span class="badge good">Conectado</span>' : '<span class="badge warn">Pendiente</span>'}</div>
+          <div class="card-body small stack" style="gap:8px">
+            <p style="margin:0">Base de datos en la nube para que todo el equipo comparta la misma información en tiempo real, y login con email y contraseña.</p>
+            <p style="margin:0" class="muted">Mientras tanto, los datos se guardan en <strong>este navegador</strong>. Colecciones preparadas: <code>${COLLECTIONS.join('</code>, <code>')}</code> y <code>settings</code>.</p>
+          </div></div>
+        <div class="card"><div class="card-head"><h2>Cloudinary</h2>${UI.cloudinaryReady() ? '<span class="badge good">Configurado</span>' : '<span class="badge warn">Pendiente</span>'}</div>
+          <div class="card-body small stack" style="gap:8px">
+            <p style="margin:0">Almacena imágenes de productos y archivos de clientes (fotos de instalación, facturas, contratos).</p>
+            <p style="margin:0" class="muted">Configura <code>cloudName</code> y un <code>uploadPreset</code> sin firma en <code>js/config.js</code>.</p>
+          </div></div>
+      </div>`;
+  }
+
+  return { title: 'Administración', perm: 'manageUsers', render };
+})();
