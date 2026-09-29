@@ -45,7 +45,8 @@ const App = (() => {
           </div>
           <nav class="nav" id="nav"></nav>
           <div class="sidebar-foot">
-            <div class="row" style="gap:6px">${icon('info', 'sm')}<span>${window.CRM_CONFIG.firebase.enabled ? 'Conectado a Firestore' : 'Modo local (navegador)'}</span></div>
+            <span class="demo-pill">${window.CRM_CONFIG.firebase.enabled ? 'En línea · Firestore' : 'Versión demo'}</span>
+            <a href="propuesta/" target="_blank" rel="noopener" class="row" style="gap:6px">${icon('file', 'sm')}<span>Ver propuesta</span></a>
           </div>
         </aside>
         <div class="main">
@@ -173,7 +174,9 @@ const App = (() => {
 
   async function start() {
     root = document.getElementById('root');
-    try { const t = localStorage.getItem('crm_mq_theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+    let t = null;
+    try { t = localStorage.getItem('crm_mq_theme'); } catch (e) {}
+    document.documentElement.dataset.theme = t || 'light';
     await Store.init();
     UI.initTooltips();
     shell();

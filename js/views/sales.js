@@ -250,7 +250,7 @@ Views.ventas = (() => {
     const w = window.open('', '_blank');
     if (!w) return UI.toast('Permite ventanas emergentes para imprimir', 'bad');
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Recibo ${U.esc(o.number)}</title>
-      <style>body{font-family:system-ui,sans-serif;max-width:720px;margin:32px auto;color:#111;padding:0 16px}h1{margin:0}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}.r{text-align:right}.muted{color:#666}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #2a78d6;padding-bottom:12px}</style></head><body>
+      <style>body{font-family:system-ui,sans-serif;max-width:720px;margin:32px auto;color:#111;padding:0 16px}h1{margin:0}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}.r{text-align:right}.muted{color:#666}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #18181b;padding-bottom:12px}</style></head><body>
       <div class="head"><div><h1>${U.esc(s.companyName)}</h1><div class="muted">${U.esc(s.companyTagline || '')}</div></div><div class="r"><strong>RECIBO ${U.esc(o.number)}</strong><br>${U.date(o.createdAt)}</div></div>
       <p><strong>Cliente:</strong> ${U.esc(c.name || '')}<br>${U.esc(c.phone || '')}<br>${U.esc([c.address, c.city, c.state].filter(Boolean).join(', '))}</p>
       <table><tr><th>Producto</th><th class="r">Cant.</th><th class="r">Precio</th><th class="r">Importe</th></tr>

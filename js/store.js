@@ -10,7 +10,7 @@
 const COLLECTIONS = ['users', 'clients', 'activities', 'tasks', 'products', 'orders', 'payments'];
 
 const LocalAdapter = {
-  KEY: 'crm_mq_db_v1',
+  KEY: 'crm_mq_db_v2',
   async load() {
     try { return JSON.parse(localStorage.getItem(this.KEY)) || null; } catch (e) { return null; }
   },

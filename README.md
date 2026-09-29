@@ -4,6 +4,10 @@ CRM de ventas para un negocio de filtros de aire, purificadores y productos para
 
 Está hecho en HTML, CSS y JavaScript puro, sin instalar nada. Abre `index.html` en el navegador y listo. Trae datos de demostración para explorarlo.
 
+## Propuesta comercial
+
+`propuesta/index.html` (se abre como `/propuesta` al publicar) es la cotización para la clienta: plan base de **$445 USD** con lo que incluye, el cronograma, los costos de servicios externos, preguntas frecuentes y los adicionales opcionales. El total se recalcula al marcar adicionales y la página se puede guardar como PDF.
+
 ## Módulos
 
 | Módulo | Qué hace |
@@ -32,6 +36,7 @@ Mientras no exista el login, el usuario activo se elige en el selector de arriba
 
 ```
 index.html
+propuesta/index.html  ← cotización para la clienta
 css/styles.css
 js/config.js          ← credenciales de Firebase y Cloudinary
 js/utils.js           ← formatos, constantes (etapas, resultados de llamada…), íconos

@@ -44,6 +44,20 @@ Views.dashboard = (() => {
         </div>
       </div>
 
+      ${manager && !welcomeClosed() ? `
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">${icon('star')}</div>
+        <div style="flex:1">
+          <strong style="font-size:15px">Bienvenida a tu CRM</strong>
+          <div class="muted small" style="margin-top:2px">Todo tu negocio en un solo lugar: prospectos, llamadas del equipo, ventas y cobros. Estos son datos de ejemplo para que lo explores.</div>
+        </div>
+        <div class="row wrap">
+          <a class="btn sm" href="#/pipeline">Ver embudo</a>
+          <a class="btn sm" href="#/reportes">Ver equipo</a>
+          <button class="btn ghost sm icon" id="closeWelcome" title="Cerrar">${icon('x', 'sm')}</button>
+        </div>
+      </div>` : ''}
+
       ${!manager || me.callGoal ? `
       <div class="card" style="margin-bottom:16px">
         <div class="card-body row wrap" style="gap:24px">
@@ -59,12 +73,12 @@ Views.dashboard = (() => {
       </div>` : ''}
 
       <div class="kpis">
-        ${kpi('Ventas', U.money(m.salesAmount), `${m.salesCount} pedidos · ticket prom. ${U.money(m.avgTicket)}`, 'cart', '#0a8a0a')}
-        ${kpi('Recaudado', U.money(m.collected), `Pagos recibidos · ${Metrics.RANGES[range].label.toLowerCase()}`, 'wallet', '#2a78d6')}
-        ${kpi('Por cobrar', U.money(rec.total), `${rec.count} pedidos · ${U.money(rec.overdue)} vencido`, 'alert', '#d03b3b')}
-        ${kpi('Llamadas', U.num(m.calls), `${U.pct(m.contactRate)} contestaron · ${m.quotes} cotizaciones`, 'phone', '#4a3aa7')}
-        ${kpi('Meta del mes', salesGoal ? U.pct(monthMine.salesAmount / salesGoal) : '—', salesGoal ? `${U.money(monthMine.salesAmount)} de ${U.money(salesGoal)}` : 'Define metas en el panel admin', 'target', '#c98500', salesGoal ? monthMine.salesAmount / salesGoal : undefined)}
-        ${kpi('Prospectos activos', U.num(m.openLeads), `${m.hotLeads} calientes · ${m.newLeads} nuevos en el periodo`, 'flame', '#e34948')}
+        ${kpi('Ventas', U.money(m.salesAmount), `${m.salesCount} pedidos · ticket prom. ${U.money(m.avgTicket)}`, 'cart', '#52525b')}
+        ${kpi('Recaudado', U.money(m.collected), `Pagos recibidos · ${Metrics.RANGES[range].label.toLowerCase()}`, 'wallet', '#52525b')}
+        ${kpi('Por cobrar', U.money(rec.total), `${rec.count} pedidos · ${U.money(rec.overdue)} vencido`, 'alert', '#52525b')}
+        ${kpi('Llamadas', U.num(m.calls), `${U.pct(m.contactRate)} contestaron · ${m.quotes} cotizaciones`, 'phone', '#52525b')}
+        ${kpi('Meta del mes', salesGoal ? U.pct(monthMine.salesAmount / salesGoal) : '—', salesGoal ? `${U.money(monthMine.salesAmount)} de ${U.money(salesGoal)}` : 'Define metas en el panel admin', 'target', '#52525b', salesGoal ? monthMine.salesAmount / salesGoal : undefined)}
+        ${kpi('Prospectos activos', U.num(m.openLeads), `${m.hotLeads} calientes · ${m.newLeads} nuevos en el periodo`, 'flame', '#52525b')}
       </div>
 
       <div class="grid span-2-1" style="margin-bottom:16px">
@@ -115,9 +129,13 @@ Views.dashboard = (() => {
       ${manager ? `<div class="card" style="margin-top:16px"><div class="card-head"><h2>Actividad reciente del equipo</h2></div><div class="card-body flush">${recentList(recent)}</div></div>` : ''}
     `;
 
+    const cw = el.querySelector('#closeWelcome');
+    if (cw) cw.onclick = () => { try { localStorage.setItem('crm_mq_welcome', '1'); } catch (e) {} el.querySelector('#welcome').remove(); };
     el.querySelectorAll('#rangeSeg button').forEach((b) => b.onclick = () => { range = b.dataset.r; render(el); });
     el.querySelectorAll('[data-go]').forEach((x) => x.onclick = () => { location.hash = x.dataset.go; });
   }
+
+  function welcomeClosed() { try { return localStorage.getItem('crm_mq_welcome') === '1'; } catch (e) { return false; } }
 
   function tempBar(list) {
     const counts = TEMPS.map((t) => ({ t, n: list.filter((c) => c.temperature === t.id).length }));

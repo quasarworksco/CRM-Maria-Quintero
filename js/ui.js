@@ -137,11 +137,11 @@ const UI = (() => {
   /* Barras horizontales (ranking/embudo) */
   function hbars(rows, { format = U.num, ramp = false } = {}) {
     const max = Math.max(1, ...rows.map((r) => r.value));
-    const rampColors = ['var(--ramp-5)', 'var(--ramp-4)', 'var(--ramp-3)', 'var(--ramp-2)', 'var(--ramp-1)'];
+    const rampColors = ['var(--ramp-2)', 'var(--ramp-3)', 'var(--ramp-3)', 'var(--ramp-4)', 'var(--ramp-4)', 'var(--ramp-5)'];
     return `<div class="hbars">${rows.map((r, i) => `
       <div class="hbar" data-tip="${U.esc(r.label)}: ${U.esc(format(r.value))}${r.extra ? ' · ' + U.esc(r.extra) : ''}">
         <div class="nowrap" style="overflow:hidden;text-overflow:ellipsis">${U.esc(r.label)}</div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:${(r.value / max) * 100}%;${r.color ? 'background:' + r.color : ramp ? 'background:' + rampColors[Math.min(i, 4)] : ''}"></div></div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${(r.value / max) * 100}%;${r.color ? 'background:' + r.color : ramp ? 'background:' + rampColors[Math.min(i, 5)] : ''}"></div></div>
         <div class="hbar-val">${U.esc(format(r.value))}</div>
       </div>`).join('')}</div>`;
   }

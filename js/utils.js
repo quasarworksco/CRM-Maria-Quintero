@@ -154,13 +154,13 @@ const U = (() => {
 
 /* ---------- Constantes del negocio ---------- */
 const STAGES = [
-  { id: 'nuevo', name: 'Nuevo', color: '#7b8391', prob: 0.05, desc: 'Prospecto sin contactar' },
-  { id: 'contactado', name: 'Contactado', color: '#5598e7', prob: 0.1, desc: 'Ya se habló al menos una vez' },
-  { id: 'interesado', name: 'Interesado', color: '#2a78d6', prob: 0.25, desc: 'Mostró interés en algún producto' },
-  { id: 'cotizacion', name: 'Cotización', color: '#4a3aa7', prob: 0.45, desc: 'Se envió precio / propuesta' },
-  { id: 'negociacion', name: 'Negociación', color: '#c98500', prob: 0.7, desc: 'Definiendo detalles para cerrar' },
-  { id: 'ganado', name: 'Ganado', color: '#0a8a0a', prob: 1, desc: 'Compró — ahora es cliente' },
-  { id: 'perdido', name: 'Perdido', color: '#d03b3b', prob: 0, desc: 'No compró / descartado' }
+  { id: 'nuevo', name: 'Nuevo', color: '#a1a1aa', prob: 0.05, desc: 'Prospecto sin contactar' },
+  { id: 'contactado', name: 'Contactado', color: '#8b8b94', prob: 0.1, desc: 'Ya se habló al menos una vez' },
+  { id: 'interesado', name: 'Interesado', color: '#71717a', prob: 0.25, desc: 'Mostró interés en algún producto' },
+  { id: 'cotizacion', name: 'Cotización', color: '#52525b', prob: 0.45, desc: 'Se envió precio / propuesta' },
+  { id: 'negociacion', name: 'Negociación', color: '#27272a', prob: 0.7, desc: 'Definiendo detalles para cerrar' },
+  { id: 'ganado', name: 'Ganado', color: '#15803d', prob: 1, desc: 'Compró — ahora es cliente' },
+  { id: 'perdido', name: 'Perdido', color: '#dc2626', prob: 0, desc: 'No compró / descartado' }
 ];
 const OPEN_STAGES = ['nuevo', 'contactado', 'interesado', 'cotizacion', 'negociacion'];
 const stageById = (id) => STAGES.find((s) => s.id === id) || STAGES[0];
@@ -174,14 +174,14 @@ const tempById = (id) => TEMPS.find((t) => t.id === id) || TEMPS[0];
 
 /* Resultados de llamada: cada uno puede mover etapa/temperatura y programar seguimiento */
 const OUTCOMES = [
-  { id: 'no_contesta', name: 'No contesta', color: '#7b8391', contact: false, followDays: 1, icon: 'phoneOff' },
-  { id: 'buzon', name: 'Buzón de voz', color: '#868e9c', contact: false, followDays: 1, icon: 'voicemail' },
-  { id: 'llamar_despues', name: 'Llamar después', color: '#5598e7', contact: true, followDays: 2, icon: 'clock' },
-  { id: 'interesado', name: 'Interesado', color: '#2a78d6', contact: true, followDays: 2, stage: 'interesado', temp: 'tibio', icon: 'thumbUp' },
-  { id: 'cotizacion', name: 'Pidió cotización', color: '#4a3aa7', contact: true, followDays: 1, stage: 'cotizacion', temp: 'caliente', icon: 'file' },
-  { id: 'venta', name: 'Venta cerrada', color: '#0a8a0a', contact: true, followDays: 30, stage: 'ganado', temp: 'caliente', icon: 'check', sale: true },
-  { id: 'no_interesado', name: 'No interesado', color: '#d03b3b', contact: true, followDays: 90, temp: 'frio', icon: 'x' },
-  { id: 'equivocado', name: 'Número equivocado', color: '#b0473a', contact: false, followDays: null, stage: 'perdido', icon: 'alert' }
+  { id: 'no_contesta', name: 'No contesta', color: '#a1a1aa', contact: false, followDays: 1, icon: 'phoneOff' },
+  { id: 'buzon', name: 'Buzón de voz', color: '#c4c4ca', contact: false, followDays: 1, icon: 'voicemail' },
+  { id: 'llamar_despues', name: 'Llamar después', color: '#71717a', contact: true, followDays: 2, icon: 'clock' },
+  { id: 'interesado', name: 'Interesado', color: '#52525b', contact: true, followDays: 2, stage: 'interesado', temp: 'tibio', icon: 'thumbUp' },
+  { id: 'cotizacion', name: 'Pidió cotización', color: '#27272a', contact: true, followDays: 1, stage: 'cotizacion', temp: 'caliente', icon: 'file' },
+  { id: 'venta', name: 'Venta cerrada', color: '#16a34a', contact: true, followDays: 30, stage: 'ganado', temp: 'caliente', icon: 'check', sale: true },
+  { id: 'no_interesado', name: 'No interesado', color: '#ef4444', contact: true, followDays: 90, temp: 'frio', icon: 'x' },
+  { id: 'equivocado', name: 'Número equivocado', color: '#b91c1c', contact: false, followDays: null, stage: 'perdido', icon: 'alert' }
 ];
 const outcomeById = (id) => OUTCOMES.find((o) => o.id === id);
 
@@ -215,7 +215,7 @@ const ROLES = {
   agente: { name: 'Agente / Vendedor', desc: 'Solo ve y trabaja sus propios clientes' }
 };
 
-const USER_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#c98500', '#d55181', '#008300', '#4a3aa7', '#e34948'];
+const USER_COLORS = ['#18181b', '#52525b', '#78716c', '#3f3f46', '#71717a', '#44403c', '#27272a', '#57534e'];
 
 /* ---------- Íconos (SVG inline, estilo lucide) ---------- */
 const ICONS = {

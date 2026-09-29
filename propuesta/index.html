@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Propuesta CRM · Maria Quintero</title>
+  <meta name="description" content="Propuesta y cotización del CRM de ventas a la medida para Maria Quintero.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f6f7;
+      --surface: #ffffff;
+      --surface-2: #fafafa;
+      --surface-3: #f2f2f4;
+      --border: #ebebee;
+      --border-strong: #dcdce0;
+      --text: #18181b;
+      --text-2: #52525b;
+      --text-3: #8e8e96;
+      --ink: #18181b;
+      --ink-2: #3f3f46;
+      --good: #15803d;
+      --shadow: 0 1px 2px rgba(24, 24, 27, .04), 0 1px 1px rgba(24, 24, 27, .03);
+      --shadow-md: 0 8px 24px -8px rgba(24, 24, 27, .12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #0c0c0d; --surface: #161618; --surface-2: #1b1b1e; --surface-3: #232326;
+        --border: #2a2a2e; --border-strong: #38383d; --text: #f4f4f5; --text-2: #b4b4bb; --text-3: #7c7c85;
+        --ink: #f4f4f5; --ink-2: #d4d4d8; --good: #4ade80;
+        --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-md: 0 8px 24px -8px rgba(0,0,0,.6);
+      }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0c0c0d; --surface: #161618; --surface-2: #1b1b1e; --surface-3: #232326;
+      --border: #2a2a2e; --border-strong: #38383d; --text: #f4f4f5; --text-2: #b4b4bb; --text-3: #7c7c85;
+      --ink: #f4f4f5; --ink-2: #d4d4d8; --good: #4ade80;
+      --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-md: 0 8px 24px -8px rgba(0,0,0,.6);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased; letter-spacing: -.005em;
+    }
+    a { color: inherit; }
+    h1, h2, h3 { margin: 0; letter-spacing: -.025em; line-height: 1.2; }
+    p { margin: 0; }
+    svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+    .top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; }
+    .logo { width: 32px; height: 32px; border-radius: 9px; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 10px;
+      font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap;
+      border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); box-shadow: var(--shadow);
+      transition: background .12s, border-color .12s;
+    }
+    .btn:hover { border-color: var(--text-3); }
+    .btn.dark { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .btn.dark:hover { background: var(--ink-2); }
+    .btn.lg { height: 48px; padding: 0 22px; font-size: 15px; border-radius: 12px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .hero { padding: 72px 0 40px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-2); background: var(--surface); border: 1px solid var(--border); padding: 5px 12px; border-radius: 999px; box-shadow: var(--shadow); }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+    .hero h1 { font-size: clamp(34px, 5.4vw, 56px); font-weight: 700; margin: 20px 0 16px; max-width: 800px; letter-spacing: -.04em; }
+    .hero h1 span { color: var(--text-3); }
+    .hero p.lead { font-size: 18px; color: var(--text-2); max-width: 680px; }
+    .meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 36px; background: var(--border); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .meta div { background: var(--surface); padding: 14px 18px; }
+    .meta small { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); font-weight: 600; }
+    .meta strong { font-weight: 600; font-size: 14.5px; }
+
+    section { padding: 44px 0; }
+    .sec-head { margin-bottom: 26px; max-width: 700px; }
+    .sec-head .k { font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); }
+    .sec-head h2 { font-size: clamp(24px, 3.4vw, 32px); font-weight: 680; margin-top: 8px; }
+    .sec-head p { color: var(--text-2); margin-top: 10px; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); }
+    .grid { display: grid; gap: 14px; }
+    .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .pain { padding: 22px; }
+    .pain .ico { width: 38px; height: 38px; border-radius: 10px; background: var(--surface-3); border: 1px solid var(--border); display: grid; place-items: center; color: var(--text-2); margin-bottom: 14px; }
+    .pain h3 { font-size: 15.5px; font-weight: 620; margin-bottom: 6px; }
+    .pain p { color: var(--text-2); font-size: 14px; }
+
+    /* Precio */
+    .price-wrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+    .price-card { padding: 30px; position: relative; overflow: hidden; }
+    .price-card .tag { font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--surface-3); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; display: inline-block; }
+    .price { display: flex; align-items: flex-start; gap: 6px; margin: 18px 0 4px; }
+    .price .cur { font-size: 26px; font-weight: 600; margin-top: 10px; color: var(--text-2); }
+    .price .amt { font-size: 76px; font-weight: 700; letter-spacing: -.05em; line-height: 1; }
+    .price .per { align-self: flex-end; margin-bottom: 12px; color: var(--text-3); font-weight: 500; }
+    .price-sub { color: var(--text-2); font-size: 14px; }
+    .terms { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .term { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+    .term small { color: var(--text-3); font-size: 12px; font-weight: 500; }
+    .term strong { display: block; font-size: 18px; font-weight: 650; letter-spacing: -.02em; }
+    .checks { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 10px; }
+    .checks li { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; }
+    .checks li .i { width: 18px; height: 18px; margin-top: 2px; color: var(--good); }
+
+    .summary { padding: 24px; position: sticky; top: 80px; }
+    .summary h3 { font-size: 15px; font-weight: 620; }
+    .sum-line { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
+    .sum-line span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+    .sum-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; }
+    .sum-total strong { font-size: 30px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+    .sum-note { font-size: 12.5px; color: var(--text-3); margin-top: 6px; }
+    .monthly { font-size: 13.5px; color: var(--text-2); margin-top: 4px; }
+
+    /* Módulos incluidos */
+    .mod { padding: 20px; display: flex; gap: 14px; }
+    .mod .n { width: 30px; height: 30px; border-radius: 9px; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-size: 12.5px; font-weight: 700; flex: none; }
+    .mod h3 { font-size: 15px; font-weight: 620; margin-bottom: 4px; }
+    .mod p { color: var(--text-2); font-size: 13.5px; }
+    .mod ul { margin: 8px 0 0; padding-left: 18px; color: var(--text-2); font-size: 13.5px; }
+    .mod ul li { margin: 2px 0; }
+
+    /* Adicionales */
+    .addon { padding: 18px 18px 18px 16px; display: flex; gap: 14px; align-items: flex-start; cursor: pointer; transition: border-color .12s, box-shadow .12s; }
+    .addon:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+    .addon.on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+    .addon input { position: absolute; opacity: 0; pointer-events: none; }
+    .box { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--border-strong); display: grid; place-items: center; flex: none; margin-top: 2px; background: var(--surface); transition: all .12s; }
+    .box .i { width: 13px; height: 13px; stroke-width: 3; color: var(--bg); opacity: 0; }
+    .addon.on .box { background: var(--ink); border-color: var(--ink); }
+    .addon.on .box .i { opacity: 1; }
+    .addon .body { flex: 1; min-width: 0; }
+    .addon h3 { font-size: 14.5px; font-weight: 620; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .addon p { color: var(--text-2); font-size: 13.5px; margin-top: 3px; }
+    .addon .pr { font-weight: 650; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .pill { font-size: 11px; font-weight: 600; color: var(--text-2); background: var(--surface-3); border: 1px solid var(--border); padding: 1px 8px; border-radius: 999px; }
+    .cat { font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin: 26px 0 10px; }
+
+    /* Cronograma */
+    .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
+    .step { padding: 20px; position: relative; }
+    .step .when { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+    .step h3 { font-size: 15px; font-weight: 620; margin: 6px 0 6px; }
+    .step p { font-size: 13.5px; color: var(--text-2); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); font-weight: 600; }
+    tr:last-child td { border-bottom: 0; }
+    td.r, th.r { text-align: right; white-space: nowrap; }
+
+    .faq details { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .faq details:last-child { border-bottom: 0; }
+    .faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; color: var(--text-3); font-weight: 500; font-size: 18px; line-height: 1; }
+    .faq details[open] summary::after { content: "–"; }
+    .faq p { color: var(--text-2); margin-top: 8px; font-size: 14px; }
+
+    .cta { text-align: center; padding: 56px 24px; }
+    .cta h2 { font-size: clamp(26px, 4vw, 38px); font-weight: 700; }
+    .cta p { color: var(--text-2); margin: 12px auto 26px; max-width: 560px; }
+    .cta .row { justify-content: center; }
+    footer { padding: 30px 0 50px; color: var(--text-3); font-size: 13px; text-align: center; }
+
+    @media (max-width: 900px) {
+      .price-wrap, .g3 { grid-template-columns: minmax(0, 1fr); }
+      .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .summary { position: static; }
+    }
+    @media (max-width: 640px) {
+      .g2, .steps, .terms { grid-template-columns: minmax(0, 1fr); }
+      .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero { padding: 44px 0 20px; }
+      .price .amt { font-size: 60px; }
+      .top .hide-sm { display: none; }
+      section { padding: 32px 0; }
+    }
+    @media print {
+      .top, .no-print { display: none !important; }
+      body { background: #fff; font-size: 13px; }
+      .card { box-shadow: none; break-inside: avoid; }
+      section { padding: 20px 0; }
+      .hero { padding: 10px 0 10px; }
+      .summary { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <div class="brand"><div class="logo">MQ</div><span>Propuesta CRM</span></div>
+      <div class="row">
+        <button class="btn no-print hide-sm" onclick="window.print()">
+          <svg class="i" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Guardar PDF
+        </button>
+        <a class="btn dark" href="../index.html">Ver demo en vivo
+          <svg class="i" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Portada -->
+    <div class="hero">
+      <span class="eyebrow"><span class="dot"></span>Cotización COT-2026-014</span>
+      <h1>Un CRM hecho a la medida para vender más <span>y no perder ni un cliente.</span></h1>
+      <p class="lead">Una herramienta propia para que tu equipo llame, dé seguimiento y cierre ventas con orden, y para que tú veas en tiempo real cuánto se vende, cuánto se cobra y quién está rindiendo.</p>
+      <div class="meta">
+        <div><small>Preparado para</small><strong>Maria Quintero</strong></div>
+        <div><small>Fecha</small><strong id="today">—</strong></div>
+        <div><small>Válida hasta</small><strong id="valid">—</strong></div>
+        <div><small>Entrega estimada</small><strong>10 a 14 días</strong></div>
+      </div>
+    </div>
+
+    <!-- El reto -->
+    <section>
+      <div class="sec-head">
+        <div class="k">El reto</div>
+        <h2>Lo que pasa hoy cuando un equipo vende por teléfono sin sistema</h2>
+      </div>
+      <div class="grid g3">
+        <div class="card pain">
+          <div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <h3>Clientes en libretas y Excel</h3>
+          <p>La información queda repartida entre cuadernos, celulares y hojas de cálculo. Cuando alguien se va, se lleva los contactos.</p>
+        </div>
+        <div class="card pain">
+          <div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <h3>Seguimientos que se olvidan</h3>
+          <p>El cliente dijo "llámame el jueves" y nadie lo llamó. Así se pierde la mayoría de las ventas que ya estaban calientes.</p>
+        </div>
+        <div class="card pain">
+          <div class="ico"><svg class="i" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <h3>No se sabe quién debe ni quién rinde</h3>
+          <p>Sin números claros es difícil saber cuánto falta por cobrar, cuántas llamadas hace cada persona o qué producto se vende más.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inversión -->
+    <section id="inversion">
+      <div class="sec-head">
+        <div class="k">Inversión</div>
+        <h2>Un solo pago. El sistema es tuyo.</h2>
+        <p>Sin mensualidades obligatorias ni cobro por usuario. Agrega a todas las personas de tu equipo que necesites.</p>
+      </div>
+      <div class="price-wrap">
+        <div class="card price-card">
+          <span class="tag">CRM completo · Plan base</span>
+          <div class="price"><span class="cur">$</span><span class="amt">445</span><span class="per">USD · pago único</span></div>
+          <p class="price-sub">Incluye desarrollo, puesta en línea, login con usuarios, carga de tus clientes, capacitación y 30 días de soporte.</p>
+          <div class="terms">
+            <div class="term"><small>50% para iniciar</small><strong>$222.50</strong></div>
+            <div class="term"><small>50% contra entrega</small><strong>$222.50</strong></div>
+          </div>
+          <ul class="checks">
+            <li><svg class="i" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Usuarios ilimitados</strong> con roles: administradora, supervisora y agente</span></li>
+            <li><svg class="i" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Datos en la nube</strong> (Google Firebase), compartidos en tiempo real por todo el equipo</span></li>
+            <li><svg class="i" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Funciona en computador, tablet y celular</strong>, sin instalar nada</span></li>
+            <li><svg class="i" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Tus datos son tuyos</strong>: exportación a Excel y respaldos cuando quieras</span></li>
+            <li><svg class="i" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Soporte de 30 días</strong> para dudas y ajustes menores después de la entrega</span></li>
+          </ul>
+        </div>
+
+        <aside class="card summary" id="summary">
+          <h3>Tu cotización</h3>
+          <div id="lines" style="margin-top:10px"></div>
+          <div class="sum-total"><span style="font-weight:600">Total</span><strong id="total">$445</strong></div>
+          <div class="monthly" id="monthly"></div>
+          <p class="sum-note">Marca abajo los adicionales que te interesen y el total se actualiza. Los adicionales se pueden agregar ahora o más adelante.</p>
+          <div class="row no-print" style="margin-top:16px">
+            <a class="btn dark" id="acceptBtn" href="#aceptar" style="flex:1;justify-content:center">Aceptar propuesta</a>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Qué incluye -->
+    <section id="incluye">
+      <div class="sec-head">
+        <div class="k">Qué incluye</div>
+        <h2>Todo lo que necesita tu equipo, desde la primera llamada hasta el último pago</h2>
+        <p>Estos módulos ya se pueden probar en la demo en vivo.</p>
+      </div>
+      <div class="grid g2">
+        <div class="card mod"><div class="n">1</div><div>
+          <h3>Tablero de inicio</h3>
+          <p>Ventas, dinero cobrado, saldo por cobrar, llamadas, meta del mes y prospectos calientes, todo en una sola pantalla. Cada agente ve sus propios números.</p>
+        </div></div>
+        <div class="card mod"><div class="n">2</div><div>
+          <h3>Modo llamadas para el equipo</h3>
+          <p>Le dice a cada agente a quién llamar primero: seguimientos vencidos, luego los calientes, luego los nuevos.</p>
+          <ul><li>Guion de llamada con el nombre del cliente</li><li>Cronómetro, resultado en un clic y "guardar y siguiente"</li><li>Meta diaria de llamadas por persona</li></ul>
+        </div></div>
+        <div class="card mod"><div class="n">3</div><div>
+          <h3>Clientes y prospectos</h3>
+          <p>Ficha completa de cada persona: datos, dirección, productos de interés, historial de llamadas y notas, compras, saldo y archivos.</p>
+          <ul><li>Búsqueda instantánea y filtros rápidos</li><li>Importación desde Excel, con reparto automático entre agentes</li><li>Aviso de teléfonos duplicados y lista de "no llamar"</li></ul>
+        </div></div>
+        <div class="card mod"><div class="n">4</div><div>
+          <h3>Embudo de ventas de frío a caliente</h3>
+          <p>Tablero visual con cada etapa: nuevo, contactado, interesado, cotización, negociación, ganado. Las tarjetas se mueven arrastrándolas.</p>
+          <ul><li>Temperatura frío / tibio / caliente y puntaje de cada prospecto</li><li>Alerta de clientes olvidados</li></ul>
+        </div></div>
+        <div class="card mod"><div class="n">5</div><div>
+          <h3>Ventas y pedidos</h3>
+          <p>Pedidos con varios productos, descuentos, envío o instalación, cuotas, estado de entrega y recibo para imprimir. El inventario se descuenta solo.</p>
+        </div></div>
+        <div class="card mod"><div class="n">6</div><div>
+          <h3>Recaudo y cartera</h3>
+          <p>Quién debe, cuánto y desde hace cuánto (al día, 15, 30, 60+ días). Registro de abonos y recordatorio de cobro por WhatsApp en un clic.</p>
+        </div></div>
+        <div class="card mod"><div class="n">7</div><div>
+          <h3>Agenda y tareas</h3>
+          <p>Seguimientos y pendientes de cada persona organizados en vencidos, hoy, mañana y la semana. Nada se queda sin hacer.</p>
+        </div></div>
+        <div class="card mod"><div class="n">8</div><div>
+          <h3>Catálogo de productos</h3>
+          <p>Filtros de aire, purificadores y todo lo que vendes, con foto, precio, costo, margen y alerta cuando el inventario está bajo.</p>
+        </div></div>
+        <div class="card mod"><div class="n">9</div><div>
+          <h3>Reportes del equipo</h3>
+          <p>Ranking de vendedores con llamadas, porcentaje de contacto, ventas, cobros y avance de la meta. También qué fuente de clientes vende más y por qué se pierden las ventas.</p>
+        </div></div>
+        <div class="card mod"><div class="n">10</div><div>
+          <h3>Panel de administración</h3>
+          <p>Crear y desactivar usuarios, asignar roles y metas, pasar la cartera de una persona a otra y configurar el negocio: moneda, fuentes, motivos de pérdida y guion.</p>
+        </div></div>
+        <div class="card mod"><div class="n">11</div><div>
+          <h3>Login y seguridad</h3>
+          <p>Cada persona entra con su correo y contraseña. Las agentes solo ven a sus propios clientes y la información queda protegida en la nube de Google.</p>
+        </div></div>
+        <div class="card mod"><div class="n">12</div><div>
+          <h3>Puesta en marcha</h3>
+          <ul style="margin-top:0"><li>Publicación en línea con enlace seguro (https)</li><li>Carga inicial de tus clientes desde Excel</li><li>Fotos y archivos en la nube (Cloudinary)</li><li>Capacitación en vivo de 1 hora para ti y tu equipo, más un manual rápido</li></ul>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- Adicionales -->
+    <section id="adicionales">
+      <div class="sec-head">
+        <div class="k">Adicionales opcionales</div>
+        <h2>Lo que se le puede sumar, cuando lo necesites</h2>
+        <p>El sistema está construido para crecer. Marca los que te interesen para verlos en la cotización.</p>
+      </div>
+      <div id="addons"></div>
+    </section>
+
+    <!-- Cronograma -->
+    <section>
+      <div class="sec-head">
+        <div class="k">Cronograma</div>
+        <h2>De la aprobación a tu equipo trabajando: 2 semanas</h2>
+      </div>
+      <div class="steps">
+        <div class="card step"><div class="when">Días 1–2</div><h3>Arranque</h3><p>Revisamos contigo tus productos, etapas de venta, guion y equipo. Se ajusta la configuración a tu negocio.</p></div>
+        <div class="card step"><div class="when">Días 3–7</div><h3>Nube y login</h3><p>Conexión a la base de datos en línea, usuarios con contraseña, permisos por rol y almacenamiento de fotos.</p></div>
+        <div class="card step"><div class="when">Días 8–11</div><h3>Datos y pruebas</h3><p>Carga de tus clientes y productos, pruebas con tu equipo y ajustes finales.</p></div>
+        <div class="card step"><div class="when">Días 12–14</div><h3>Entrega</h3><p>Publicación, capacitación en vivo y manual. Empieza el periodo de 30 días de soporte.</p></div>
+      </div>
+    </section>
+
+    <!-- Costos de terceros -->
+    <section>
+      <div class="sec-head">
+        <div class="k">Transparencia</div>
+        <h2>Servicios externos y lo que cuestan</h2>
+        <p>El sistema usa servicios de primer nivel que, para el tamaño de tu equipo, arrancan <strong>gratis</strong>.</p>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <table>
+          <thead><tr><th>Servicio</th><th>Para qué sirve</th><th class="r">Costo estimado</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Google Firebase</strong></td><td>Base de datos en la nube y login de usuarios</td><td class="r">$0 · plan gratuito</td></tr>
+            <tr><td><strong>Cloudinary</strong></td><td>Fotos de productos y archivos de clientes</td><td class="r">$0 · plan gratuito</td></tr>
+            <tr><td><strong>Hosting</strong></td><td>Publicar el CRM en internet con https</td><td class="r">$0 · plan gratuito</td></tr>
+            <tr><td><strong>Dominio propio</strong> (opcional)</td><td>Ej.: crm.tunegocio.com</td><td class="r">~$12–20 / año</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Preguntas -->
+    <section>
+      <div class="sec-head"><div class="k">Preguntas frecuentes</div><h2>Lo que suelen preguntar</h2></div>
+      <div class="card faq">
+        <details open><summary>¿Tengo que pagar mensualidad?</summary><p>No. El plan base es un solo pago de $445. Los servicios externos arrancan en plan gratuito. El plan de mantenimiento mensual es opcional.</p></details>
+        <details><summary>¿Cuántos usuarios puedo tener?</summary><p>Los que necesites. A diferencia de los CRM comerciales (que cobran entre $15 y $50 por usuario al mes), aquí no se cobra por usuario.</p></details>
+        <details><summary>¿Qué pasa con mis datos?</summary><p>Son tuyos. Quedan en tu propia cuenta de Google Firebase y los puedes exportar a Excel o descargar un respaldo completo cuando quieras.</p></details>
+        <details><summary>¿Mis trabajadoras pueden ver los clientes de otras?</summary><p>No. Cada agente ve solo su cartera. Tú y la supervisora ven todo y pueden reasignar clientes.</p></details>
+        <details><summary>¿Se puede usar desde el celular?</summary><p>Sí, se adapta a cualquier pantalla. Desde el celular se puede llamar o escribir por WhatsApp directamente desde la ficha del cliente.</p></details>
+        <details><summary>¿Y si después quiero algo más?</summary><p>Cualquier adicional de la lista se puede agregar en cualquier momento. Para ideas nuevas se cotiza aparte.</p></details>
+      </div>
+    </section>
+
+    <!-- Aceptar -->
+    <section id="aceptar">
+      <div class="card cta">
+        <h2>¿Empezamos?</h2>
+        <p>Con la aprobación y el primer 50% arrancamos de inmediato. En dos semanas tu equipo estará trabajando en su propio CRM.</p>
+        <div class="row">
+          <a class="btn dark lg" href="../index.html">Probar la demo en vivo</a>
+          <button class="btn lg no-print" onclick="window.print()">Descargar propuesta en PDF</button>
+        </div>
+        <p id="selNote" style="margin:18px auto 0;font-size:13.5px"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">Propuesta válida por 15 días a partir de la fecha de emisión · Valores en dólares estadounidenses (USD)</footer>
+
+  <script>
+    const BASE = 445;
+    const ADDONS = [
+      { cat: 'Ventas y seguimiento', items: [
+        { id: 'recompra', name: 'Recordatorio automático de cambio de filtros', price: 75, pill: 'Recomendado', desc: 'Cada 3 meses después de una compra el CRM crea la tarea de llamar al cliente para la recompra. Ideal para filtros de aire.' },
+        { id: 'pdf', name: 'Cotizaciones y facturas en PDF con tu logo', price: 110, desc: 'Genera cotizaciones y facturas con tu marca y envíalas por email o WhatsApp en un clic.' },
+        { id: 'comisiones', name: 'Comisiones automáticas por vendedor', price: 95, desc: 'Porcentajes por producto o por meta, con reporte mensual de lo que le toca a cada persona.' },
+        { id: 'rutas', name: 'Agenda de instalaciones y entregas con mapa', price: 140, desc: 'Calendario para técnicos o repartidores, con la ruta del día en Google Maps.' }
+      ]},
+      { cat: 'Comunicación y automatización', items: [
+        { id: 'wa', name: 'Integración con WhatsApp Business', price: 180, from: true, desc: 'Plantillas y mensajes automáticos: confirmación de pedido, recordatorio de pago y seguimiento.' },
+        { id: 'voip', name: 'Llamadas desde el CRM con grabación', price: 250, from: true, desc: 'Telefonía por internet (Twilio): llamar con un clic desde el computador, grabar y medir la duración real.' },
+        { id: 'recordatorios', name: 'Recordatorios por email y SMS', price: 120, desc: 'Avisos automáticos al equipo de seguimientos vencidos y a los clientes de pagos próximos.' }
+      ]},
+      { cat: 'Captación de clientes', items: [
+        { id: 'landing', name: 'Página web con formulario que entra al CRM', price: 150, desc: 'Landing page de tus productos. Cada persona que deja sus datos llega como prospecto nuevo, ya asignado a una agente.' },
+        { id: 'meta', name: 'Conexión con Facebook e Instagram Lead Ads', price: 160, desc: 'Los prospectos de tus anuncios entran al CRM al instante, sin copiar y pegar.' }
+      ]},
+      { cat: 'Experiencia y marca', items: [
+        { id: 'pwa', name: 'App instalable en el celular con notificaciones', price: 90, desc: 'Ícono en la pantalla del teléfono y avisos push de seguimientos y nuevas asignaciones.' },
+        { id: 'dominio', name: 'Dominio propio y marca personalizada', price: 35, desc: 'Configuración de crm.tunegocio.com, tu logo y tus colores. El costo anual del dominio es aparte.' },
+        { id: 'reportes', name: 'Reportes avanzados programados', price: 85, desc: 'Resumen semanal por email en PDF o Excel con ventas, cobros y rendimiento del equipo.' }
+      ]},
+      { cat: 'Tranquilidad', items: [
+        { id: 'mant', name: 'Plan de mantenimiento mensual', price: 39, monthly: true, desc: 'Soporte continuo, respaldos semanales, actualizaciones y hasta 2 horas de mejoras pequeñas al mes.' }
+      ]}
+    ];
+
+    const sel = new Set();
+    const money = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+    const check = '<svg class="i" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+    const all = ADDONS.flatMap((c) => c.items);
+
+    document.getElementById('addons').innerHTML = ADDONS.map((c) => `
+      <div class="cat">${c.cat}</div>
+      <div class="grid g2">${c.items.map((a) => `
+        <label class="card addon" data-id="${a.id}">
+          <input type="checkbox" value="${a.id}">
+          <span class="box">${check}</span>
+          <span class="body">
+            <h3>${a.name}${a.pill ? `<span class="pill">${a.pill}</span>` : ''}</h3>
+            <p>${a.desc}</p>
+          </span>
+          <span class="pr">${a.from ? '<span style="color:var(--text-3);font-weight:500;font-size:12.5px">desde </span>' : ''}${money(a.price)}${a.monthly ? '<span style="color:var(--text-3);font-weight:500">/mes</span>' : ''}</span>
+        </label>`).join('')}</div>`).join('');
+
+    function update() {
+      const chosen = all.filter((a) => sel.has(a.id));
+      const once = chosen.filter((a) => !a.monthly);
+      const monthly = chosen.filter((a) => a.monthly);
+      const total = BASE + once.reduce((s, a) => s + a.price, 0);
+      document.getElementById('lines').innerHTML =
+        `<div class="sum-line"><span>CRM completo · plan base</span><span>${money(BASE)}</span></div>` +
+        once.map((a) => `<div class="sum-line"><span>${a.name}${a.from ? ' (desde)' : ''}</span><span>${money(a.price)}</span></div>`).join('');
+      document.getElementById('total').textContent = money(total);
+      document.getElementById('monthly').innerHTML = monthly.length ? `+ ${monthly.map((a) => `${a.name}: <strong>${money(a.price)}/mes</strong>`).join(', ')}` : 'Pago único · sin mensualidad';
+      document.getElementById('selNote').innerHTML = chosen.length
+        ? `Selección actual: <strong>${money(total)}</strong> pago único${monthly.length ? ` + ${money(monthly.reduce((s, a) => s + a.price, 0))}/mes` : ''} · 50% para iniciar: <strong>${money(total / 2)}</strong>`
+        : `Plan base: <strong>${money(BASE)}</strong> · 50% para iniciar: <strong>${money(BASE / 2)}</strong>`;
+      document.querySelectorAll('.addon').forEach((el) => el.classList.toggle('on', sel.has(el.dataset.id)));
+    }
+    document.getElementById('addons').addEventListener('change', (e) => {
+      if (e.target.type !== 'checkbox') return;
+      e.target.checked ? sel.add(e.target.value) : sel.delete(e.target.value);
+      update();
+    });
+
+    // Fecha de emisión fija: la validez no se mueve cada vez que se abre la página
+    const ISSUED = new Date(2026, 8, 29);
+    const fmt = (x) => x.toLocaleDateString('es-US', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('today').textContent = fmt(ISSUED);
+    document.getElementById('valid').textContent = fmt(new Date(ISSUED.getTime() + 15 * 86400000));
+    update();
+  </script>
+</body>
+</html>
