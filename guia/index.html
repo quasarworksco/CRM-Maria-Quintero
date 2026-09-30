@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guía de uso · CRM Maria Quintero</title>
+  <meta name="description" content="Guía paso a paso del CRM de Maria Quintero: qué hace cada sección, cómo registrar llamadas, mover prospectos de frío a caliente, vender, cobrar y administrar al equipo.">
+  <meta name="theme-color" content="#18181b">
+  <link rel="canonical" href="https://crmsystempb.dgp-link.com/guia/">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="CRM Maria Quintero">
+  <meta property="og:locale" content="es_US">
+  <meta property="og:url" content="https://crmsystempb.dgp-link.com/guia/">
+  <meta property="og:title" content="Guía de uso · CRM Maria Quintero">
+  <meta property="og:description" content="Aprende a usar cada sección del CRM paso a paso: llamadas, embudo de frío a caliente, ventas, cobros, productos, reportes y administración del equipo.">
+  <meta property="og:image" content="https://crmsystempb.dgp-link.com/guia/og-image.png">
+  <meta property="og:image:secure_url" content="https://crmsystempb.dgp-link.com/guia/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Guía de uso del CRM de Maria Quintero">
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://crmsystempb.dgp-link.com/guia/">
+  <meta name="twitter:title" content="Guía de uso · CRM Maria Quintero">
+  <meta name="twitter:description" content="Aprende a usar cada sección del CRM paso a paso: llamadas, embudo de frío a caliente, ventas, cobros, productos, reportes y administración del equipo.">
+  <meta name="twitter:image" content="https://crmsystempb.dgp-link.com/guia/og-image.png">
+  <meta name="twitter:image:alt" content="Guía de uso del CRM de Maria Quintero">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f6f7; --surface: #ffffff; --surface-2: #fafafa; --surface-3: #f2f2f4;
+      --border: #ebebee; --border-strong: #dcdce0;
+      --text: #18181b; --text-2: #52525b; --text-3: #8e8e96;
+      --ink: #18181b; --ink-2: #3f3f46;
+      --good: #15803d; --good-soft: #f0fdf4; --warn: #a16207; --warn-soft: #fefce8; --bad: #dc2626; --bad-soft: #fef2f2;
+      --cold: #475569; --warm: #b45309; --hot: #dc2626;
+      --shadow: 0 1px 2px rgba(24, 24, 27, .04), 0 1px 1px rgba(24, 24, 27, .03);
+      --shadow-md: 0 12px 32px -12px rgba(24, 24, 27, .18);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #0c0c0d; --surface: #161618; --surface-2: #1b1b1e; --surface-3: #232326;
+        --border: #2a2a2e; --border-strong: #38383d; --text: #f4f4f5; --text-2: #b4b4bb; --text-3: #7c7c85;
+        --ink: #f4f4f5; --ink-2: #d4d4d8; --good: #4ade80; --good-soft: #14261b; --warn: #facc15; --warn-soft: #2b2610; --bad: #f87171; --bad-soft: #2d1616;
+        --cold: #94a3b8; --warm: #fb923c; --hot: #f87171;
+        --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-md: 0 12px 32px -12px rgba(0,0,0,.7);
+      }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0c0c0d; --surface: #161618; --surface-2: #1b1b1e; --surface-3: #232326;
+      --border: #2a2a2e; --border-strong: #38383d; --text: #f4f4f5; --text-2: #b4b4bb; --text-3: #7c7c85;
+      --ink: #f4f4f5; --ink-2: #d4d4d8; --good: #4ade80; --good-soft: #14261b; --warn: #facc15; --warn-soft: #2b2610; --bad: #f87171; --bad-soft: #2d1616;
+      --cold: #94a3b8; --warm: #fb923c; --hot: #f87171;
+      --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-md: 0 12px 32px -12px rgba(0,0,0,.7);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    html, body { margin: 0; }
+    body { font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 15.5px; line-height: 1.65; -webkit-font-smoothing: antialiased; letter-spacing: -.005em; }
+    a { color: inherit; }
+    h1, h2, h3, h4 { margin: 0; letter-spacing: -.025em; line-height: 1.2; }
+    p { margin: 0 0 12px; }
+    p:last-child { margin-bottom: 0; }
+    code, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em; }
+    kbd { background: var(--surface); border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; font-weight: 600; }
+    svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+    .top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .top-in { max-width: 1240px; margin: 0 auto; padding: 0 20px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; text-decoration: none; }
+    .logo { width: 32px; height: 32px; border-radius: 9px; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+    .btn:hover { border-color: var(--text-3); }
+    .btn.dark { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .layout { max-width: 1240px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 48px; }
+    .toc { position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow-y: auto; padding: 32px 0 40px; }
+    .toc .k { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 18px 10px 6px; }
+    .toc .k:first-child { margin-top: 0; }
+    .toc a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; text-decoration: none; color: var(--text-2); font-size: 14px; font-weight: 500; }
+    .toc a:hover { background: var(--surface-3); color: var(--text); }
+    .toc a.on { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border); }
+    .toc a span.n { width: 20px; height: 20px; border-radius: 6px; background: var(--surface-3); border: 1px solid var(--border); display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--text-2); flex: none; }
+    .toc a.on span.n { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+    main { padding: 40px 0 80px; min-width: 0; }
+    .hero { padding: 24px 0 36px; border-bottom: 1px solid var(--border); margin-bottom: 44px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-2); background: var(--surface); border: 1px solid var(--border); padding: 5px 12px; border-radius: 999px; box-shadow: var(--shadow); }
+    .hero h1 { font-size: clamp(32px, 5vw, 50px); font-weight: 700; letter-spacing: -.04em; margin: 18px 0 14px; }
+    .hero h1 span { color: var(--text-3); }
+    .hero p { font-size: 18px; color: var(--text-2); max-width: 680px; }
+    .quick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 28px; }
+    .quick a { display: block; text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); transition: box-shadow .15s, transform .15s; }
+    .quick a:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .quick strong { display: block; font-size: 15px; margin-bottom: 2px; }
+    .quick span { font-size: 13.5px; color: var(--text-2); }
+
+    section.s { padding-bottom: 56px; margin-bottom: 56px; border-bottom: 1px solid var(--border); }
+    section.s:last-of-type { border-bottom: 0; }
+    .s-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
+    .s-num { width: 40px; height: 40px; border-radius: 12px; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 700; font-size: 15px; flex: none; margin-top: 2px; }
+    .s-head h2 { font-size: clamp(24px, 3.2vw, 30px); font-weight: 680; }
+    .s-head .sub { color: var(--text-2); margin-top: 6px; font-size: 16px; }
+    .who { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 18px 54px; }
+    .pill { font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--surface); border: 1px solid var(--border); padding: 3px 10px; border-radius: 999px; }
+    h3 { font-size: 17px; font-weight: 640; margin: 28px 0 10px; }
+    .lead { font-size: 16.5px; color: var(--text-2); }
+
+    figure { margin: 22px 0 26px; }
+    .frame { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-md); cursor: zoom-in; }
+    .frame .bar { height: 28px; background: var(--surface-2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; padding: 0 12px; }
+    .frame .bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--border-strong); display: block; }
+    .frame img { display: block; width: 100%; height: auto; }
+    figcaption { font-size: 13px; color: var(--text-3); margin-top: 10px; text-align: center; }
+
+    ol.steps { list-style: none; padding: 0; margin: 14px 0; counter-reset: st; display: grid; gap: 10px; }
+    ol.steps > li { counter-increment: st; position: relative; padding: 14px 16px 14px 56px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+    ol.steps > li::before { content: counter(st); position: absolute; left: 16px; top: 14px; width: 26px; height: 26px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--border); display: grid; place-items: center; font-weight: 700; font-size: 12.5px; color: var(--text-2); }
+    ol.steps strong { font-weight: 620; }
+    ul.list { padding-left: 20px; margin: 10px 0; }
+    ul.list li { margin: 6px 0; }
+
+    .tip, .warn, .note { display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; margin: 16px 0; font-size: 14.5px; border: 1px solid var(--border); background: var(--surface); }
+    .tip .ico, .warn .ico, .note .ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+    .tip .ico { background: var(--good-soft); color: var(--good); }
+    .warn .ico { background: var(--warn-soft); color: var(--warn); }
+    .note .ico { background: var(--surface-3); color: var(--text-2); }
+    .tip strong, .warn strong, .note strong { display: block; margin-bottom: 2px; }
+
+    .grid { display: grid; gap: 12px; }
+    .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); }
+    .card h4 { font-size: 15px; font-weight: 640; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .card p { font-size: 14px; color: var(--text-2); }
+    .card .ex { font-size: 13px; color: var(--text-3); border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 10px; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); font-weight: 600; background: var(--surface); }
+    tr:last-child td { border-bottom: 0; }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+
+    .funnel { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 18px 0; }
+    .funnel div { padding: 12px 8px; text-align: center; font-size: 12.5px; font-weight: 600; border-radius: 8px; background: var(--surface-3); color: var(--text-2); border: 1px solid var(--border); }
+    .funnel div small { display: block; font-weight: 500; color: var(--text-3); font-size: 11.5px; margin-top: 2px; }
+    .funnel .w { background: var(--good-soft); color: var(--good); border-color: transparent; }
+    .funnel .l { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+    .temps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+    .temps .card h4 .t { width: 10px; height: 10px; border-radius: 50%; }
+
+    .day { display: grid; gap: 0; margin: 16px 0; border-left: 2px solid var(--border); padding-left: 20px; }
+    .day div { position: relative; padding: 0 0 18px; }
+    .day div::before { content: ""; position: absolute; left: -27px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink); }
+    .day b { display: inline-block; min-width: 76px; font-variant-numeric: tabular-nums; }
+    .day span { color: var(--text-2); }
+
+    details.faq { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin: 8px 0; }
+    details.faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+    details.faq summary::-webkit-details-marker { display: none; }
+    details.faq summary::after { content: "+"; color: var(--text-3); font-size: 18px; line-height: 1; }
+    details.faq[open] summary::after { content: "–"; }
+    details.faq p { color: var(--text-2); margin-top: 10px; font-size: 14.5px; }
+
+    .lightbox { position: fixed; inset: 0; background: rgba(12, 12, 13, .85); z-index: 100; display: none; place-items: center; padding: 24px; cursor: zoom-out; }
+    .lightbox.on { display: grid; }
+    .lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+    footer { text-align: center; color: var(--text-3); font-size: 13px; padding: 20px 0 50px; }
+
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+      .toc { display: none; }
+      .quick, .g3, .temps { grid-template-columns: minmax(0, 1fr); }
+      .funnel { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .g2 { grid-template-columns: minmax(0, 1fr); }
+      .who { margin-left: 0; }
+      .top .hide-sm { display: none; }
+      main { padding-top: 20px; }
+      .funnel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      ol.steps > li { padding-left: 50px; }
+    }
+    @media print {
+      .top, .toc, .no-print { display: none !important; }
+      .layout { grid-template-columns: 1fr; }
+      body { background: #fff; font-size: 12.5px; }
+      section.s { break-inside: auto; }
+      figure, .card, ol.steps > li { break-inside: avoid; }
+      .frame { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-in">
+      <a class="brand" href="#inicio"><div class="logo">MQ</div><span>Guía de uso</span></a>
+      <div class="row">
+        <button class="btn no-print hide-sm" onclick="window.print()">
+          <svg class="i" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir / PDF
+        </button>
+        <a class="btn dark" href="../">Abrir el CRM
+          <svg class="i" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" id="toc" aria-label="Contenido">
+      <div class="k">Empezar</div>
+      <a href="#conceptos"><span class="n">1</span>Conceptos clave</a>
+      <a href="#entrar"><span class="n">2</span>Entrar y moverse</a>
+      <div class="k">Trabajo diario</div>
+      <a href="#inicio-sec"><span class="n">3</span>Inicio</a>
+      <a href="#llamadas"><span class="n">4</span>Modo llamadas</a>
+      <a href="#agenda"><span class="n">5</span>Agenda y tareas</a>
+      <div class="k">Clientes</div>
+      <a href="#clientes"><span class="n">6</span>Clientes y prospectos</a>
+      <a href="#ficha"><span class="n">7</span>Ficha del cliente</a>
+      <a href="#embudo"><span class="n">8</span>Embudo de ventas</a>
+      <div class="k">Dinero</div>
+      <a href="#ventas"><span class="n">9</span>Ventas y pedidos</a>
+      <a href="#recaudo"><span class="n">10</span>Recaudo y cartera</a>
+      <a href="#productos"><span class="n">11</span>Productos</a>
+      <div class="k">Gestión</div>
+      <a href="#reportes"><span class="n">12</span>Reportes y equipo</a>
+      <a href="#admin"><span class="n">13</span>Administración</a>
+      <div class="k">Extra</div>
+      <a href="#rutinas"><span class="n">14</span>Rutinas recomendadas</a>
+      <a href="#atajos"><span class="n">15</span>Atajos y trucos</a>
+      <a href="#faq"><span class="n">16</span>Preguntas frecuentes</a>
+    </nav>
+
+    <main>
+      <div class="hero" id="inicio">
+        <span class="eyebrow">Guía paso a paso · 16 secciones</span>
+        <h1>Aprende a usar tu CRM <span>en 15 minutos.</span></h1>
+        <p>Esta guía explica qué hace cada pantalla, cuándo usarla y cómo sacarle el máximo provecho. No necesitas saber nada de CRM: empezamos por lo básico.</p>
+        <div class="quick">
+          <a href="#llamadas"><strong>Soy agente de ventas</strong><span>Empieza por Modo llamadas, Ficha del cliente y Agenda.</span></a>
+          <a href="#reportes"><strong>Soy supervisora</strong><span>Mira Reportes, Embudo y cómo reasignar clientes.</span></a>
+          <a href="#admin"><strong>Soy la dueña</strong><span>Inicio, Recaudo, Administración y las rutinas semanales.</span></a>
+        </div>
+      </div>
+
+      <!-- 1. Conceptos -->
+      <section class="s" id="conceptos">
+        <div class="s-head"><div class="s-num">1</div><div><h2>Conceptos clave</h2><div class="sub">Las 8 palabras que vas a ver en todo el CRM.</div></div></div>
+        <p class="lead">Un <strong>CRM</strong> (del inglés <em>Customer Relationship Management</em>) es el lugar donde tu equipo guarda <strong>a quién se llamó, qué se habló, qué se vendió y quién debe</strong>. Reemplaza la libreta, el Excel y la memoria de cada persona.</p>
+        <div class="grid g2">
+          <div class="card"><h4>Prospecto</h4><p>Una persona que <strong>todavía no ha comprado</strong>, pero podría. Puede venir de una lista, un referido o un anuncio.</p><div class="ex">Ej.: Ana, que dejó su número en Facebook.</div></div>
+          <div class="card"><h4>Cliente</h4><p>Un prospecto que <strong>ya compró</strong>. En el CRM queda en la etapa <em>Ganado</em> y se le sigue atendiendo para la recompra.</p><div class="ex">Ej.: Ana compró un kit de filtros.</div></div>
+          <div class="card"><h4>Etapa</h4><p>En qué punto de la venta está la persona: nuevo, contactado, interesado, cotización, negociación, ganado o perdido.</p><div class="ex">Ej.: "Ana está en Cotización".</div></div>
+          <div class="card"><h4>Temperatura</h4><p>Qué tan cerca está de comprar: <strong>frío</strong>, <strong>tibio</strong> o <strong>caliente</strong>. Ayuda a decidir a quién llamar primero.</p><div class="ex">Ej.: "Ana está caliente, quiere comprar esta semana".</div></div>
+          <div class="card"><h4>Seguimiento</h4><p>La <strong>fecha y hora</strong> en que hay que volver a contactar a alguien. Es la clave para no perder ventas.</p><div class="ex">Ej.: "Llamar a Ana el jueves a las 10 a.m.".</div></div>
+          <div class="card"><h4>Puntaje (★)</h4><p>Un número del 0 al 100 que el CRM calcula solo con la etapa, la temperatura, el último contacto y el valor. Más alto, mejor oportunidad.</p><div class="ex">Ej.: ★ 72 = llámala hoy.</div></div>
+          <div class="card"><h4>Cartera</h4><p>El dinero que <strong>te deben</strong>: ventas hechas que todavía tienen saldo pendiente.</p><div class="ex">Ej.: Ana pagó $100 de $300 → debe $200.</div></div>
+          <div class="card"><h4>Recaudo</h4><p>El dinero que <strong>ya entró</strong>: cada pago o abono que registra el equipo.</p><div class="ex">Ej.: "Esta semana recaudamos $4,500".</div></div>
+        </div>
+
+        <h3>El embudo: de frío a caliente</h3>
+        <p>Cada prospecto recorre estas etapas. El porcentaje es la probabilidad aproximada de que termine comprando:</p>
+        <div class="funnel">
+          <div>Nuevo<small>5%</small></div><div>Contactado<small>10%</small></div><div>Interesado<small>25%</small></div><div>Cotización<small>45%</small></div><div>Negociación<small>70%</small></div><div class="w">Ganado<small>100%</small></div><div class="l">Perdido<small>0%</small></div>
+        </div>
+        <div class="temps">
+          <div class="card"><h4><span class="t" style="background:var(--cold)"></span>Frío</h4><p>No ha mostrado interés claro. Se le llama menos seguido.</p></div>
+          <div class="card"><h4><span class="t" style="background:var(--warm)"></span>Tibio</h4><p>Está interesado, evaluando precios u opciones.</p></div>
+          <div class="card"><h4><span class="t" style="background:var(--hot)"></span>Caliente</h4><p>Listo para comprar. Prioridad máxima.</p></div>
+        </div>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>No tienes que mover todo a mano</strong>Cuando registras el resultado de una llamada, el CRM cambia solo la etapa, la temperatura y la fecha del próximo seguimiento. Lo verás en la sección 4.</div></div>
+      </section>
+
+      <!-- 2. Entrar -->
+      <section class="s" id="entrar">
+        <div class="s-head"><div class="s-num">2</div><div><h2>Entrar y moverse por el CRM</h2><div class="sub">La pantalla, el menú, el buscador y los roles.</div></div></div>
+        <ol class="steps">
+          <li><strong>Abre el CRM</strong> en <code>crmsystempb.dgp-link.com</code> desde el computador, la tablet o el celular. No hay que instalar nada.</li>
+          <li><strong>Elige quién eres</strong> en el selector de arriba a la derecha (tu nombre y tu rol). Mientras no tengamos login, así se sabe quién hace cada llamada o venta.</li>
+          <li><strong>Usa el menú de la izquierda</strong> para ir a cada sección. En el celular, el menú se abre con el botón <kbd>☰</kbd>.</li>
+          <li><strong>Busca a cualquier cliente</strong> con el buscador de arriba: escribe parte del nombre, del teléfono o del email. Presiona <kbd>/</kbd> para ir directo al buscador.</li>
+        </ol>
+        <h3>Los tres roles</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Rol</th><th>Qué ve</th><th>Qué puede hacer</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Administrador</strong></td><td>Todo</td><td>Todo, incluido crear usuarios, cambiar la configuración, editar productos, borrar registros y hacer respaldos.</td></tr>
+            <tr><td><strong>Supervisor</strong></td><td>Todo el equipo</td><td>Trabajar cualquier cliente, reasignar clientes entre agentes y ver reportes. No crea usuarios ni cambia la configuración.</td></tr>
+            <tr><td><strong>Agente / Vendedor</strong></td><td>Solo sus clientes</td><td>Llamar, registrar interacciones, crear prospectos, vender y cobrar a sus propios clientes.</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div><strong>Todo se guarda solo y en tiempo real</strong>No existe un botón de "guardar todo". Cada cambio se guarda en la nube al instante y le aparece al resto del equipo en segundos. Abajo a la izquierda verás <em>"En línea · tiempo real"</em>.</div></div>
+      </section>
+
+      <!-- 3. Inicio -->
+      <section class="s" id="inicio-sec">
+        <div class="s-head"><div class="s-num">3</div><div><h2>Inicio</h2><div class="sub">Cómo va el negocio (o tu día) de un vistazo.</div></div></div>
+        <div class="who"><span class="pill">Todos</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/inicio.jpg" width="1280" height="800" alt="Pantalla de inicio del CRM con indicadores de ventas, recaudo y embudo" loading="lazy"></div><figcaption>Inicio visto por la administración: los números de todo el negocio.</figcaption></figure>
+        <p>Es lo primero que ves al entrar. <strong>La dueña y la supervisora</strong> ven los números de todo el equipo; <strong>cada agente</strong> ve solo los suyos, más su meta de llamadas del día.</p>
+        <h3>Qué significa cada recuadro</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Recuadro</th><th>Qué te dice</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Ventas</strong></td><td>Cuánto se vendió en el periodo y cuántos pedidos. El <em>ticket promedio</em> es lo que se vende en promedio por pedido.</td></tr>
+            <tr><td><strong>Recaudado</strong></td><td>Cuánto dinero entró de verdad (pagos registrados).</td></tr>
+            <tr><td><strong>Por cobrar</strong></td><td>Cuánto te deben en total y qué parte ya está vencida.</td></tr>
+            <tr><td><strong>Llamadas</strong></td><td>Cuántas llamadas se hicieron, qué porcentaje contestó y cuántas terminaron en cotización.</td></tr>
+            <tr><td><strong>Meta del mes</strong></td><td>El avance contra la meta de ventas. Las metas se definen por persona en Administración.</td></tr>
+            <tr><td><strong>Prospectos activos</strong></td><td>Cuántas oportunidades hay abiertas y cuántas están calientes.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Debajo encuentras las ventas por día, el embudo, los <strong>seguimientos para hoy</strong>, los <strong>prospectos calientes</strong> y el <strong>ranking del equipo</strong>. Arriba puedes cambiar el periodo: Hoy, Esta semana, Este mes, 30 o 90 días.</p>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/inicio-agente.jpg" width="1280" height="800" alt="Inicio visto por una agente con su meta de llamadas" loading="lazy"></div><figcaption>Inicio visto por una agente: su meta diaria, sus seguimientos y sus números.</figcaption></figure>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Los números rojos son para actuar</strong>"Seguimientos vencidos" en rojo quiere decir que hay personas a las que se quedó en llamar y todavía no se ha hecho. Son las ventas más fáciles de perder.</div></div>
+      </section>
+
+      <!-- 4. Modo llamadas -->
+      <section class="s" id="llamadas">
+        <div class="s-head"><div class="s-num">4</div><div><h2>Modo llamadas</h2><div class="sub">La pantalla de trabajo de cada agente: le dice a quién llamar y registra todo con un clic.</div></div></div>
+        <div class="who"><span class="pill">Agentes</span><span class="pill">Supervisora</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/llamadas.jpg" width="1280" height="800" alt="Modo llamadas con el cliente actual, guion y cola de llamadas" loading="lazy"></div><figcaption>A la izquierda, la persona que toca llamar; a la derecha, la cola de las siguientes.</figcaption></figure>
+        <p>En vez de pensar "¿a quién llamo ahora?", el CRM arma una <strong>cola ordenada por prioridad</strong> con los clientes de cada agente. Primero van los seguimientos vencidos, luego los programados para hoy, luego los calientes, luego los nuevos que nunca se han llamado y por último los que llevan días sin contacto.</p>
+        <h3>Paso a paso para hacer una llamada</h3>
+        <ol class="steps">
+          <li><strong>Mira quién sigue.</strong> Arriba aparece el nombre, el teléfono, la etapa, la temperatura y los productos que le interesan. Si tiene saldo pendiente, también lo verás.</li>
+          <li><strong>Presiona "Llamar".</strong> En el celular marca directo; en el computador abre tu aplicación de llamadas. El cronómetro arranca solo.</li>
+          <li><strong>Apóyate en el guion.</strong> Ya trae el nombre del cliente, el tuyo y su ciudad. La administración lo puede cambiar.</li>
+          <li><strong>Elige el resultado</strong> de la llamada con un clic (o con las teclas <kbd>1</kbd> a <kbd>8</kbd>).</li>
+          <li><strong>Escribe una nota corta</strong>: qué se habló, objeciones, qué producto le interesa.</li>
+          <li><strong>Revisa el seguimiento</strong> (opcional). El CRM lo programa solo según el resultado, pero puedes elegir otra fecha o usar "Mañana", "3 días" o "1 semana".</li>
+          <li><strong>Presiona "Guardar y siguiente".</strong> Todo queda en el historial del cliente y pasa la siguiente persona de la cola.</li>
+        </ol>
+        <h3>Qué hace cada resultado automáticamente</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tecla</th><th>Resultado</th><th>Lo que el CRM hace solo</th></tr></thead>
+          <tbody>
+            <tr><td><kbd>1</kbd></td><td><span class="dot" style="background:#a1a1aa"></span>No contesta</td><td>Programa volver a llamar mañana. Cuenta como intento sin contacto.</td></tr>
+            <tr><td><kbd>2</kbd></td><td><span class="dot" style="background:#c4c4ca"></span>Buzón de voz</td><td>Igual que "No contesta": reintento mañana.</td></tr>
+            <tr><td><kbd>3</kbd></td><td><span class="dot" style="background:#71717a"></span>Llamar después</td><td>Seguimiento en 2 días (o la fecha que elijas).</td></tr>
+            <tr><td><kbd>4</kbd></td><td><span class="dot" style="background:#52525b"></span>Interesado</td><td>Lo pasa a <strong>Interesado</strong>, lo marca <strong>tibio</strong> y programa seguimiento en 2 días.</td></tr>
+            <tr><td><kbd>5</kbd></td><td><span class="dot" style="background:#27272a"></span>Pidió cotización</td><td>Lo pasa a <strong>Cotización</strong>, lo marca <strong>caliente</strong> y programa seguimiento para mañana.</td></tr>
+            <tr><td><kbd>6</kbd></td><td><span class="dot" style="background:#16a34a"></span>Venta cerrada</td><td>Lo marca <strong>Ganado</strong> y abre el formulario para registrar la venta.</td></tr>
+            <tr><td><kbd>7</kbd></td><td><span class="dot" style="background:#ef4444"></span>No interesado</td><td>Lo marca <strong>frío</strong> y lo deja para dentro de 3 meses. Si pasa dos veces, lo marca <strong>Perdido</strong>.</td></tr>
+            <tr><td><kbd>8</kbd></td><td><span class="dot" style="background:#b91c1c"></span>Número equivocado</td><td>Lo marca <strong>Perdido</strong> y ya no vuelve a salir en la cola.</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Las colas disponibles</h3>
+        <ul class="list">
+          <li><strong>Prioridad inteligente</strong>: la recomendada para el día a día.</li>
+          <li><strong>Seguimientos de hoy</strong>: solo lo que está programado o vencido.</li>
+          <li><strong>Nuevos sin contactar</strong>: ideal cuando llega una lista nueva.</li>
+          <li><strong>Calientes y tibios</strong>: para cerrar ventas.</li>
+          <li><strong>Reintentar no contestados</strong>: quienes no contestaron hace más de 3 horas.</li>
+          <li><strong>Cobranza</strong>: clientes con saldo pendiente.</li>
+        </ul>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>"Saltar" no borra a nadie</strong>Si no es buen momento para llamar a alguien, usa "Saltar": sale de la cola solo por esta sesión. Con "Restaurar saltados" vuelven a aparecer.</div></div>
+      </section>
+
+      <!-- 5. Agenda -->
+      <section class="s" id="agenda">
+        <div class="s-head"><div class="s-num">5</div><div><h2>Agenda y tareas</h2><div class="sub">Todo lo pendiente, ordenado por fecha.</div></div></div>
+        <div class="who"><span class="pill">Todos</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/agenda.jpg" width="1280" height="800" alt="Agenda con seguimientos y tareas agrupados por fecha" loading="lazy"></div><figcaption>A la izquierda los seguimientos a clientes; a la derecha las tareas.</figcaption></figure>
+        <p>La agenda junta dos cosas: los <strong>seguimientos</strong> (a quién hay que volver a llamar) y las <strong>tareas</strong> (cualquier pendiente, como "enviar cotización" o "confirmar dirección"). Todo aparece agrupado en <strong>Vencidos, Hoy, Mañana, Próximos 7 días y Más adelante</strong>.</p>
+        <h3>Crear una tarea</h3>
+        <ol class="steps">
+          <li>Presiona <strong>"Nueva tarea"</strong>, aquí o desde la ficha de un cliente.</li>
+          <li>Escribe qué hay que hacer, la fecha y la hora, y la prioridad (normal o alta).</li>
+          <li>Si es sobre un cliente, elígelo: la tarea aparecerá también en su ficha.</li>
+          <li>Cuando la termines, <strong>marca la casilla</strong>. Queda registrada en el historial del cliente.</li>
+        </ol>
+        <p>El número rojo junto a "Agenda y tareas" en el menú indica cuántos pendientes tienes vencidos. La supervisora y la dueña pueden ver la agenda de cualquier persona o la de todo el equipo.</p>
+      </section>
+
+      <!-- 6. Clientes -->
+      <section class="s" id="clientes">
+        <div class="s-head"><div class="s-num">6</div><div><h2>Clientes y prospectos</h2><div class="sub">La lista completa, con búsqueda, filtros e importación desde Excel.</div></div></div>
+        <div class="who"><span class="pill">Todos</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/clientes.jpg" width="1280" height="800" alt="Lista de clientes con filtros rápidos y columnas" loading="lazy"></div><figcaption>Filtros rápidos arriba, filtros detallados en la barra y la tabla ordenable.</figcaption></figure>
+        <h3>Filtros rápidos</h3>
+        <div class="grid g3">
+          <div class="card"><h4>Sin contactar</h4><p>Prospectos nuevos a los que nadie ha llamado.</p></div>
+          <div class="card"><h4>Seguimiento vencido</h4><p>Personas a las que se quedó en llamar y no se ha hecho.</p></div>
+          <div class="card"><h4>Sin actividad</h4><p>Oportunidades abiertas que llevan más de 7 días sin contacto.</p></div>
+          <div class="card"><h4>Ya compraron</h4><p>Tus clientes (etapa Ganado).</p></div>
+          <div class="card"><h4>Con saldo pendiente</h4><p>Clientes que te deben dinero.</p></div>
+          <div class="card"><h4>Perdidos</h4><p>Quienes no compraron, con su motivo.</p></div>
+        </div>
+        <p style="margin-top:14px">Además puedes filtrar por etapa, temperatura, responsable y fuente, y <strong>ordenar</strong> haciendo clic en el título de cualquier columna.</p>
+        <h3>Crear un prospecto</h3>
+        <ol class="steps">
+          <li>Presiona <strong>"Nuevo prospecto"</strong> (está siempre arriba, en cualquier pantalla).</li>
+          <li>Llena al menos el <strong>nombre</strong> y el <strong>teléfono</strong>. Si el teléfono ya existe, el CRM te avisa para no duplicar.</li>
+          <li>Agrega lo que sepas: fuente, productos de interés, cuántos aires acondicionados tiene, si hay mascotas o alergias, el mejor horario para llamarle.</li>
+          <li>Guarda: se abre su ficha para registrar la primera llamada.</li>
+        </ol>
+        <h3>Importar una lista desde Excel</h3>
+        <ol class="steps">
+          <li>En Excel, usa <strong>Archivo → Guardar como → CSV</strong>. La primera fila debe tener títulos como <code>nombre</code>, <code>telefono</code>, <code>email</code>, <code>ciudad</code>, <code>fuente</code> y <code>notas</code>.</li>
+          <li>En Clientes, presiona <strong>"Importar"</strong> y elige el archivo.</li>
+          <li>Elige a quién asignarlos. La supervisora y la dueña pueden <strong>repartirlos en partes iguales</strong> entre todas las agentes.</li>
+          <li>Deja marcado <strong>"Omitir teléfonos que ya existen"</strong> y presiona Importar.</li>
+        </ol>
+        <h3>Acciones masivas</h3>
+        <p>Marca varias casillas a la izquierda y aparece una barra para <strong>asignarlos a otra persona</strong>, <strong>moverlos de etapa</strong>, <strong>cambiar su temperatura</strong>, <strong>exportarlos a Excel</strong> o eliminarlos (solo la administración).</p>
+      </section>
+
+      <!-- 7. Ficha -->
+      <section class="s" id="ficha">
+        <div class="s-head"><div class="s-num">7</div><div><h2>Ficha del cliente</h2><div class="sub">Todo sobre una persona en una sola pantalla.</div></div></div>
+        <div class="who"><span class="pill">Todos</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/ficha.jpg" width="1280" height="800" alt="Ficha de un cliente con etapas, datos, registro de interacción e historial" loading="lazy"></div><figcaption>Arriba la barra de etapas; a la izquierda los datos; al centro el registro y el historial; a la derecha el dinero y las tareas.</figcaption></figure>
+        <h3>Las partes de la ficha</h3>
+        <ul class="list">
+          <li><strong>Barra de etapas</strong> (arriba): haz clic en una etapa para mover al cliente. Si eliges "Perdido", el CRM te pide el motivo; si eliges "Ganado", te ofrece registrar la venta.</li>
+          <li><strong>Temperatura</strong>: tres botones (frío, tibio, caliente) para cambiarla con un clic.</li>
+          <li><strong>Datos</strong>: responsable, seguimiento, último contacto, dirección con enlace a Google Maps, fuente, valor estimado y perfil del hogar.</li>
+          <li><strong>Botones de contacto</strong>: Llamar, WhatsApp (con un saludo ya escrito) y Email.</li>
+          <li><strong>Registrar interacción</strong>: llamada, WhatsApp, email, visita o nota.</li>
+          <li><strong>Historial</strong>: todo lo que ha pasado con esa persona, de lo más reciente a lo más antiguo. Se puede filtrar por contactos, notas o ventas y pagos.</li>
+          <li><strong>Resumen financiero</strong>: cuánto ha comprado, cuánto pagó y cuánto debe.</li>
+          <li><strong>Ventas, tareas y archivos</strong>: sus pedidos, sus pendientes y las fotos o documentos (facturas, fotos de la instalación).</li>
+        </ul>
+        <h3>Registrar lo que pasó en una llamada o visita</h3>
+        <ol class="steps">
+          <li>Elige el tipo: <strong>Llamada, WhatsApp, Email, Visita o Nota</strong>.</li>
+          <li>Elige el resultado. Debajo verás un aviso de lo que el CRM hará solo, por ejemplo "mover a Cotización, marcar como caliente".</li>
+          <li>Escribe qué se habló y, si quieres, elige la fecha del próximo seguimiento.</li>
+          <li>Presiona <strong>Guardar</strong>.</li>
+        </ol>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Escribe notas que le sirvan a otra persona</strong>Si mañana otra agente toma este cliente, debería entender todo con solo leer el historial. Mejor "quiere el kit de 6 filtros, lo decide con su esposo el viernes" que "interesada".</div></div>
+      </section>
+
+      <!-- 8. Embudo -->
+      <section class="s" id="embudo">
+        <div class="s-head"><div class="s-num">8</div><div><h2>Embudo de ventas</h2><div class="sub">Todas las oportunidades en un tablero visual.</div></div></div>
+        <div class="who"><span class="pill">Todos</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/embudo.jpg" width="1280" height="800" alt="Tablero Kanban con columnas por etapa y tarjetas de clientes" loading="lazy"></div><figcaption>Cada columna es una etapa; cada tarjeta, un prospecto.</figcaption></figure>
+        <p>Es la misma información de Clientes, pero en forma de tablero: <strong>cada columna es una etapa</strong> y cada tarjeta es una persona. El borde izquierdo de la tarjeta muestra la temperatura.</p>
+        <ol class="steps">
+          <li><strong>Arrastra una tarjeta</strong> a otra columna para cambiarla de etapa.</li>
+          <li><strong>Haz clic en una tarjeta</strong> para abrir la ficha del cliente.</li>
+          <li>Arriba de cada columna ves <strong>cuántos hay</strong>, <strong>cuánto dinero representan</strong> y la probabilidad de cierre.</li>
+          <li>El <strong>pronóstico</strong> (arriba de la página) suma el valor de cada oportunidad multiplicado por su probabilidad: es una estimación de lo que probablemente se venderá.</li>
+        </ol>
+        <p>Las tarjetas con el aviso "Sin contacto hace…" son oportunidades olvidadas: vale la pena llamarlas pronto.</p>
+      </section>
+
+      <!-- 9. Ventas -->
+      <section class="s" id="ventas">
+        <div class="s-head"><div class="s-num">9</div><div><h2>Ventas y pedidos</h2><div class="sub">Registrar lo que se vendió, entregarlo y cobrarlo.</div></div></div>
+        <div class="who"><span class="pill">Todos</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/ventas.jpg" width="1280" height="800" alt="Lista de ventas con totales, saldo, estado de pago y de entrega" loading="lazy"></div><figcaption>Cada venta muestra su total, su saldo, si está pagada y si ya se entregó.</figcaption></figure>
+        <h3>Registrar una venta</h3>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/venta-nueva.jpg" width="1280" height="800" alt="Formulario de nueva venta con productos, descuentos y pago inicial" loading="lazy"></div><figcaption>El formulario de venta calcula el total mientras agregas productos.</figcaption></figure>
+        <ol class="steps">
+          <li>Presiona <strong>"Nueva venta"</strong> aquí, en la ficha del cliente o marcando "Venta cerrada" en una llamada.</li>
+          <li>Elige el <strong>cliente</strong> y agrega los <strong>productos</strong> con su cantidad. El precio sale del catálogo, pero lo puedes ajustar. Para algo que no está en el catálogo, usa "Otro (escribir)".</li>
+          <li>Si aplica, agrega <strong>descuento</strong>, <strong>envío o instalación</strong> e <strong>impuesto</strong>.</li>
+          <li>Elige la <strong>condición de pago</strong> (contado, cuotas, crédito), la fecha límite de pago y la fecha de entrega.</li>
+          <li>Si el cliente pagó algo en ese momento, escríbelo en <strong>"Pago inicial / abono"</strong> con su método.</li>
+          <li>Presiona <strong>"Registrar venta"</strong>. El inventario se descuenta solo y el cliente pasa a <strong>Ganado</strong>.</li>
+        </ol>
+        <h3>Después de la venta</h3>
+        <ul class="list">
+          <li><strong>Estado de entrega</strong>: Pendiente → Confirmada → Enviada → Entregada (o Cancelada). Se cambia desde el detalle de la venta.</li>
+          <li><strong>Estado de pago</strong>: se calcula solo. <em>Sin pago</em>, <em>Abono parcial</em> o <em>Pagada</em>.</li>
+          <li><strong>Recibo</strong>: el botón "Recibo" abre un comprobante listo para imprimir o guardar en PDF.</li>
+          <li><strong>A quién se le acredita</strong>: la venta cuenta para la persona responsable del cliente. La supervisora y la dueña pueden elegir otro vendedor.</li>
+        </ul>
+      </section>
+
+      <!-- 10. Recaudo -->
+      <section class="s" id="recaudo">
+        <div class="s-head"><div class="s-num">10</div><div><h2>Recaudo y cartera</h2><div class="sub">Qué te deben, desde cuándo, y qué ya entró.</div></div></div>
+        <div class="who"><span class="pill">Todos</span><span class="pill">Clave para la dueña</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/recaudo.jpg" width="1280" height="800" alt="Cartera pendiente con antigüedad de deudas y botones de abono" loading="lazy"></div><figcaption>La antigüedad de la cartera muestra qué deudas llevan más tiempo sin pagarse.</figcaption></figure>
+        <p>Tiene dos pestañas: <strong>Cartera pendiente</strong> (lo que te deben) y <strong>Pagos recibidos</strong> (lo que ya entró, por fecha y por método de pago).</p>
+        <h3>La antigüedad de la cartera</h3>
+        <p>Agrupa las deudas según cuántos días llevan vencidas: <strong>al día</strong>, <strong>1–15</strong>, <strong>16–30</strong>, <strong>31–60</strong> y <strong>más de 60 días</strong>. Mientras más vieja la deuda, más difícil de cobrar: empieza siempre por las rojas.</p>
+        <h3>Registrar un pago o abono</h3>
+        <ol class="steps">
+          <li>Busca al cliente en la lista y presiona <strong>"Abonar"</strong> (también puedes hacerlo desde el detalle de la venta).</li>
+          <li>Escribe el monto. Viene lleno con el saldo completo; cámbialo si es un abono parcial.</li>
+          <li>Elige el método (efectivo, transferencia, tarjeta, Zelle…), la fecha y, si hay, el número de comprobante.</li>
+          <li>Presiona <strong>"Registrar pago"</strong>. El saldo se actualiza al instante y queda anotado en el historial del cliente.</li>
+        </ol>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Recordatorio de cobro en un clic</strong>El botón de WhatsApp junto a cada deuda abre un mensaje amable ya escrito con el saldo y el número de la venta. Solo hay que presionar enviar.</div></div>
+      </section>
+
+      <!-- 11. Productos -->
+      <section class="s" id="productos">
+        <div class="s-head"><div class="s-num">11</div><div><h2>Productos</h2><div class="sub">El catálogo: fotos, precios, costos e inventario.</div></div></div>
+        <div class="who"><span class="pill">Todos lo ven</span><span class="pill">La administración lo edita</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/productos.jpg" width="1280" height="800" alt="Catálogo de productos en tarjetas con precio y stock" loading="lazy"></div><figcaption>Vista de tarjetas. Con el botón de la derecha cambias a vista de tabla.</figcaption></figure>
+        <h3>Agregar un producto</h3>
+        <ol class="steps">
+          <li>Presiona <strong>"Nuevo producto"</strong>.</li>
+          <li><strong>Arrastra una foto</strong> al cuadro de la izquierda (o haz clic para elegirla). Se guarda en la nube.</li>
+          <li>Escribe el <strong>nombre</strong> y el <strong>precio</strong>, los dos datos obligatorios.</li>
+          <li>Elige la <strong>categoría</strong> o crea una nueva con "+ Nueva categoría…".</li>
+          <li>Si escribes el <strong>costo</strong>, el CRM calcula el margen al instante. Solo la administración ve costos y márgenes.</li>
+          <li>Para productos físicos, deja marcado <strong>"Controlar inventario"</strong> y escribe el stock y el mínimo para recibir alerta. Para servicios (instalación, limpieza), desmárcalo.</li>
+          <li>En <strong>descripción</strong>, escribe los argumentos de venta: beneficios, medidas, cada cuánto se cambia.</li>
+        </ol>
+        <h3>Otras acciones</h3>
+        <ul class="list">
+          <li><strong>Importar desde Excel</strong>: descarga la plantilla, llénala y súbela. Si el SKU ya existe, el producto se actualiza en vez de duplicarse.</li>
+          <li><strong>Duplicar</strong>: para crear rápido una variante (otra medida u otro precio).</li>
+          <li><strong>Ajustar stock</strong>: entradas, salidas o conteo físico, con el motivo.</li>
+          <li><strong>Desactivar</strong>: si ya no lo vendes, desactívalo en vez de borrarlo. Así no se pierde en las ventas pasadas.</li>
+          <li><strong>Filtros</strong>: Activos, <strong>Stock bajo</strong> (los que hay que pedir) e Inactivos.</li>
+        </ul>
+      </section>
+
+      <!-- 12. Reportes -->
+      <section class="s" id="reportes">
+        <div class="s-head"><div class="s-num">12</div><div><h2>Reportes y equipo</h2><div class="sub">Quién está rindiendo, qué se vende y por qué se pierden ventas.</div></div></div>
+        <div class="who"><span class="pill">Supervisora</span><span class="pill">Dueña</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/reportes.jpg" width="1280" height="800" alt="Reporte de rendimiento por vendedor con llamadas, ventas y metas" loading="lazy"></div><figcaption>Rendimiento por vendedor con el avance de su meta del mes.</figcaption></figure>
+        <h3>Cómo leer los números del equipo</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Indicador</th><th>Qué significa</th><th>Cómo usarlo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Llamadas</strong></td><td>Llamadas y WhatsApp registrados.</td><td>Mide el esfuerzo. Compáralo con la meta diaria de cada persona.</td></tr>
+            <tr><td><strong>Contacto</strong></td><td>% de llamadas en que sí se habló con alguien.</td><td>Si es bajo, prueba otros horarios o revisa la calidad de la lista.</td></tr>
+            <tr><td><strong>Tiempo</strong></td><td>Tiempo total al teléfono.</td><td>Mucho tiempo y pocas ventas puede indicar que hace falta mejorar el guion.</td></tr>
+            <tr><td><strong>Cotizaciones</strong></td><td>Llamadas que terminaron en "pidió cotización".</td><td>Es el mejor anticipo de las ventas de la semana siguiente.</td></tr>
+            <tr><td><strong>Cierre</strong></td><td>Ventas ÷ contactos efectivos.</td><td>Muestra quién convierte mejor las conversaciones en ventas. Ideal para que enseñe al resto.</td></tr>
+            <tr><td><strong>Cartera</strong></td><td>Saldo pendiente de las ventas de esa persona.</td><td>Vender sin cobrar no sirve: revísalo junto con las ventas.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Más abajo: <strong>llamadas por día</strong>, <strong>resultados de las llamadas</strong>, <strong>de dónde vienen los clientes</strong> (qué fuente vende más), <strong>productos más vendidos</strong> y <strong>por qué se pierden ventas</strong>. Todo se puede exportar a Excel o imprimir.</p>
+      </section>
+
+      <!-- 13. Admin -->
+      <section class="s" id="admin">
+        <div class="s-head"><div class="s-num">13</div><div><h2>Panel de administración</h2><div class="sub">Usuarios, reparto de clientes, configuración y respaldos.</div></div></div>
+        <div class="who"><span class="pill">Solo administración</span></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/admin.jpg" width="1280" height="800" alt="Panel de administración con la lista de usuarios y roles" loading="lazy"></div><figcaption>Pestaña de usuarios: roles, metas y actividad de hoy.</figcaption></figure>
+        <h3>Usuarios y roles</h3>
+        <ol class="steps">
+          <li>Presiona <strong>"Nuevo usuario"</strong> y escribe el nombre, el email y el teléfono.</li>
+          <li>Elige el <strong>rol</strong>: Agente, Supervisor o Administrador (ver sección 2).</li>
+          <li>Define sus <strong>metas</strong>: llamadas por día y ventas por mes. Aparecen en su pantalla de inicio y en los reportes.</li>
+          <li>Si alguien deja de trabajar, <strong>desmarca "Usuario activo"</strong>. No se borra nada: sus clientes quedan listos para transferirse.</li>
+        </ol>
+        <p>Con el botón <strong>"Ver como"</strong> puedes ver el CRM exactamente como lo ve otra persona. Es útil para acompañar o capacitar.</p>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/admin-asignacion.jpg" width="1280" height="800" alt="Herramientas para transferir cartera y repartir prospectos" loading="lazy"></div><figcaption>Asignación: carga de trabajo por persona, transferir cartera y repartir prospectos nuevos.</figcaption></figure>
+        <h3>Asignación de prospectos</h3>
+        <ul class="list">
+          <li><strong>Carga de trabajo</strong>: cuántos nuevos, activos, calientes y vencidos tiene cada persona.</li>
+          <li><strong>Transferir cartera</strong>: pasa los clientes de una persona a otra (por ejemplo, si alguien se va).</li>
+          <li><strong>Repartir prospectos nuevos</strong>: distribuye en partes iguales los prospectos sin llamar entre las personas que elijas.</li>
+        </ul>
+        <h3>Configuración</h3>
+        <p>Nombre del negocio, <strong>moneda</strong> (al cambiarla se ajusta solo el formato del país), código de país para WhatsApp, cuántos días sin contacto cuentan como "olvidado", fuentes de prospectos, motivos de pérdida, categorías de productos y el <strong>guion de llamada</strong>. El guion puede usar <code>{nombre}</code>, <code>{agente}</code>, <code>{empresa}</code> y <code>{ciudad}</code>, que se reemplazan solos.</p>
+        <h3>Datos y respaldo</h3>
+        <ul class="list">
+          <li><strong>Descargar respaldo</strong>: una copia completa de toda la información. Recomendado cada semana.</li>
+          <li><strong>Restaurar respaldo</strong>: vuelve a cargar una copia (reemplaza lo actual).</li>
+          <li><strong>Borrar todo y empezar de cero</strong>: quita los datos de ejemplo para empezar a trabajar de verdad. Conserva tu usuario y la configuración. Después, el Inicio te muestra una lista de <strong>primeros pasos</strong>.</li>
+        </ul>
+        <div class="warn"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div><strong>Borrar y restaurar afectan a todo el equipo</strong>Como los datos están en la nube, estas acciones cambian la información de todas las personas al mismo tiempo. Descarga un respaldo antes de hacerlas.</div></div>
+      </section>
+
+      <!-- 14. Rutinas -->
+      <section class="s" id="rutinas">
+        <div class="s-head"><div class="s-num">14</div><div><h2>Rutinas recomendadas</h2><div class="sub">Cómo se ve un buen día (y una buena semana) usando el CRM.</div></div></div>
+        <div class="grid g3">
+          <div class="card">
+            <h4>Día de una agente</h4>
+            <div class="day">
+              <div><b>8:30</b> <span>Abre Inicio: revisa su meta y los seguimientos vencidos.</span></div>
+              <div><b>8:45</b> <span>Modo llamadas → "Seguimientos de hoy". Primero lo prometido.</span></div>
+              <div><b>10:30</b> <span>Cambia a "Calientes y tibios" para cerrar ventas.</span></div>
+              <div><b>2:00</b> <span>"Nuevos sin contactar" para llenar el embudo.</span></div>
+              <div><b>4:30</b> <span>"Reintentar no contestados" (la tarde contesta más).</span></div>
+              <div><b>5:30</b> <span>Revisa la Agenda de mañana y cierra sus tareas.</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h4>Día de la supervisora</h4>
+            <div class="day">
+              <div><b>Mañana</b> <span>Admin → Asignación: reparte los prospectos nuevos.</span></div>
+              <div><b>Mediodía</b> <span>Inicio → Ranking: quién va atrasado con su meta.</span></div>
+              <div><b>Tarde</b> <span>Embudo: busca tarjetas "sin contacto" y las reasigna.</span></div>
+              <div><b>Cierre</b> <span>Recaudo: confirma los pagos del día.</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h4>Semana de la dueña</h4>
+            <div class="day">
+              <div><b>Lunes</b> <span>Reportes (Esta semana / Este mes): ventas, cierre, metas.</span></div>
+              <div><b>Miércoles</b> <span>Recaudo: cartera de más de 30 días y plan de cobro.</span></div>
+              <div><b>Jueves</b> <span>Productos: revisa el stock bajo y hace pedidos.</span></div>
+              <div><b>Viernes</b> <span>Admin → Datos: descarga el respaldo semanal.</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>La regla de oro</strong>Nadie cuelga sin dejar programado un seguimiento. Si cada llamada termina con una fecha, ningún cliente se enfría por olvido.</div></div>
+      </section>
+
+      <!-- 15. Atajos -->
+      <section class="s" id="atajos">
+        <div class="s-head"><div class="s-num">15</div><div><h2>Atajos y trucos</h2><div class="sub">Para trabajar más rápido.</div></div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Atajo</th><th>Qué hace</th></tr></thead>
+          <tbody>
+            <tr><td><kbd>/</kbd></td><td>Va al buscador de clientes desde cualquier pantalla.</td></tr>
+            <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></td><td>Recorre los resultados del buscador y abre el elegido.</td></tr>
+            <tr><td><kbd>1</kbd> … <kbd>8</kbd></td><td>En Modo llamadas, elige el resultado de la llamada.</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>Cierra cualquier ventana.</td></tr>
+            <tr><td>Botón 🌙</td><td>Cambia entre tema claro y oscuro.</td></tr>
+          </tbody>
+        </table></div>
+        <ul class="list">
+          <li>Desde el <strong>celular</strong>, el botón "Llamar" marca directo y el de WhatsApp abre el chat con el cliente.</li>
+          <li>Si en el buscador no aparece nadie, puedes <strong>crear el prospecto ahí mismo</strong> con lo que escribiste.</li>
+          <li>Cualquier lista (clientes, ventas, productos, reportes) se puede <strong>exportar a Excel</strong>.</li>
+          <li>Si se cae el internet, el CRM sigue funcionando y <strong>sincroniza solo</strong> al volver la conexión.</li>
+        </ul>
+      </section>
+
+      <!-- 16. FAQ -->
+      <section class="s" id="faq">
+        <div class="s-head"><div class="s-num">16</div><div><h2>Preguntas frecuentes</h2><div class="sub">Y qué hacer si algo no sale como esperas.</div></div></div>
+        <details class="faq" open><summary>No veo a un cliente que sé que existe</summary><p>Si eres agente, solo ves los clientes asignados a ti. Pídele a la supervisora que te lo asigne. Si eres supervisora o dueña, revisa que no haya filtros activos en la lista (botón "Limpiar").</p></details>
+        <details class="faq"><summary>Me equivoqué al registrar una llamada</summary><p>En el historial del cliente, junto a cada llamada o nota que tú registraste, hay un ícono de papelera para eliminarla. Luego regístrala de nuevo bien.</p></details>
+        <details class="faq"><summary>¿Cómo cambio a un cliente de agente?</summary><p>Desde su ficha, con "Reasignar a…", o en la lista de clientes marcando varios y usando "Asignar a…". Solo la supervisora y la administración pueden hacerlo.</p></details>
+        <details class="faq"><summary>El cliente pagó en dos partes, ¿cómo lo anoto?</summary><p>Registra cada pago por separado con "Abonar" en Recaudo o en el detalle de la venta. El CRM suma los pagos y muestra el saldo que queda.</p></details>
+        <details class="faq"><summary>Un producto ya no se vende, ¿lo borro?</summary><p>Mejor desactívalo (desmarca "Activo" en el producto). Deja de aparecer al vender, pero las ventas pasadas lo conservan.</p></details>
+        <details class="faq"><summary>La foto del producto no se sube</summary><p>Verifica que sea una imagen (JPG, PNG o WEBP) de menos de 10 MB. Si el CRM muestra un error de Cloudinary, la administración debe revisar que el "upload preset" esté en modo <em>Unsigned</em>.</p></details>
+        <details class="faq"><summary>Aparece "No se pudo conectar con la base de datos"</summary><p>Revisa tu internet y presiona "Reintentar". Si el mensaje habla de permisos, la administración debe revisar las reglas de Firestore en la consola de Firebase.</p></details>
+        <details class="faq"><summary>¿Qué pasa si dos personas editan al mismo cliente?</summary><p>Cada cambio se guarda al instante y se ve en tiempo real. Si dos personas cambian el mismo dato a la vez, queda el último que se guardó. Por eso cada cliente tiene un responsable.</p></details>
+        <details class="faq"><summary>¿Cómo empiezo a usarlo con mis datos reales?</summary><p>Panel admin → Datos → "Borrar todo y empezar de cero". Luego sigue la lista de primeros pasos que aparece en Inicio: agrega a tu equipo, carga tus productos, importa tus clientes y empieza a llamar.</p></details>
+      </section>
+
+      <footer>CRM Maria Quintero · Guía de uso · <a href="../">Abrir el CRM</a></footer>
+    </main>
+  </div>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true"><img alt=""></div>
+
+  <script>
+    // Resalta en el índice la sección visible
+    const links = [...document.querySelectorAll('#toc a')];
+    const sections = links.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        links.forEach((a) => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id));
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach((s) => obs.observe(s));
+
+    // Ampliar capturas
+    const lb = document.getElementById('lightbox');
+    document.querySelectorAll('.frame img').forEach((img) => img.parentElement.addEventListener('click', () => {
+      lb.querySelector('img').src = img.src; lb.querySelector('img').alt = img.alt;
+      lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false');
+    }));
+    const closeLb = () => { lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); };
+    lb.addEventListener('click', closeLb);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLb(); });
+  </script>
+</body>
+</html>

@@ -639,6 +639,13 @@ input::placeholder, textarea::placeholder { color: var(--text-3); }
 .dz-empty .i { width: 28px; height: 28px; color: var(--text-3); }
 @media (max-width: 700px) { .pform { grid-template-columns: minmax(0, 1fr); } .dropzone { aspect-ratio: 16 / 10; } .pactions { opacity: 1; } .pgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px; gap: 10px; } }
 
+.steps-list { display: grid; gap: 2px; }
+.step-item { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px dashed var(--border); }
+.step-item:last-child { border-bottom: 0; }
+.step-check { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--surface-3); color: var(--text-2); border: 1px solid var(--border); flex: none; }
+.step-item.done .step-check { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+.step-item.done .grow div:first-child { color: var(--text-3); text-decoration: line-through; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1280px) {
   .detail-grid { grid-template-columns: 300px minmax(0, 1fr); }

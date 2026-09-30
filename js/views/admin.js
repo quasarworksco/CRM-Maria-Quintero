@@ -160,7 +160,7 @@ Views.admin = (() => {
           <label class="field">Nombre del negocio<input name="companyName" value="${U.esc(s.companyName)}"></label>
           <label class="field">Eslogan / descripción<input name="companyTagline" value="${U.esc(s.companyTagline)}"></label>
           <label class="field">Moneda<select name="currency">${UI.options([{ id: 'USD', name: 'Dólar (USD)' }, { id: 'COP', name: 'Peso colombiano (COP)' }, { id: 'MXN', name: 'Peso mexicano (MXN)' }, { id: 'EUR', name: 'Euro (EUR)' }, { id: 'PEN', name: 'Sol (PEN)' }, { id: 'CLP', name: 'Peso chileno (CLP)' }], s.currency)}</select></label>
-          <label class="field">Formato regional<select name="locale">${UI.options([{ id: 'es-US', name: 'Español (EE. UU.)' }, { id: 'es-CO', name: 'Español (Colombia)' }, { id: 'es-MX', name: 'Español (México)' }, { id: 'es-ES', name: 'Español (España)' }], s.locale)}</select></label>
+          <label class="field">Formato regional<select name="locale">${UI.options([{ id: 'es-US', name: 'Español (EE. UU.)' }, { id: 'es-CO', name: 'Español (Colombia)' }, { id: 'es-MX', name: 'Español (México)' }, { id: 'es-ES', name: 'Español (España)' }, { id: 'es-PE', name: 'Español (Perú)' }, { id: 'es-CL', name: 'Español (Chile)' }], s.locale)}</select></label>
           <label class="field">Código de país para WhatsApp<input name="phoneCountryCode" value="${U.esc(s.phoneCountryCode)}" placeholder="1 = EE. UU., 57 = Colombia"></label>
           <label class="field">Días sin contacto para marcar “olvidado”<input name="staleDays" type="number" min="1" value="${s.staleDays}"></label>
           <label class="field">Fuentes de prospectos <span class="hint">una por línea</span><textarea name="sources" rows="6">${U.esc(s.sources.join('\n'))}</textarea></label>
@@ -170,6 +170,15 @@ Views.admin = (() => {
         </div>
         <div class="row"><span class="spacer"></span><button class="btn primary" type="submit">${icon('check', 'sm')} Guardar configuración</button></div>
       </div></form>`;
+    // Al cambiar la moneda se sugiere el formato regional y el código de país que le corresponden
+    const REGION = { USD: ['es-US', '1'], COP: ['es-CO', '57'], MXN: ['es-MX', '52'], EUR: ['es-ES', '34'], PEN: ['es-PE', '51'], CLP: ['es-CL', '56'] };
+    el.querySelector('[name=currency]').onchange = (e) => {
+      const r = REGION[e.target.value]; if (!r) return;
+      const loc = el.querySelector('[name=locale]');
+      if (![...loc.options].some((o) => o.value === r[0])) loc.add(new Option(r[0], r[0]));
+      loc.value = r[0];
+      el.querySelector('[name=phoneCountryCode]').value = r[1];
+    };
     el.querySelector('#cfg').onsubmit = (e) => {
       e.preventDefault();
       const d = UI.formData(e.target);

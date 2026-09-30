@@ -44,19 +44,7 @@ Views.dashboard = (() => {
         </div>
       </div>
 
-      ${manager && !welcomeClosed() ? `
-      <div class="welcome" id="welcome">
-        <div class="welcome-icon">${icon('star')}</div>
-        <div style="flex:1">
-          <strong style="font-size:15px">Bienvenida a tu CRM</strong>
-          <div class="muted small" style="margin-top:2px">Todo tu negocio en un solo lugar: prospectos, llamadas del equipo, ventas y cobros. Estos son datos de ejemplo para que lo explores.</div>
-        </div>
-        <div class="row wrap">
-          <a class="btn sm" href="#/pipeline">Ver embudo</a>
-          <a class="btn sm" href="#/reportes">Ver equipo</a>
-          <button class="btn ghost sm icon" id="closeWelcome" title="Cerrar">${icon('x', 'sm')}</button>
-        </div>
-      </div>` : ''}
+      ${manager ? onboarding() : ''}
 
       ${!manager || me.callGoal ? `
       <div class="card" style="margin-bottom:16px">
@@ -133,6 +121,46 @@ Views.dashboard = (() => {
     if (cw) cw.onclick = () => { try { localStorage.setItem('crm_mq_welcome', '1'); } catch (e) {} el.querySelector('#welcome').remove(); };
     el.querySelectorAll('#rangeSeg button').forEach((b) => b.onclick = () => { range = b.dataset.r; render(el); });
     el.querySelectorAll('[data-go]').forEach((x) => x.onclick = () => { location.hash = x.dataset.go; });
+  }
+
+  // Bienvenida (con datos demo) o lista de primeros pasos (CRM vacío, listo para usar)
+  function onboarding() {
+    const st = Store.settings();
+    if (st.demoData !== false) {
+      if (welcomeClosed()) return '';
+      return `<div class="welcome" id="welcome">
+        <div class="welcome-icon">${icon('star')}</div>
+        <div style="flex:1">
+          <strong style="font-size:15px">Bienvenida a tu CRM</strong>
+          <div class="muted small" style="margin-top:2px">Todo tu negocio en un solo lugar: prospectos, llamadas del equipo, ventas y cobros. Estos son <strong>datos de ejemplo</strong> para que lo explores; cuando quieras empezar de verdad, bórralos en Panel admin → Datos.</div>
+        </div>
+        <div class="row wrap">
+          <a class="btn sm" href="guia/" target="_blank" rel="noopener">${icon('file', 'sm')} Guía de uso</a>
+          <a class="btn sm" href="#/pipeline">Ver embudo</a>
+          <button class="btn ghost sm icon" id="closeWelcome" title="Cerrar">${icon('x', 'sm')}</button>
+        </div>
+      </div>`;
+    }
+    const steps = [
+      { done: Store.all('users').length > 1, title: 'Agrega a tu equipo', desc: 'Crea un usuario para cada persona que llama o vende.', href: '#/admin', cta: 'Usuarios' },
+      { done: Store.all('products').length > 0, title: 'Carga tus productos', desc: 'Con foto, precio y stock. También puedes importarlos desde Excel.', href: '#/productos', cta: 'Productos' },
+      { done: Store.all('clients').length > 0, title: 'Sube tu lista de clientes', desc: 'Importa tu Excel y repártelo entre las agentes en un clic.', href: '#/clientes', cta: 'Clientes' },
+      { done: Store.all('activities').some((x) => x.type === 'llamada'), title: 'Registra la primera llamada', desc: 'Desde el Modo llamadas o la ficha de cualquier cliente.', href: '#/llamadas', cta: 'Llamar' },
+      { done: Store.all('orders').length > 0, title: 'Registra la primera venta', desc: 'Con sus productos, abono y fecha de entrega.', href: '#/ventas', cta: 'Ventas' }
+    ];
+    const n = steps.filter((x) => x.done).length;
+    if (n === steps.length) return '';
+    return `<div class="card" style="margin-bottom:18px">
+      <div class="card-head"><h2>${icon('flag', 'sm')} Primeros pasos · ${n} de ${steps.length}</h2><a class="small" href="guia/" target="_blank" rel="noopener">Ver la guía completa →</a></div>
+      <div class="card-body" style="padding-top:12px">
+        <div class="progress ${n === steps.length ? 'good' : ''}" style="margin-bottom:14px"><span style="width:${(n / steps.length) * 100}%"></span></div>
+        <div class="steps-list">${steps.map((x, i) => `
+          <div class="step-item ${x.done ? 'done' : ''}">
+            <span class="step-check">${x.done ? icon('check', 'sm') : i + 1}</span>
+            <div class="grow"><div style="font-weight:600">${x.title}</div><div class="small muted">${x.desc}</div></div>
+            ${x.done ? '<span class="badge good">Listo</span>' : `<a class="btn sm" href="${x.href}">${x.cta}</a>`}
+          </div>`).join('')}</div>
+      </div></div>`;
   }
 
   function welcomeClosed() { try { return localStorage.getItem('crm_mq_welcome') === '1'; } catch (e) { return false; } }

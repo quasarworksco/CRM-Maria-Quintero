@@ -60,7 +60,7 @@ const FirestoreAdapter = {
       seedNow = await fs.runTransaction(this.fdb, async (tx) => {
         const snap = await tx.get(settingsRef);
         if (snap.exists()) return false;
-        tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { seededAt: new Date().toISOString() })));
+        tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { seededAt: new Date().toISOString(), demoData: true })));
         return true;
       });
     } catch (e) {
@@ -352,10 +352,10 @@ const Store = (() => {
     if (!data || !Array.isArray(data.users) || !Array.isArray(data.clients)) throw new Error('Archivo no válido');
     await replaceData(data);
   }
-  const resetDemo = () => replaceData(Seed.build(DEFAULT_SETTINGS));
+  const resetDemo = () => { const d = Seed.build(Object.assign({}, db.settings, { demoData: true })); return replaceData(d); };
   function wipeAll() {
     const admin = currentUser();
-    const data = { settings: Object.assign({}, db.settings) };
+    const data = { settings: Object.assign({}, db.settings, { demoData: false }) };
     COLLECTIONS.forEach((c) => { data[c] = []; });
     data.users.push(Object.assign({}, admin, { role: 'admin', active: true }));
     return replaceData(data);
