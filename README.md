@@ -45,7 +45,8 @@ Mientras no exista el login, el usuario activo se elige en el selector de arriba
 index.html
 propuesta/index.html  ← cotización para la clienta
 css/styles.css
-js/config.js          ← credenciales de Firebase y Cloudinary
+js/config.js          ← configuración de Firebase y Cloudinary
+firestore.rules       ← reglas de seguridad de Firestore
 js/utils.js           ← formatos, constantes (etapas, resultados de llamada…), íconos
 js/store.js           ← capa de datos, permisos, lógica de negocio y datos demo
 js/ui.js              ← modales, avisos, gráficos, subida a Cloudinary
@@ -54,8 +55,15 @@ js/app.js             ← menú, búsqueda global y navegación
 js/views/*.js         ← una sección por archivo
 ```
 
+## Base de datos (Firestore)
+
+El CRM guarda todo en **Firebase Firestore** (proyecto `crm-maria-8f7af`) y escucha los cambios en tiempo real: lo que registra una agente le aparece al resto del equipo al instante. También guarda una copia local, así que sigue funcionando si se cae el internet y sincroniza al volver.
+
+- La primera vez que se abre, carga los datos de ejemplo en la nube (una sola vez). Para empezar a usarlo de verdad: Panel admin → Datos → **Borrar todo y empezar de cero**.
+- Colecciones: `users`, `clients`, `activities`, `tasks`, `products`, `orders`, `payments` y el documento `meta/settings`.
+- Con `?local=1` en la dirección se abre la demo sin conexión, que guarda solo en el navegador.
+- `firestore.rules` tiene las reglas **temporales** (abiertas solo para las colecciones del CRM y con fecha de vencimiento), que se usan mientras no haya login. Se copian en la consola de Firebase → Firestore → Reglas.
+
 ## Próximos pasos
 
-1. **Firestore**: implementar un `FirestoreAdapter` con el mismo contrato que `LocalAdapter` en `js/store.js` (`load`, `put`, `del`, `putSettings`, `replaceAll`). Las colecciones ya tienen su forma final: `users`, `clients`, `activities`, `tasks`, `products`, `orders`, `payments` y un documento `settings`.
-2. **Login**: Firebase Authentication con email y contraseña. `Store.currentUser()` pasa a leer el usuario autenticado, y las reglas de seguridad de Firestore replican los permisos de `Store.can()`.
-3. **Cloudinary**: poner `cloudName` y un `uploadPreset` sin firma en `js/config.js`.
+1. **Login**: Firebase Authentication con email y contraseña. `Store.currentUser()` pasa a leer el usuario autenticado, y las reglas de Firestore se cambian por reglas por usuario y rol que repliquen `Store.can()`.

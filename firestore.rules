@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// Reglas TEMPORALES mientras el CRM no tiene login.
+// Permiten leer y escribir solo las colecciones del CRM y vencen en la fecha indicada.
+// Cuando agreguemos el login se reemplazan por reglas por usuario y rol.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{coleccion}/{id} {
+      allow read, write: if coleccion in ['users', 'clients', 'activities', 'tasks', 'products', 'orders', 'payments', 'meta']
+                         && request.time < timestamp.date(2026, 12, 31);
+    }
+  }
+}

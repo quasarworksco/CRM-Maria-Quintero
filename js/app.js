@@ -45,7 +45,7 @@ const App = (() => {
           </div>
           <nav class="nav" id="nav"></nav>
           <div class="sidebar-foot">
-            <span class="demo-pill">${window.CRM_CONFIG.firebase.enabled ? 'En línea · Firestore' : 'Versión demo'}</span>
+            <span class="demo-pill">${Store.mode() === 'firestore' ? 'En línea · tiempo real' : 'Demo sin conexión'}</span>
             <a href="propuesta/" target="_blank" rel="noopener" class="row" style="gap:6px">${icon('file', 'sm')}<span>Ver propuesta</span></a>
           </div>
         </aside>
@@ -164,8 +164,16 @@ const App = (() => {
   }
 
   // Re-render tras cambios en datos (sin perder la vista actual)
+  let pendingRefresh = false;
   const refresh = U.debounce(() => {
     if (document.querySelector('.modal-backdrop')) { renderNav(); return; }
+    const a = document.activeElement;
+    if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && a.closest('#view') && a.type !== 'checkbox') {
+      // Hay alguien escribiendo: se actualiza al salir del campo para no perder el foco
+      if (!pendingRefresh) { pendingRefresh = true; a.addEventListener('blur', () => { pendingRefresh = false; refresh(); }, { once: true }); }
+      renderNav();
+      return;
+    }
     const v = Views[current.view];
     const y = window.scrollY;
     if (v && v.render && !v.noAutoRefresh) { v.render(document.getElementById('view'), current.params, current.query); window.scrollTo(0, y); }
@@ -177,7 +185,24 @@ const App = (() => {
     let t = null;
     try { t = localStorage.getItem('crm_mq_theme'); } catch (e) {}
     document.documentElement.dataset.theme = t || 'light';
-    await Store.init();
+    root.innerHTML = `<div class="boot"><div class="brand-logo">MQ</div><div class="muted small">${window.CRM_CONFIG.firebase.enabled ? 'Conectando con la base de datos…' : 'Cargando…'}</div></div>`;
+    try {
+      await Store.init();
+    } catch (err) {
+      console.error(err);
+      const msg = String(err && (err.code || err.message) || err);
+      const perm = /permission/i.test(msg);
+      root.innerHTML = `<div class="boot" style="max-width:460px;text-align:center;padding:0 16px">
+        <div class="brand-logo">MQ</div>
+        <h2>No se pudo conectar con la base de datos</h2>
+        <p class="muted small" style="margin:0">${perm ? 'Firestore rechazó el acceso. Revisa las reglas de seguridad en la consola de Firebase.' : 'Revisa tu conexión a internet e intenta de nuevo.'}</p>
+        <code class="small muted">${U.esc(msg)}</code>
+        <div class="row" style="justify-content:center;margin-top:6px">
+          <button class="btn primary" onclick="location.reload()">Reintentar</button>
+          <a class="btn" href="?local=1">Abrir demo sin conexión</a>
+        </div></div>`;
+      return;
+    }
     UI.initTooltips();
     shell();
     Store.onChange(refresh);

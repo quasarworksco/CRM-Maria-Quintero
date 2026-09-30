@@ -2,20 +2,27 @@
    Store — capa de datos
    ---------------------------------------------------------
    Todo el CRM lee de una caché en memoria y escribe por
-   documento a través de un "adaptador". Hoy el adaptador es
-   localStorage; para Firestore basta con implementar el mismo
-   contrato (load / put / del) usando getDocs / setDoc / deleteDoc
-   sobre colecciones con estos mismos nombres.
+   documento a través de un "adaptador":
+   - LocalAdapter: guarda en el navegador (demo sin nube).
+   - FirestoreAdapter: guarda en Firebase Firestore y escucha
+     cambios en tiempo real, así todo el equipo ve lo mismo.
    ========================================================= */
 const COLLECTIONS = ['users', 'clients', 'activities', 'tasks', 'products', 'orders', 'payments'];
 
+// Firestore no acepta campos undefined: el viaje por JSON los elimina
+const cleanDoc = (d) => JSON.parse(JSON.stringify(d));
+
 const LocalAdapter = {
+  name: 'local',
   KEY: 'crm_mq_db_v2',
-  async load() {
-    try { return JSON.parse(localStorage.getItem(this.KEY)) || null; } catch (e) { return null; }
+  async load(ctx) {
+    let db = null;
+    try { db = JSON.parse(localStorage.getItem(this.KEY)) || null; } catch (e) { db = null; }
+    if (!db || !db.users) { db = ctx.seed(); this.replaceAll(db); }
+    return db;
   },
-  // En local se guarda la base completa (con debounce); en Firestore sería setDoc(doc(db, col, id), data)
   _timer: null,
+  _db: null,
   put(_col, _doc, db) { this._flush(db); },
   del(_col, _id, db) { this._flush(db); },
   putSettings(_s, db) { this._flush(db); },
@@ -30,9 +37,93 @@ const LocalAdapter = {
   }
 };
 
+const FirestoreAdapter = {
+  name: 'firestore',
+  SDK: 'https://www.gstatic.com/firebasejs/10.14.1/',
+  fs: null,
+  fdb: null,
+  cache: null,
+
+  async load(ctx) {
+    const cfg = window.CRM_CONFIG.firebase;
+    const appMod = await import(this.SDK + 'firebase-app.js');
+    const fs = this.fs = await import(this.SDK + 'firebase-firestore.js');
+    const app = appMod.initializeApp({ apiKey: cfg.apiKey, authDomain: cfg.authDomain, projectId: cfg.projectId, storageBucket: cfg.storageBucket, messagingSenderId: cfg.messagingSenderId, appId: cfg.appId });
+    // Caché local persistente: el CRM sigue funcionando si se cae el internet y sincroniza al volver
+    try { this.fdb = fs.initializeFirestore(app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) }); }
+    catch (e) { this.fdb = fs.getFirestore(app); }
+
+    // Primera vez: cargar datos de ejemplo (una sola vez, protegido con transacción)
+    const settingsRef = fs.doc(this.fdb, 'meta', 'settings');
+    let seedNow = false;
+    try {
+      seedNow = await fs.runTransaction(this.fdb, async (tx) => {
+        const snap = await tx.get(settingsRef);
+        if (snap.exists()) return false;
+        tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { seededAt: new Date().toISOString() })));
+        return true;
+      });
+    } catch (e) {
+      // Sin internet la transacción falla: se sigue con lo guardado en la caché local
+      if (e && e.code === 'permission-denied') throw e;
+      console.warn('No se pudo verificar la base (¿sin conexión?)', e);
+    }
+    if (seedNow) {
+      const data = ctx.seed();
+      delete data.settings;
+      await this._writeAll(data);
+    }
+
+    const cache = this.cache = { settings: Object.assign({}, ctx.defaults) };
+    COLLECTIONS.forEach((c) => { cache[c] = []; });
+    const listen = (ref, apply) => new Promise((resolve, reject) => {
+      let first = true;
+      fs.onSnapshot(ref, (snap) => {
+        apply(snap);
+        if (first) { first = false; resolve(); } else ctx.onRemote();
+      }, (err) => { console.error(err); if (first) { first = false; reject(err); } else UI.toast('Se perdió la conexión con la base de datos', 'bad'); });
+    });
+    await Promise.all([
+      ...COLLECTIONS.map((col) => listen(fs.collection(this.fdb, col), (snap) => { cache[col] = snap.docs.map((d) => Object.assign({ id: d.id }, d.data())); })),
+      listen(settingsRef, (snap) => { cache.settings = Object.assign({}, ctx.defaults, snap.exists() ? snap.data() : {}); })
+    ]);
+    return cache;
+  },
+
+  _err(e) { console.error(e); UI.toast('No se pudo guardar en la nube: ' + (e.code || e.message), 'bad'); },
+  put(col, d) { this.fs.setDoc(this.fs.doc(this.fdb, col, d.id), cleanDoc(d)).catch((e) => this._err(e)); },
+  del(col, id) { this.fs.deleteDoc(this.fs.doc(this.fdb, col, id)).catch((e) => this._err(e)); },
+  putSettings(s) { this.fs.setDoc(this.fs.doc(this.fdb, 'meta', 'settings'), cleanDoc(s)).catch((e) => this._err(e)); },
+
+  // Escritura masiva en lotes (Firestore permite 500 operaciones por lote)
+  async _batchOps(ops) {
+    for (let i = 0; i < ops.length; i += 450) {
+      const batch = this.fs.writeBatch(this.fdb);
+      ops.slice(i, i + 450).forEach((op) => op(batch));
+      await batch.commit();
+    }
+  },
+  _writeAll(data) {
+    const ops = [];
+    COLLECTIONS.forEach((col) => (data[col] || []).forEach((d) => ops.push((b) => b.set(this.fs.doc(this.fdb, col, d.id), cleanDoc(d)))));
+    return this._batchOps(ops);
+  },
+  // Reemplaza toda la base (restaurar respaldo, datos demo, empezar de cero)
+  async replaceAll(data) {
+    const ops = [];
+    const keep = new Set(COLLECTIONS.flatMap((col) => (data[col] || []).map((d) => col + '/' + d.id)));
+    COLLECTIONS.forEach((col) => this.cache[col].forEach((d) => { if (!keep.has(col + '/' + d.id)) ops.push((b) => b.delete(this.fs.doc(this.fdb, col, d.id))); }));
+    await this._batchOps(ops);
+    await this._writeAll(data);
+    if (data.settings) await this.fs.setDoc(this.fs.doc(this.fdb, 'meta', 'settings'), cleanDoc(data.settings));
+  }
+};
+
 const Store = (() => {
   let db = null;
-  const adapter = LocalAdapter;
+  // ?local=1 fuerza la demo en el navegador aunque Firestore esté configurado
+  const forceLocal = /[?&]local=1/.test(location.search);
+  const adapter = window.CRM_CONFIG.firebase.enabled && !forceLocal ? FirestoreAdapter : LocalAdapter;
   const listeners = new Set();
 
   const DEFAULT_SETTINGS = {
@@ -56,14 +147,11 @@ const Store = (() => {
   function emit() { listeners.forEach((fn) => { try { fn(); } catch (e) { console.error(e); } }); }
 
   async function init() {
-    db = await adapter.load();
-    if (!db || !db.users) {
-      db = Seed.build(DEFAULT_SETTINGS);
-      adapter.replaceAll(db);
-    }
+    db = await adapter.load({ defaults: DEFAULT_SETTINGS, seed: () => Seed.build(DEFAULT_SETTINGS), onRemote: emit });
     COLLECTIONS.forEach((c) => { db[c] = db[c] || []; });
     db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings || {});
   }
+  const mode = () => adapter.name;
 
   const all = (col) => db[col];
   const get = (col, id) => db[col].find((x) => x.id === id) || null;
@@ -251,23 +339,26 @@ const Store = (() => {
 
   /* ---------- Respaldo ---------- */
   const exportJSON = () => JSON.stringify(db, null, 2);
-  function importJSON(text) {
-    const data = JSON.parse(text);
-    if (!data || !Array.isArray(data.users) || !Array.isArray(data.clients)) throw new Error('Archivo no válido');
-    db = data;
-    COLLECTIONS.forEach((c) => { db[c] = db[c] || []; });
-    db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings || {});
-    adapter.replaceAll(db);
+  // Reemplaza toda la información. En local cambia la caché; en Firestore escribe y los listeners actualizan.
+  async function replaceData(data) {
+    COLLECTIONS.forEach((c) => { data[c] = data[c] || []; });
+    data.settings = Object.assign({}, DEFAULT_SETTINGS, data.settings || {});
+    if (adapter.name === 'local') { db = data; adapter.replaceAll(db); emit(); return; }
+    await adapter.replaceAll(data);
     emit();
   }
-  function resetDemo() { db = Seed.build(DEFAULT_SETTINGS); adapter.replaceAll(db); emit(); }
+  async function importJSON(text) {
+    const data = JSON.parse(text);
+    if (!data || !Array.isArray(data.users) || !Array.isArray(data.clients)) throw new Error('Archivo no válido');
+    await replaceData(data);
+  }
+  const resetDemo = () => replaceData(Seed.build(DEFAULT_SETTINGS));
   function wipeAll() {
     const admin = currentUser();
-    db = { settings: db.settings };
-    COLLECTIONS.forEach((c) => { db[c] = []; });
-    db.users.push(Object.assign({}, admin, { role: 'admin', active: true }));
-    adapter.replaceAll(db);
-    emit();
+    const data = { settings: Object.assign({}, db.settings) };
+    COLLECTIONS.forEach((c) => { data[c] = []; });
+    data.users.push(Object.assign({}, admin, { role: 'admin', active: true }));
+    return replaceData(data);
   }
 
   return {
@@ -275,7 +366,7 @@ const Store = (() => {
     currentUser, setCurrentUser, isManager, isAdmin, can, myClients, myOrders, myTasks, myActivities, canSeeClient, activeUsers, sellers,
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
-    exportJSON, importJSON, resetDemo, wipeAll
+    exportJSON, importJSON, resetDemo, wipeAll, mode
   };
 })();
 

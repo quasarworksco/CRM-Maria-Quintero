@@ -206,12 +206,13 @@ Views.admin = (() => {
     el.querySelector('#restore').onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
       if (!(await UI.confirm('Restaurar reemplazará TODA la información actual por la del archivo. ¿Continuar?'))) return;
-      try { Store.importJSON(await f.text()); App.shell(); App.route(); UI.toast('Respaldo restaurado', 'good'); } catch (err) { UI.toast('Archivo no válido: ' + err.message, 'bad'); }
+      try { UI.toast('Restaurando…'); await Store.importJSON(await f.text()); App.shell(); App.route(); UI.toast('Respaldo restaurado', 'good'); } catch (err) { UI.toast('Archivo no válido: ' + err.message, 'bad'); }
     };
-    el.querySelector('#demo').onclick = async () => { if (await UI.confirm('Esto reemplaza todo por los datos de demostración. ¿Continuar?')) { Store.resetDemo(); App.shell(); App.route(); UI.toast('Datos demo cargados', 'good'); } };
+    el.querySelector('#demo').onclick = async () => { if (await UI.confirm(`Esto reemplaza todo por los datos de demostración${Store.mode() === 'firestore' ? ' <strong>para todo el equipo</strong>' : ''}. ¿Continuar?`)) { UI.toast('Cargando datos demo…'); try { await Store.resetDemo(); App.shell(); App.route(); UI.toast('Datos demo cargados', 'good'); } catch (err) { UI.toast('Error: ' + (err.code || err.message), 'bad'); } } };
     el.querySelector('#wipe').onclick = async () => {
       if (!(await UI.confirm('Se borrarán TODOS los clientes, ventas, pagos, tareas, productos y usuarios (excepto tú). ¿Seguro? Descarga un respaldo antes si lo necesitas.', { okLabel: 'Sí, borrar todo' }))) return;
-      Store.wipeAll(); App.shell(); App.route(); UI.toast('Listo: CRM vacío y listo para usar', 'good');
+      UI.toast('Borrando…');
+      try { await Store.wipeAll(); App.shell(); App.route(); UI.toast('Listo: CRM vacío y listo para usar', 'good'); } catch (err) { UI.toast('Error: ' + (err.code || err.message), 'bad'); }
     };
   }
 
@@ -220,10 +221,12 @@ Views.admin = (() => {
     const cfg = window.CRM_CONFIG;
     el.innerHTML = `
       <div class="grid cols-2">
-        <div class="card"><div class="card-head"><h2>Firebase / Firestore</h2>${cfg.firebase.enabled ? '<span class="badge good">Conectado</span>' : '<span class="badge warn">Pendiente</span>'}</div>
+        <div class="card"><div class="card-head"><h2>Firebase / Firestore</h2>${Store.mode() === 'firestore' ? '<span class="badge good">Conectado</span>' : '<span class="badge warn">Sin conexión</span>'}</div>
           <div class="card-body small stack" style="gap:8px">
-            <p style="margin:0">Base de datos en la nube para que todo el equipo comparta la misma información en tiempo real, y login con email y contraseña.</p>
-            <p style="margin:0" class="muted">Mientras tanto, los datos se guardan en <strong>este navegador</strong>. Colecciones preparadas: <code>${COLLECTIONS.join('</code>, <code>')}</code> y <code>settings</code>.</p>
+            ${Store.mode() === 'firestore'
+              ? `<p style="margin:0">Todo se guarda en la nube (proyecto <code>${U.esc(cfg.firebase.projectId)}</code>) y los cambios de cada persona le aparecen al resto del equipo en tiempo real.</p>
+                 <p style="margin:0" class="muted">Colecciones: <code>${COLLECTIONS.join('</code>, <code>')}</code> y <code>meta/settings</code>. Pendiente: login con email y contraseña.</p>`
+              : `<p style="margin:0">Estás en la <strong>demo sin conexión</strong>: los datos se guardan solo en este navegador.</p>${cfg.firebase.enabled ? '<p style="margin:0"><a href="./">Volver a la versión en línea</a></p>' : ''}`}
           </div></div>
         <div class="card"><div class="card-head"><h2>Cloudinary</h2>${UI.cloudinaryReady() ? '<span class="badge good">Configurado</span>' : '<span class="badge warn">Pendiente</span>'}</div>
           <div class="card-body small stack" style="gap:8px">
