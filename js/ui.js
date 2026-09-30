@@ -172,7 +172,11 @@ const UI = (() => {
     fd.append('upload_preset', c.uploadPreset);
     if (c.folder) fd.append('folder', c.folder + (subfolder ? '/' + subfolder : ''));
     const res = await fetch(`https://api.cloudinary.com/v1_1/${c.cloudName}/auto/upload`, { method: 'POST', body: fd });
-    if (!res.ok) throw new Error('Error al subir el archivo');
+    if (!res.ok) {
+      let msg = 'Error al subir el archivo';
+      try { const j = await res.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e) {}
+      throw new Error(msg);
+    }
     const j = await res.json();
     return { url: j.secure_url, publicId: j.public_id, name: file.name, type: j.resource_type, format: j.format, bytes: j.bytes };
   }
