@@ -136,7 +136,13 @@ const FirestoreAdapter = {
   signIn(email, pass) { return this.authMod.signInWithEmailAndPassword(this.auth, email.trim(), pass).then((c) => c.user); },
   createOwnAccount(email, pass) { return this.authMod.createUserWithEmailAndPassword(this.auth, email.trim(), pass).then((c) => c.user); },
   resetPassword(email) { return this.authMod.sendPasswordResetEmail(this.auth, email.trim()); },
-  async signOut() { sessionStorage.removeItem('crm_mq_view_as'); await this.authMod.signOut(this.auth); location.reload(); },
+  // Al cerrar sesión se borra también la copia local de los datos (computadores compartidos)
+  async signOut() {
+    try { sessionStorage.removeItem('crm_mq_view_as'); } catch (e) {}
+    await this.authMod.signOut(this.auth);
+    try { await this.fs.terminate(this.fdb); await this.fs.clearIndexedDbPersistence(this.fdb); } catch (e) { console.warn('No se pudo limpiar la caché local', e); }
+    location.reload();
+  },
   // Crea la cuenta de otra persona sin cerrar la sesión de la administradora (usa una segunda instancia)
   async createAccount(email, pass) {
     const sec = this.appMod.getApps().find((a) => a.name === 'crm-alta') || this.appMod.initializeApp(this.cfg, 'crm-alta');
