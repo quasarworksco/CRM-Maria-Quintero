@@ -19,8 +19,8 @@ window.CRM_CONFIG = {
     appId: ''
   },
   cloudinary: {
-    cloudName: '',     // ej: 'mariaquintero'
-    uploadPreset: '',  // ej: 'crm_unsigned'
+    cloudName: 'bzrjdfnu',
+    uploadPreset: 'crmmaria',   // debe ser "Unsigned" en Cloudinary
     folder: 'crm-maria-quintero'
   }
 };
