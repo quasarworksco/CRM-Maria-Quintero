@@ -70,6 +70,10 @@ El CRM guarda todo en **Firebase Firestore** (proyecto `crm-maria-8f7af`) y escu
 - Con `?local=1` en la dirección se abre la demo sin conexión, que guarda solo en el navegador.
 - `firestore.rules` tiene las reglas **temporales** (abiertas solo para las colecciones del CRM y con fecha de vencimiento), que se usan mientras no haya login. Se copian en la consola de Firebase → Firestore → Reglas.
 
+## Cuenta principal
+
+`CRM_CONFIG.ownerEmail` (en `js/config.js`) es la cuenta dueña del CRM: siempre es administradora, no se puede desactivar ni cambiar de rol, y se conserva al borrar todo. Con el login será la cuenta desde la que se crean los usuarios. **La contraseña nunca se guarda en el repositorio.**
+
 ## Próximos pasos
 
 1. **Login**: Firebase Authentication con email y contraseña. `Store.currentUser()` pasa a leer el usuario autenticado, y las reglas de Firestore se cambian por reglas por usuario y rol que repliquen `Store.can()`.

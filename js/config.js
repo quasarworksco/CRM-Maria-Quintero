@@ -11,6 +11,10 @@
      (Settings > Upload > Upload presets).
    ========================================================= */
 window.CRM_CONFIG = {
+  // Cuenta principal (dueña del CRM): siempre administradora, no se puede desactivar.
+  // Con el login, será la cuenta desde la que se crean y administran los usuarios.
+  // La contraseña NUNCA se guarda en el código: se escribe solo en la pantalla de inicio de sesión.
+  ownerEmail: 'inventusmq@gmail.com',
   firebase: {
     enabled: true,
     apiKey: 'AIzaSyDomnn6WZU799SWznGt1ZN7NFl3c39DEmU',

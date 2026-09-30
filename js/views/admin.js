@@ -36,7 +36,7 @@ Views.admin = (() => {
           const nClients = Store.all('clients').filter((c) => c.ownerId === u.id).length;
           const calls = Metrics.forUser(u.id, ...today).calls;
           return `<tr style="${u.active ? '' : 'opacity:.55'}">
-            <td><div class="row">${UI.avatar(u, 'md')}<div><div class="cell-main">${U.esc(u.name)}${u.id === Store.currentUser().id ? ' <span class="badge info">Tú</span>' : ''}</div><div class="cell-sub">Desde ${U.date(u.createdAt)}</div></div></div></td>
+            <td><div class="row">${UI.avatar(u, 'md')}<div><div class="cell-main">${U.esc(u.name)}${Store.isOwner(u) ? ' <span class="badge">Cuenta principal</span>' : ''}${u.id === Store.currentUser().id ? ' <span class="badge info">Tú</span>' : ''}</div><div class="cell-sub">Desde ${U.date(u.createdAt)}</div></div></div></td>
             <td><span class="badge ${u.role === 'admin' ? 'violet' : u.role === 'supervisor' ? 'info' : ''}">${ROLES[u.role].name}</span></td>
             <td class="small">${U.esc(u.email || '')}<div class="muted">${U.esc(u.phone || '')}</div></td>
             <td class="right num">${nClients}</td>
@@ -58,13 +58,14 @@ Views.admin = (() => {
 
   function userForm(id) {
     const u = id ? Store.get('users', id) : { role: 'agente', active: true, callGoal: 60, salesGoal: 5000, color: USER_COLORS[Store.all('users').length % USER_COLORS.length] };
-    const isSelf = id === Store.currentUser().id;
+    // La cuenta principal y la propia no pueden perder el rol ni desactivarse
+    const isSelf = id === Store.currentUser().id || Store.isOwner(u);
     UI.modal({
       title: id ? 'Editar usuario' : 'Nuevo usuario',
       body: `
         <div class="form-grid">
           <label class="field full">Nombre completo *<input name="name" required value="${U.esc(u.name)}"></label>
-          <label class="field">Email <span class="hint">(será su usuario de acceso)</span><input name="email" type="email" value="${U.esc(u.email)}"></label>
+          <label class="field">Email <span class="hint">${Store.isOwner(u) ? '(cuenta principal)' : '(será su usuario de acceso)'}</span><input name="email" type="email" value="${U.esc(u.email)}" ${Store.isOwner(u) ? 'readonly' : ''}></label>
           <label class="field">Teléfono<input name="phone" value="${U.esc(u.phone)}"></label>
           <label class="field">Rol<select name="role" ${isSelf ? 'disabled' : ''}>${Object.entries(ROLES).map(([k, r]) => `<option value="${k}" ${u.role === k ? 'selected' : ''}>${r.name}</option>`).join('')}</select></label>
           <label class="field">Color<div class="row wrap">${USER_COLORS.map((c) => `<label style="cursor:pointer"><input type="radio" name="color" value="${c}" ${u.color === c ? 'checked' : ''} hidden><span class="avatar" style="background:${c};outline:${u.color === c ? '3px solid var(--text)' : 'none'};outline-offset:2px" data-color="${c}"></span></label>`).join('')}</div></label>
@@ -76,6 +77,9 @@ Views.admin = (() => {
       onOpen: (form) => form.querySelectorAll('[data-color]').forEach((s) => s.addEventListener('click', () => form.querySelectorAll('[data-color]').forEach((x) => { x.style.outline = x === s ? '3px solid var(--text)' : 'none'; }))),
       onSubmit: (d) => {
         if (isSelf) { d.role = u.role; d.active = true; }
+        if (Store.isOwner(u)) d.email = u.email;
+        const em = String(d.email || '').trim().toLowerCase();
+        if (em && Store.all('users').some((x) => x.id !== id && String(x.email || '').trim().toLowerCase() === em)) { UI.toast('Ya existe un usuario con ese email', 'bad'); return false; }
         if (id) {
           const wasActive = u.active;
           Store.update('users', id, d);

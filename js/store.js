@@ -150,8 +150,26 @@ const Store = (() => {
     db = await adapter.load({ defaults: DEFAULT_SETTINGS, seed: () => Seed.build(DEFAULT_SETTINGS), onRemote: emit });
     COLLECTIONS.forEach((c) => { db[c] = db[c] || []; });
     db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings || {});
+    ensureOwner();
   }
   const mode = () => adapter.name;
+
+  // Garantiza que la cuenta principal exista, sea administradora y esté activa
+  const ownerEmail = () => String((window.CRM_CONFIG || {}).ownerEmail || '').trim().toLowerCase();
+  const isOwner = (u) => !!u && !!ownerEmail() && String(u.email || '').trim().toLowerCase() === ownerEmail();
+  function ensureOwner() {
+    const email = ownerEmail();
+    if (!email) return;
+    let owner = db.users.find(isOwner);
+    if (!owner) {
+      // Datos anteriores: se asigna el correo a la primera administradora con correo de ejemplo
+      owner = db.users.find((u) => u.role === 'admin' && /@empresa\.com$/i.test(u.email || '')) || null;
+      if (owner) { update('users', owner.id, { email }); return; }
+      insert('users', { name: 'Maria Quintero', email, phone: '', role: 'admin', active: true, callGoal: 0, salesGoal: 0, color: USER_COLORS[0] });
+      return;
+    }
+    if (owner.role !== 'admin' || !owner.active) update('users', owner.id, { role: 'admin', active: true });
+  }
 
   const all = (col) => db[col];
   const get = (col, id) => db[col].find((x) => x.id === id) || null;
@@ -354,7 +372,7 @@ const Store = (() => {
   }
   const resetDemo = () => { const d = Seed.build(Object.assign({}, db.settings, { demoData: true })); return replaceData(d); };
   function wipeAll() {
-    const admin = currentUser();
+    const admin = db.users.find(isOwner) || currentUser();
     const data = { settings: Object.assign({}, db.settings, { demoData: false }) };
     COLLECTIONS.forEach((c) => { data[c] = []; });
     data.users.push(Object.assign({}, admin, { role: 'admin', active: true }));
@@ -366,7 +384,7 @@ const Store = (() => {
     currentUser, setCurrentUser, isManager, isAdmin, can, myClients, myOrders, myTasks, myActivities, canSeeClient, activeUsers, sellers,
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
-    exportJSON, importJSON, resetDemo, wipeAll, mode
+    exportJSON, importJSON, resetDemo, wipeAll, mode, isOwner
   };
 })();
 
@@ -382,7 +400,7 @@ const Seed = {
     COLLECTIONS.forEach((c) => { db[c] = []; });
 
     const users = [
-      { name: 'Maria Quintero', email: 'maria@empresa.com', phone: '(305) 555-0100', role: 'admin', callGoal: 0, salesGoal: 0 },
+      { name: 'Maria Quintero', email: (window.CRM_CONFIG && window.CRM_CONFIG.ownerEmail) || 'maria@empresa.com', phone: '(305) 555-0100', role: 'admin', callGoal: 0, salesGoal: 0 },
       { name: 'Laura Gómez', email: 'laura@empresa.com', phone: '(305) 555-0101', role: 'supervisor', callGoal: 40, salesGoal: 8000, sells: true },
       { name: 'Carlos Rivera', email: 'carlos@empresa.com', phone: '(305) 555-0102', role: 'agente', callGoal: 60, salesGoal: 6000 },
       { name: 'Andrea Torres', email: 'andrea@empresa.com', phone: '(305) 555-0103', role: 'agente', callGoal: 60, salesGoal: 6000 },
