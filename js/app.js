@@ -36,7 +36,9 @@ const App = (() => {
   function shell() {
     const s = Store.settings();
     const me = Store.currentUser();
+    const real = Store.realUser();
     root.innerHTML = `
+      ${Store.isViewingAs() ? `<div class="viewas-bar">${icon('user', 'sm')} Estás viendo el CRM como <strong>${U.esc(me.name)}</strong> (${ROLES[me.role].name}). Es solo una vista previa. <button class="btn xs" id="exitViewAs">Volver a mi vista</button></div>` : ''}
       <div class="app" id="app">
         <aside class="sidebar">
           <div class="brand">
@@ -61,12 +63,27 @@ const App = (() => {
             <div class="topbar-right">
               <button class="btn primary sm" id="quickAdd">${icon('userPlus', 'sm')}<span class="hide-sm">Nuevo prospecto</span></button>
               <button class="btn ghost icon" id="themeBtn" title="Cambiar tema">${icon('moon')}</button>
-              <label class="user-chip" title="Usuario activo (temporal hasta tener login)">
+              ${Store.authMode() ? `
+              <div class="user-menu">
+                <button class="user-chip" id="userBtn" aria-haspopup="true" aria-expanded="false">
+                  ${UI.avatar(real)}
+                  <span class="who"><strong>${U.esc(real.name)}</strong><small>${ROLES[real.role] ? ROLES[real.role].name : ''}</small></span>
+                  ${icon('chevronDown', 'sm chev')}
+                </button>
+                <div class="menu-pop hidden" id="userPop" role="menu">
+                  <div class="menu-head">${U.esc(real.email || '')}</div>
+                  <button role="menuitem" data-menu="perfil">${icon('user', 'sm')} Mi perfil</button>
+                  <button role="menuitem" data-menu="clave">${icon('shield', 'sm')} Cambiar mi contraseña</button>
+                  <a role="menuitem" href="guia/" target="_blank" rel="noopener">${icon('info', 'sm')} Guía de uso</a>
+                  <button role="menuitem" data-menu="salir" class="danger">${icon('logout', 'sm')} Cerrar sesión</button>
+                </div>
+              </div>` : `
+              <label class="user-chip" title="Demo sin conexión: elige con qué usuario ver el CRM">
                 ${UI.avatar(me)}
                 <select id="userSwitch" aria-label="Usuario activo">
                   ${Store.activeUsers().map((u) => `<option value="${u.id}" ${u.id === me.id ? 'selected' : ''}>${U.esc(u.name)} · ${ROLES[u.role].name}</option>`).join('')}
                 </select>
-              </label>
+              </label>`}
             </div>
           </header>
           <main class="content" id="view"></main>
@@ -78,7 +95,11 @@ const App = (() => {
       const app = e.currentTarget;
       if (app.classList.contains('nav-open') && !e.target.closest('.sidebar') && !e.target.closest('#menuBtn')) app.classList.remove('nav-open');
     });
-    document.getElementById('userSwitch').onchange = (e) => { Store.setCurrentUser(e.target.value); shell(); route(); UI.toast('Ahora ves el CRM como ' + Store.currentUser().name); };
+    const sw = document.getElementById('userSwitch');
+    if (sw) sw.onchange = (e) => { Store.setCurrentUser(e.target.value); shell(); route(); UI.toast('Ahora ves el CRM como ' + Store.currentUser().name); };
+    const ex = document.getElementById('exitViewAs');
+    if (ex) ex.onclick = () => { Store.setViewAs(null); shell(); route(); };
+    bindUserMenu();
     document.getElementById('themeBtn').onclick = toggleTheme;
     document.getElementById('quickAdd').onclick = () => Views.clientes.openForm();
     initSearch();
@@ -130,6 +151,139 @@ const App = (() => {
     document.addEventListener('click', (e) => { if (!e.target.closest('.global-search')) box.classList.add('hidden'); });
     document.addEventListener('keydown', (e) => {
       if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); input.focus(); }
+    });
+  }
+
+  /* ---------- Menú de usuario ---------- */
+  function bindUserMenu() {
+    const btn = document.getElementById('userBtn'), pop = document.getElementById('userPop');
+    if (!btn) return;
+    const close = () => { pop.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); };
+    btn.onclick = (e) => { e.stopPropagation(); const open = pop.classList.toggle('hidden'); btn.setAttribute('aria-expanded', String(!open)); };
+    document.addEventListener('click', (e) => { if (!e.target.closest('.user-menu')) close(); });
+    pop.querySelectorAll('[data-menu]').forEach((b) => b.onclick = async () => {
+      close();
+      const me = Store.realUser();
+      if (b.dataset.menu === 'perfil') return profileForm(false);
+      if (b.dataset.menu === 'clave') {
+        if (!(await UI.confirm(`Te enviaremos un correo a <strong>${U.esc(me.email)}</strong> con un enlace para crear una contraseña nueva.`, { title: 'Cambiar contraseña', okLabel: 'Enviar correo', danger: false }))) return;
+        try { await Store.auth().resetPassword(me.email); UI.toast('Listo: revisa tu correo (también la carpeta de spam)', 'good'); }
+        catch (err) { UI.toast(authError(err), 'bad'); }
+      }
+      if (b.dataset.menu === 'salir') { if (await UI.confirm('¿Cerrar sesión en este dispositivo?', { title: 'Cerrar sesión', okLabel: 'Cerrar sesión', danger: false })) Store.auth().signOut(); }
+    });
+  }
+
+  /* ---------- Ingreso ---------- */
+  function authError(err) {
+    const c = (err && err.code) || '';
+    const map = {
+      'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+      'auth/invalid-login-credentials': 'Correo o contraseña incorrectos.',
+      'auth/wrong-password': 'Correo o contraseña incorrectos.',
+      'auth/user-not-found': 'No existe una cuenta con ese correo.',
+      'auth/invalid-email': 'El correo no es válido.',
+      'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos o restablece tu contraseña.',
+      'auth/network-request-failed': 'Sin conexión a internet. Revisa tu conexión e intenta de nuevo.',
+      'auth/email-already-in-use': 'Esa cuenta ya existe. Ingresa con tu contraseña o usa "¿Olvidaste tu contraseña?".',
+      'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+      'auth/missing-password': 'Escribe tu contraseña.',
+      'auth/user-disabled': 'Esta cuenta fue deshabilitada.',
+      'auth/operation-not-allowed': 'El ingreso con correo y contraseña no está activado en Firebase (Authentication → Sign-in method).'
+    };
+    return map[c] || (err && err.message) || 'Ocurrió un error. Intenta de nuevo.';
+  }
+
+  // Muestra la pantalla de ingreso y resuelve cuando la persona entra
+  function login(adapter, notice) {
+    return new Promise((resolve) => {
+      const s = Store.settings();
+      const owner = String(window.CRM_CONFIG.ownerEmail || '').toLowerCase();
+      let mode = 'in'; // in | create | reset
+      const draw = (msg = notice || '', type = msg && notice ? 'bad' : '') => {
+        const titles = { in: ['Ingresa a tu CRM', 'Escribe el correo y la contraseña de tu usuario.'], create: ['Crear la contraseña de la cuenta principal', 'Solo para el primer ingreso de la administradora principal.'], reset: ['Recuperar contraseña', 'Te enviaremos un enlace a tu correo para crear una contraseña nueva.'] };
+        root.innerHTML = `
+          <div class="login">
+            <form class="login-card" id="loginForm" novalidate>
+              <div class="brand-logo">${U.esc(U.initials(s.companyName))}</div>
+              <h1>${titles[mode][0]}</h1>
+              <p class="muted">${titles[mode][1]}</p>
+              ${msg ? `<div class="login-msg ${type}">${msg}</div>` : ''}
+              <label class="field">Correo<input name="email" type="email" autocomplete="username" required value="${U.esc(mode === 'create' ? owner : (draw.email || ''))}" ${mode === 'create' ? 'readonly' : ''}></label>
+              ${mode !== 'reset' ? `<label class="field">Contraseña
+                <span class="pass"><input name="pass" type="password" autocomplete="${mode === 'create' ? 'new-password' : 'current-password'}" required minlength="6"><button type="button" class="btn ghost sm" id="showPass">Ver</button></span></label>` : ''}
+              ${mode === 'create' ? '<label class="field">Repite la contraseña<input name="pass2" type="password" autocomplete="new-password" required minlength="6"></label>' : ''}
+              <button class="btn primary login-btn" type="submit">${{ in: 'Ingresar', create: 'Crear contraseña e ingresar', reset: 'Enviar enlace' }[mode]}</button>
+              <div class="login-links">
+                ${mode === 'in' ? '<a href="#" data-mode="reset">¿Olvidaste tu contraseña?</a><a href="#" data-mode="create">Primer ingreso de la cuenta principal</a>' : '<a href="#" data-mode="in">← Volver a ingresar</a>'}
+              </div>
+            </form>
+            <div class="login-foot"><a href="guia/" target="_blank" rel="noopener">Guía de uso</a> · <a href="?local=1">Ver demo sin conexión</a></div>
+          </div>`;
+        const form = document.getElementById('loginForm');
+        const em = form.querySelector('[name=email]');
+        (mode === 'create' ? form.querySelector('[name=pass]') : em.value ? form.querySelector('[name=pass]') || em : em).focus();
+        const sp = document.getElementById('showPass');
+        if (sp) sp.onclick = () => { const i = form.querySelector('[name=pass]'); i.type = i.type === 'password' ? 'text' : 'password'; sp.textContent = i.type === 'password' ? 'Ver' : 'Ocultar'; };
+        form.querySelectorAll('[data-mode]').forEach((a) => a.onclick = (e) => { e.preventDefault(); draw.email = em.value; mode = a.dataset.mode; draw(''); });
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const f = UI.formData(form);
+          draw.email = f.email;
+          const btn = form.querySelector('.login-btn');
+          btn.disabled = true; btn.textContent = 'Un momento…';
+          try {
+            if (mode === 'reset') {
+              await adapter.resetPassword(f.email);
+              mode = 'in'; draw(`Si existe una cuenta con <strong>${U.esc(f.email)}</strong>, te llegó un correo para crear una contraseña nueva. Revisa también la carpeta de spam.`, 'good');
+              return;
+            }
+            if (mode === 'create') {
+              if (f.pass !== f.pass2) throw { code: 'x', message: 'Las contraseñas no coinciden.' };
+              if ((f.pass || '').length < 6) throw { code: 'auth/weak-password' };
+              const u = await adapter.createOwnAccount(owner, f.pass);
+              return resolve(u);
+            }
+            const u = await adapter.signIn(f.email, f.pass || '');
+            root.innerHTML = `<div class="boot"><div class="brand-logo">MQ</div><div class="muted small">Cargando tu CRM…</div></div>`;
+            resolve(u);
+          } catch (err) {
+            draw(authError(err), 'bad');
+          }
+        };
+      };
+      draw();
+    });
+  }
+
+  // Primer ingreso: pedir nombre y apellido una sola vez
+  function profileForm(first) {
+    const me = Store.realUser();
+    const parts = String(me.name || '').includes('@') ? ['', ''] : [me.firstName || String(me.name || '').split(' ')[0] || '', me.lastName || String(me.name || '').split(' ').slice(1).join(' ')];
+    return new Promise((resolve) => {
+      UI.modal({
+        title: first ? '¡Te damos la bienvenida! ¿Cómo te llamas?' : 'Mi perfil',
+        size: 'sm',
+        submitLabel: first ? 'Guardar y empezar' : 'Guardar',
+        locked: first,
+        body: `
+          ${first ? '<p style="margin:0" class="muted">Es tu primer ingreso. Escribe el <strong>nombre y apellido con el que vas a atender</strong> a los clientes: aparecerá en el guion de llamadas, los recibos y los reportes del equipo. Solo te lo pedimos esta vez.</p>' : ''}
+          <div class="form-grid">
+            <label class="field">Nombre *<input name="firstName" required autocomplete="given-name" value="${U.esc(parts[0])}"></label>
+            <label class="field">Apellido *<input name="lastName" required autocomplete="family-name" value="${U.esc(parts[1])}"></label>
+            <label class="field full">Teléfono <span class="hint">(opcional)</span><input name="phone" type="tel" autocomplete="tel" value="${U.esc(me.phone)}"></label>
+          </div>`,
+        onSubmit: (d) => {
+          const cap = (x) => x.trim().replace(/\s+/g, ' ').replace(/(^|\s)(\S)/g, (_, a, b) => a + b.toUpperCase());
+          const patch = { firstName: cap(d.firstName), lastName: cap(d.lastName), name: `${cap(d.firstName)} ${cap(d.lastName)}`, phone: d.phone || '' };
+          if (first) Object.assign(patch, { profileCompleted: true, firstLoginAt: new Date().toISOString() });
+          Store.update('users', me.id, patch);
+          UI.toast(first ? `¡Hola, ${patch.firstName}! Tu CRM está listo.` : 'Perfil actualizado', 'good');
+          shell(); route();
+          resolve();
+        }
+      });
+
     });
   }
 
@@ -191,6 +345,12 @@ const App = (() => {
       await Store.init();
     } catch (err) {
       console.error(err);
+      if (err && err.code === 'no-access') {
+        // Vuelve a la pantalla de ingreso con el aviso
+        await login(FirestoreAdapter, U.esc(err.message));
+        location.reload();
+        return;
+      }
       const msg = String(err && (err.code || err.message) || err);
       const perm = /permission/i.test(msg);
       root.innerHTML = `<div class="boot" style="max-width:460px;text-align:center;padding:0 16px">
@@ -207,11 +367,26 @@ const App = (() => {
     UI.initTooltips();
     shell();
     Store.onChange(refresh);
+    Store.onChange(watchAccount);
     window.addEventListener('hashchange', route);
     route();
+    if (Store.authMode()) {
+      const me = Store.realUser();
+      if (me.email && Store.get('users', me.id)) {
+        Store.update('users', me.id, { lastLoginAt: new Date().toISOString() });
+        if (!me.profileCompleted) profileForm(true);
+      }
+    }
   }
 
-  return { start, route, refresh, renderNav, shell, current: () => current };
+  // Si la administración desactiva a alguien mientras está conectado, se cierra su sesión
+  function watchAccount() {
+    if (!Store.authMode()) return;
+    const me = Store.realUser();
+    if (me && me.active === false) { UI.toast('Tu usuario fue desactivado.', 'bad'); setTimeout(() => Store.auth().signOut(), 1500); }
+  }
+
+  return { start, route, refresh, renderNav, shell, login, current: () => current };
 })();
 
 document.addEventListener('DOMContentLoaded', App.start);

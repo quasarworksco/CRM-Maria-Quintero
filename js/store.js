@@ -43,39 +43,78 @@ const FirestoreAdapter = {
   fs: null,
   fdb: null,
   cache: null,
+  appMod: null,
+  authMod: null,
+  auth: null,
+  access: null, // { email, role, userId, isOwner } de la persona que inició sesión
 
   async load(ctx) {
     const cfg = window.CRM_CONFIG.firebase;
-    const appMod = await import(this.SDK + 'firebase-app.js');
-    const fs = this.fs = await import(this.SDK + 'firebase-firestore.js');
-    const app = appMod.initializeApp({ apiKey: cfg.apiKey, authDomain: cfg.authDomain, projectId: cfg.projectId, storageBucket: cfg.storageBucket, messagingSenderId: cfg.messagingSenderId, appId: cfg.appId });
+    this.cfg = { apiKey: cfg.apiKey, authDomain: cfg.authDomain, projectId: cfg.projectId, storageBucket: cfg.storageBucket, messagingSenderId: cfg.messagingSenderId, appId: cfg.appId };
+    const appMod = this.appMod = await import(this.SDK + 'firebase-app.js');
+    const [fs, authMod] = await Promise.all([import(this.SDK + 'firebase-firestore.js'), import(this.SDK + 'firebase-auth.js')]);
+    this.fs = fs;
+    this.authMod = authMod;
+    const app = appMod.initializeApp(this.cfg);
+    this.auth = authMod.getAuth(app);
     // Caché local persistente: el CRM sigue funcionando si se cae el internet y sincroniza al volver
     try { this.fdb = fs.initializeFirestore(app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) }); }
     catch (e) { this.fdb = fs.getFirestore(app); }
 
-    // Primera vez: cargar datos de ejemplo (una sola vez, protegido con transacción)
-    const settingsRef = fs.doc(this.fdb, 'meta', 'settings');
-    let seedNow = false;
+    // 1) Sesión: si no hay nadie conectado, la app muestra la pantalla de ingreso
+    let user = await new Promise((resolve) => { const off = authMod.onAuthStateChanged(this.auth, (u) => { off(); resolve(u); }); });
+    if (!user) user = await ctx.login(this);
+    const email = String(user.email || '').trim().toLowerCase();
+    const isOwner = !!ctx.ownerEmail && email === ctx.ownerEmail;
+
+    // 2) Permiso: la cuenta principal siempre entra; el resto necesita acceso activo
+    let access = null;
     try {
-      seedNow = await fs.runTransaction(this.fdb, async (tx) => {
-        const snap = await tx.get(settingsRef);
-        if (snap.exists()) return false;
-        tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { seededAt: new Date().toISOString(), demoData: true })));
-        return true;
-      });
-    } catch (e) {
-      // Sin internet la transacción falla: se sigue con lo guardado en la caché local
-      if (e && e.code === 'permission-denied') throw e;
-      console.warn('No se pudo verificar la base (¿sin conexión?)', e);
+      const snap = await fs.getDoc(fs.doc(this.fdb, 'access', email));
+      access = snap.exists() ? snap.data() : null;
+    } catch (e) { if (!isOwner) throw e; }
+    if (!isOwner && (!access || access.active === false)) {
+      await authMod.signOut(this.auth);
+      throw Object.assign(new Error(access ? 'Tu usuario está desactivado. Habla con la administradora.' : 'Tu correo no tiene acceso a este CRM. Pídele a la administradora que te cree un usuario.'), { code: 'no-access', email });
     }
-    if (seedNow) {
-      const data = ctx.seed();
-      delete data.settings;
-      await this._writeAll(data);
+    const role = isOwner ? 'admin' : access.role;
+    this.access = { email, role, userId: access ? access.userId : null, isOwner };
+    const manager = role === 'admin' || role === 'supervisor';
+
+    // 3) Primera vez: cargar datos de ejemplo (solo la administración, una sola vez)
+    const settingsRef = fs.doc(this.fdb, 'meta', 'settings');
+    if (role === 'admin') {
+      let seedNow = false;
+      try {
+        seedNow = await fs.runTransaction(this.fdb, async (tx) => {
+          const snap = await tx.get(settingsRef);
+          if (snap.exists()) return false;
+          tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { seededAt: new Date().toISOString(), demoData: true })));
+          return true;
+        });
+      } catch (e) {
+        // Sin internet la transacción falla: se sigue con lo guardado en la caché local
+        if (e && e.code === 'permission-denied') throw e;
+        console.warn('No se pudo verificar la base (¿sin conexión?)', e);
+      }
+      if (seedNow) {
+        const data = ctx.seed();
+        delete data.settings;
+        await this._writeAll(data);
+      }
     }
 
+    // 4) Escuchar cambios en vivo. Cada agente solo recibe sus clientes y sus ventas.
     const cache = this.cache = { settings: Object.assign({}, ctx.defaults) };
     COLLECTIONS.forEach((c) => { cache[c] = []; });
+    const mine = this.access.userId || '__sin_usuario__';
+    const source = (col) => {
+      const ref = fs.collection(this.fdb, col);
+      if (manager) return ref;
+      if (col === 'clients') return fs.query(ref, fs.where('ownerId', '==', mine));
+      if (col === 'orders') return fs.query(ref, fs.where('userId', '==', mine));
+      return ref;
+    };
     const listen = (ref, apply) => new Promise((resolve, reject) => {
       let first = true;
       fs.onSnapshot(ref, (snap) => {
@@ -84,10 +123,32 @@ const FirestoreAdapter = {
       }, (err) => { console.error(err); if (first) { first = false; reject(err); } else UI.toast('Se perdió la conexión con la base de datos', 'bad'); });
     });
     await Promise.all([
-      ...COLLECTIONS.map((col) => listen(fs.collection(this.fdb, col), (snap) => { cache[col] = snap.docs.map((d) => Object.assign({ id: d.id }, d.data())); })),
+      ...COLLECTIONS.map((col) => listen(source(col), (snap) => { cache[col] = snap.docs.map((d) => Object.assign({ id: d.id }, d.data())); })),
       listen(settingsRef, (snap) => { cache.settings = Object.assign({}, ctx.defaults, snap.exists() ? snap.data() : {}); })
     ]);
+
+    // Si la sesión se cierra en otra pestaña, se recarga
+    authMod.onAuthStateChanged(this.auth, (u) => { if (!u || String(u.email || '').toLowerCase() !== email) location.reload(); });
     return cache;
+  },
+
+  /* ---------- Cuentas (Firebase Authentication) ---------- */
+  signIn(email, pass) { return this.authMod.signInWithEmailAndPassword(this.auth, email.trim(), pass).then((c) => c.user); },
+  createOwnAccount(email, pass) { return this.authMod.createUserWithEmailAndPassword(this.auth, email.trim(), pass).then((c) => c.user); },
+  resetPassword(email) { return this.authMod.sendPasswordResetEmail(this.auth, email.trim()); },
+  async signOut() { sessionStorage.removeItem('crm_mq_view_as'); await this.authMod.signOut(this.auth); location.reload(); },
+  // Crea la cuenta de otra persona sin cerrar la sesión de la administradora (usa una segunda instancia)
+  async createAccount(email, pass) {
+    const sec = this.appMod.getApps().find((a) => a.name === 'crm-alta') || this.appMod.initializeApp(this.cfg, 'crm-alta');
+    const secAuth = this.authMod.getAuth(sec);
+    try { await this.authMod.createUserWithEmailAndPassword(secAuth, email.trim(), pass); }
+    finally { await this.authMod.signOut(secAuth).catch(() => {}); }
+  },
+  // Documento de acceso por correo: es lo que leen las reglas de seguridad para saber el rol
+  putAccess(u) {
+    const email = String(u.email || '').trim().toLowerCase();
+    if (!email) return Promise.resolve();
+    return this.fs.setDoc(this.fs.doc(this.fdb, 'access', email), { email, userId: u.id, role: u.role, active: u.active !== false, updatedAt: new Date().toISOString() }).catch((e) => this._err(e));
   },
 
   _err(e) { console.error(e); UI.toast('No se pudo guardar en la nube: ' + (e.code || e.message), 'bad'); },
@@ -147,7 +208,7 @@ const Store = (() => {
   function emit() { listeners.forEach((fn) => { try { fn(); } catch (e) { console.error(e); } }); }
 
   async function init() {
-    db = await adapter.load({ defaults: DEFAULT_SETTINGS, seed: () => Seed.build(DEFAULT_SETTINGS), onRemote: emit });
+    db = await adapter.load({ defaults: DEFAULT_SETTINGS, seed: () => Seed.build(DEFAULT_SETTINGS), onRemote: emit, ownerEmail: ownerEmail(), login: (a) => App.login(a) });
     COLLECTIONS.forEach((c) => { db[c] = db[c] || []; });
     db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings || {});
     ensureOwner();
@@ -160,15 +221,17 @@ const Store = (() => {
   function ensureOwner() {
     const email = ownerEmail();
     if (!email) return;
+    if (authMode() && (!adapter.access || adapter.access.role !== 'admin')) return;
     let owner = db.users.find(isOwner);
     if (!owner) {
       // Datos anteriores: se asigna el correo a la primera administradora con correo de ejemplo
       owner = db.users.find((u) => u.role === 'admin' && /@empresa\.com$/i.test(u.email || '')) || null;
-      if (owner) { update('users', owner.id, { email }); return; }
-      insert('users', { name: 'Maria Quintero', email, phone: '', role: 'admin', active: true, callGoal: 0, salesGoal: 0, color: USER_COLORS[0] });
-      return;
+      if (owner) update('users', owner.id, { email, authAccount: true });
+      else owner = insert('users', { name: 'Maria Quintero', email, phone: '', role: 'admin', active: true, authAccount: true, profileCompleted: false, callGoal: 0, salesGoal: 0, color: USER_COLORS[0] });
+      owner = get('users', owner.id);
     }
-    if (owner.role !== 'admin' || !owner.active) update('users', owner.id, { role: 'admin', active: true });
+    if (owner.role !== 'admin' || !owner.active || !owner.authAccount) update('users', owner.id, { role: 'admin', active: true, authAccount: true });
+    if (authMode() && adapter.access && adapter.access.role === 'admin') syncAccess(get('users', owner.id));
   }
 
   const all = (col) => db[col];
@@ -198,16 +261,44 @@ const Store = (() => {
   const settings = () => (db ? db.settings : DEFAULT_SETTINGS);
   function saveSettings(patch) { Object.assign(db.settings, patch); adapter.putSettings(db.settings, db); emit(); }
 
-  /* ---------- Sesión (temporal hasta tener login) ---------- */
+  /* ---------- Sesión ---------- */
+  // Con Firestore la persona es la que inició sesión; en la demo sin conexión se elige con el selector.
   const SESSION_KEY = 'crm_mq_session';
-  function currentUser() {
+  const VIEW_AS_KEY = 'crm_mq_view_as';
+  const authMode = () => adapter.name === 'firestore';
+  const lower = (x) => String(x || '').trim().toLowerCase();
+  function realUser() {
+    if (authMode() && adapter.access) {
+      const a = adapter.access;
+      return db.users.find((u) => lower(u.email) === a.email)
+        || { id: a.userId || '__yo__', name: a.email, email: a.email, role: a.role, active: true, profileCompleted: true };
+    }
     let id = null;
     try { id = localStorage.getItem(SESSION_KEY); } catch (e) {}
     let u = id && get('users', id);
     if (!u || !u.active) u = db.users.find((x) => x.role === 'admin' && x.active) || db.users[0];
     return u;
   }
-  function setCurrentUser(id) { try { localStorage.setItem(SESSION_KEY, id); } catch (e) {} emit(); }
+  // "Ver como": la administración puede ver el CRM como otra persona (solo vista previa)
+  function viewAsId() { try { return sessionStorage.getItem(VIEW_AS_KEY); } catch (e) { return null; } }
+  function currentUser() {
+    const me = realUser();
+    if (authMode() && me.role === 'admin') {
+      const other = viewAsId() && get('users', viewAsId());
+      if (other && other.id !== me.id && other.active) return other;
+    }
+    return me;
+  }
+  const isViewingAs = () => currentUser().id !== realUser().id;
+  function setViewAs(id) { try { id ? sessionStorage.setItem(VIEW_AS_KEY, id) : sessionStorage.removeItem(VIEW_AS_KEY); } catch (e) {} emit(); }
+  function setCurrentUser(id) {
+    if (authMode()) return setViewAs(id === realUser().id ? null : id);
+    try { localStorage.setItem(SESSION_KEY, id); } catch (e) {}
+    emit();
+  }
+  // Guarda el rol y el estado de la persona donde lo leen las reglas de seguridad
+  function syncAccess(u) { return adapter.putAccess ? adapter.putAccess(u) : Promise.resolve(); }
+  const auth = () => (authMode() ? adapter : null);
 
   /* ---------- Permisos ---------- */
   const isManager = (u = currentUser()) => u.role === 'admin' || u.role === 'supervisor';
@@ -370,12 +461,21 @@ const Store = (() => {
     if (!data || !Array.isArray(data.users) || !Array.isArray(data.clients)) throw new Error('Archivo no válido');
     await replaceData(data);
   }
-  const resetDemo = () => { const d = Seed.build(Object.assign({}, db.settings, { demoData: true })); return replaceData(d); };
+  // Cuentas reales (con acceso al CRM): nunca se borran al recargar la demo o empezar de cero
+  const realAccounts = () => db.users.filter((u) => u.authAccount || isOwner(u));
+  function resetDemo() {
+    const d = Seed.build(Object.assign({}, db.settings, { demoData: true }));
+    const keep = realAccounts();
+    const emails = new Set(keep.map((u) => lower(u.email)));
+    d.users = d.users.filter((u) => !emails.has(lower(u.email))).concat(keep);
+    return replaceData(d);
+  }
   function wipeAll() {
-    const admin = db.users.find(isOwner) || currentUser();
+    const keep = realAccounts();
+    if (!keep.length) keep.push(Object.assign({}, realUser(), { role: 'admin', active: true }));
     const data = { settings: Object.assign({}, db.settings, { demoData: false }) };
     COLLECTIONS.forEach((c) => { data[c] = []; });
-    data.users.push(Object.assign({}, admin, { role: 'admin', active: true }));
+    data.users = keep.map((u) => Object.assign({}, u));
     return replaceData(data);
   }
 
@@ -384,7 +484,8 @@ const Store = (() => {
     currentUser, setCurrentUser, isManager, isAdmin, can, myClients, myOrders, myTasks, myActivities, canSeeClient, activeUsers, sellers,
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
-    exportJSON, importJSON, resetDemo, wipeAll, mode, isOwner
+    exportJSON, importJSON, resetDemo, wipeAll, mode, isOwner,
+    realUser, isViewingAs, setViewAs, authMode, syncAccess, auth
   };
 })();
 

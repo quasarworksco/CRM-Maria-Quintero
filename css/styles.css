@@ -646,6 +646,37 @@ input::placeholder, textarea::placeholder { color: var(--text-3); }
 .step-item.done .step-check { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
 .step-item.done .grow div:first-child { color: var(--text-3); text-decoration: line-through; }
 
+/* ---------- Ingreso y menú de usuario ---------- */
+.login { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; gap: 18px; background: radial-gradient(1200px 500px at 50% -10%, var(--surface) 0%, var(--bg) 60%); }
+.login-card { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow-lg); padding: 32px 28px; display: flex; flex-direction: column; gap: 14px; }
+.login-card .brand-logo { width: 46px; height: 46px; font-size: 15px; }
+.login-card h1 { font-size: 22px; margin-top: 6px; }
+.login-card p { margin: -6px 0 4px; font-size: 14px; }
+.login-btn { height: 42px; margin-top: 4px; }
+.login-links { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+.login-links a { color: var(--text-2); }
+.login-foot { font-size: 13px; color: var(--text-3); }
+.login-foot a { color: var(--text-2); }
+.login-msg { font-size: 13.5px; padding: 10px 12px; border-radius: 10px; background: var(--surface-3); border: 1px solid var(--border); }
+.login-msg.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.login-msg.good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.pass { position: relative; display: block; }
+.pass input { padding-right: 70px; }
+.pass .btn { position: absolute; right: 4px; top: 3px; height: 30px; box-shadow: none; }
+.user-menu { position: relative; }
+button.user-chip { font: inherit; color: var(--text); padding: 4px 10px 4px 4px; gap: 9px; }
+.user-chip .who { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+.user-chip .who strong { font-size: 13px; font-weight: 600; }
+.user-chip .who small { font-size: 11.5px; color: var(--text-3); }
+.user-chip .chev { color: var(--text-3); }
+.menu-pop { position: absolute; right: 0; top: calc(100% + 8px); min-width: 240px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 6px; z-index: 60; display: flex; flex-direction: column; }
+.menu-pop .menu-head { font-size: 12px; color: var(--text-3); padding: 8px 10px 10px; border-bottom: 1px solid var(--border); margin-bottom: 4px; word-break: break-all; }
+.menu-pop button, .menu-pop a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; border: 0; background: none; font: inherit; font-size: 13.5px; color: var(--text); cursor: pointer; text-align: left; text-decoration: none; }
+.menu-pop button:hover, .menu-pop a:hover { background: var(--surface-3); }
+.menu-pop .danger { color: var(--bad); }
+.viewas-bar { position: sticky; top: 0; z-index: 45; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 8px 16px; background: var(--primary); color: var(--primary-ink); font-size: 13px; }
+.viewas-bar .btn { background: transparent; color: var(--primary-ink); border-color: rgba(255,255,255,.4); box-shadow: none; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1280px) {
   .detail-grid { grid-template-columns: 300px minmax(0, 1fr); }

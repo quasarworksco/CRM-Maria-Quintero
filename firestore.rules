@@ -1,13 +1,86 @@
 rules_version = '2';
 
-// Reglas TEMPORALES mientras el CRM no tiene login.
-// Permiten leer y escribir solo las colecciones del CRM y vencen en la fecha indicada.
-// Cuando agreguemos el login se reemplazan por reglas por usuario y rol.
+// Reglas de seguridad del CRM Maria Quintero
+// ---------------------------------------------------------------
+// - Solo entran personas con sesión iniciada y acceso activo.
+// - La cuenta principal (inventusmq@gmail.com) siempre es administradora.
+// - El rol de cada persona se guarda en access/{correo} (lo escribe la administración).
+//     admin       → todo
+//     supervisor  → ve y trabaja todo el equipo, reasigna clientes
+//     agente      → solo sus clientes y sus ventas
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{coleccion}/{id} {
-      allow read, write: if coleccion in ['users', 'clients', 'activities', 'tasks', 'products', 'orders', 'payments', 'meta']
-                         && request.time < timestamp.date(2026, 12, 31);
+
+    function signedIn() { return request.auth != null && request.auth.token.email is string; }
+    function myEmail() { return request.auth.token.email.lower(); }
+    function isOwner() { return signedIn() && myEmail() == 'inventusmq@gmail.com'; }
+    function accessPath() { return /databases/$(database)/documents/access/$(myEmail()); }
+    function acc() { return get(accessPath()).data; }
+    function hasAccess() { return isOwner() || (signedIn() && exists(accessPath()) && acc().active == true); }
+    function role() { return isOwner() ? 'admin' : acc().role; }
+    function isAdmin() { return hasAccess() && role() == 'admin'; }
+    function isManager() { return hasAccess() && role() in ['admin', 'supervisor']; }
+    function myId() { return acc().userId; }
+    function onlyChanges(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+
+    // Accesos: cada persona puede leer el suyo; solo la administración los crea o cambia
+    match /access/{email} {
+      allow read: if signedIn() && (email == myEmail() || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Configuración del negocio
+    match /meta/{doc} {
+      allow read: if hasAccess();
+      allow write: if isAdmin();
+    }
+
+    // Usuarios: todo el equipo los ve; cada persona solo puede editar su nombre y teléfono
+    match /users/{id} {
+      allow read: if hasAccess();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (hasAccess() && resource.data.email.lower() == myEmail()
+            && onlyChanges(['name', 'firstName', 'lastName', 'phone', 'profileCompleted', 'firstLoginAt', 'lastLoginAt', 'updatedAt']));
+    }
+
+    // Clientes: cada agente solo los suyos
+    match /clients/{id} {
+      allow read: if isManager() || (hasAccess() && resource.data.ownerId == myId());
+      allow create: if isManager() || (hasAccess() && request.resource.data.ownerId == myId());
+      allow update: if isManager() || (hasAccess() && resource.data.ownerId == myId() && request.resource.data.ownerId == myId());
+      allow delete: if isAdmin();
+    }
+
+    // Ventas: cada agente solo las suyas
+    match /orders/{id} {
+      allow read: if isManager() || (hasAccess() && resource.data.userId == myId());
+      allow create: if isManager() || (hasAccess() && request.resource.data.userId == myId());
+      allow update: if isManager() || (hasAccess() && resource.data.userId == myId());
+      allow delete: if isAdmin();
+    }
+
+    // Productos: todo el equipo los ve; al vender se descuenta el stock
+    match /products/{id} {
+      allow read: if hasAccess();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (hasAccess() && onlyChanges(['stock', 'updatedAt']));
+    }
+
+    // Historial y tareas
+    match /activities/{id} {
+      allow read, create: if hasAccess();
+      allow update, delete: if isManager() || (hasAccess() && resource.data.userId == myId());
+    }
+    match /tasks/{id} {
+      allow read, create: if hasAccess();
+      allow update, delete: if isManager() || (hasAccess() && resource.data.userId == myId());
+    }
+
+    // Pagos
+    match /payments/{id} {
+      allow read, create: if hasAccess();
+      allow update, delete: if isAdmin();
     }
   }
 }

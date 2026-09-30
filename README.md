@@ -42,7 +42,7 @@ Se publica con GitHub Pages desde la rama `main` (carpeta raíz). El archivo `CN
 - **Supervisor**: ve todo el equipo, reasigna clientes y ve reportes.
 - **Agente / Vendedor**: solo ve y trabaja sus propios clientes.
 
-Mientras no exista el login, el usuario activo se elige en el selector de arriba a la derecha.
+Cada persona entra con su correo y contraseña (Firebase Authentication). En la demo sin conexión (`?local=1`) el usuario se elige con el selector de arriba a la derecha.
 
 ## Estructura
 
@@ -68,12 +68,11 @@ El CRM guarda todo en **Firebase Firestore** (proyecto `crm-maria-8f7af`) y escu
 - La primera vez que se abre, carga los datos de ejemplo en la nube (una sola vez). Para empezar a usarlo de verdad: Panel admin → Datos → **Borrar todo y empezar de cero**.
 - Colecciones: `users`, `clients`, `activities`, `tasks`, `products`, `orders`, `payments` y el documento `meta/settings`.
 - Con `?local=1` en la dirección se abre la demo sin conexión, que guarda solo en el navegador.
-- `firestore.rules` tiene las reglas **temporales** (abiertas solo para las colecciones del CRM y con fecha de vencimiento), que se usan mientras no haya login. Se copian en la consola de Firebase → Firestore → Reglas.
 
-## Cuenta principal
+## Ingreso y seguridad
 
-`CRM_CONFIG.ownerEmail` (en `js/config.js`) es la cuenta dueña del CRM: siempre es administradora, no se puede desactivar ni cambiar de rol, y se conserva al borrar todo. Con el login será la cuenta desde la que se crean los usuarios. **La contraseña nunca se guarda en el repositorio.**
-
-## Próximos pasos
-
-1. **Login**: Firebase Authentication con email y contraseña. `Store.currentUser()` pasa a leer el usuario autenticado, y las reglas de Firestore se cambian por reglas por usuario y rol que repliquen `Store.can()`.
+- **Firebase Authentication** (correo y contraseña). La cuenta principal `inventusmq@gmail.com` (`CRM_CONFIG.ownerEmail`) siempre es administradora; su primer ingreso se hace con "Primer ingreso de la cuenta principal" en la pantalla de ingreso. **Ninguna contraseña se guarda en el repositorio.**
+- **Primer ingreso**: cada persona escribe una sola vez el nombre y apellido con el que atiende (`profileCompleted`).
+- **Usuarios**: la administración los crea en Panel admin → Usuarios con correo y rol; la persona recibe un correo para crear su contraseña o una contraseña temporal. El rol y el estado se guardan en `access/{correo}`, que es lo que leen las reglas.
+- **Reglas** (`firestore.rules`): solo entran personas con acceso activo; agentes solo leen y editan sus clientes y ventas; supervisores todo el equipo; administración todo. Se copian en Firebase → Firestore → Reglas.
+- **Consola de Firebase**: activar Authentication → Sign-in method → Correo/contraseña, y agregar `crmsystempb.dgp-link.com` en Authentication → Settings → Authorized domains.

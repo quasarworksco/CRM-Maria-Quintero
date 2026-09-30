@@ -43,8 +43,8 @@ Views.admin = (() => {
             <td class="right num">${calls}</td>
             <td class="right num">${u.callGoal || '—'}</td>
             <td class="right num">${u.salesGoal ? U.money(u.salesGoal) : '—'}</td>
-            <td>${u.active ? '<span class="badge good">Activo</span>' : '<span class="badge">Inactivo</span>'}</td>
-            <td class="nowrap"><button class="btn sm" data-edit="${u.id}">${icon('edit', 'sm')} Editar</button> <button class="btn sm ghost" data-as="${u.id}" title="Ver el CRM como este usuario" ${u.active ? '' : 'disabled'}>Ver como</button></td>
+            <td>${u.active ? '<span class="badge good">Activo</span>' : '<span class="badge">Inactivo</span>'}${Store.authMode() ? `<div class="cell-sub">${u.authAccount || Store.isOwner(u) ? (u.lastLoginAt ? 'Último ingreso ' + U.ago(u.lastLoginAt) : 'Aún no ha ingresado') : 'Sin acceso (datos demo)'}</div>` : ''}</td>
+            <td class="nowrap"><button class="btn sm" data-edit="${u.id}">${icon('edit', 'sm')} Editar</button> <button class="btn sm ghost" data-as="${u.id}" title="Ver el CRM como lo ve esta persona (vista previa)" ${u.active && u.id !== Store.realUser().id ? '' : 'disabled'}>Ver como</button></td>
           </tr>`;
         }).join('')}</tbody>
       </table></div></div>
@@ -57,45 +57,93 @@ Views.admin = (() => {
   }
 
   function userForm(id) {
+    const auth = Store.authMode();
     const u = id ? Store.get('users', id) : { role: 'agente', active: true, callGoal: 60, salesGoal: 5000, color: USER_COLORS[Store.all('users').length % USER_COLORS.length] };
     // La cuenta principal y la propia no pueden perder el rol ni desactivarse
-    const isSelf = id === Store.currentUser().id || Store.isOwner(u);
+    const isSelf = id === Store.realUser().id || Store.isOwner(u);
+    // Con login, el correo de un usuario existente no se cambia (es su cuenta de acceso)
+    const emailLocked = Store.isOwner(u) || (auth && id && u.authAccount);
+    const hasAccount = !!u.authAccount;
     UI.modal({
       title: id ? 'Editar usuario' : 'Nuevo usuario',
+      footer: `
+        ${id && auth && hasAccount && u.email ? `<button type="button" class="btn" id="sendReset" style="margin-right:auto">${icon('mail', 'sm')} Enviar enlace de contraseña</button>` : ''}
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn primary">${id ? 'Guardar' : auth ? 'Crear usuario y dar acceso' : 'Crear usuario'}</button>`,
       body: `
         <div class="form-grid">
-          <label class="field full">Nombre completo *<input name="name" required value="${U.esc(u.name)}"></label>
-          <label class="field">Email <span class="hint">${Store.isOwner(u) ? '(cuenta principal)' : '(será su usuario de acceso)'}</span><input name="email" type="email" value="${U.esc(u.email)}" ${Store.isOwner(u) ? 'readonly' : ''}></label>
+          <label class="field full">Nombre y apellido ${auth && !id ? '<span class="hint">(opcional: si lo dejas vacío, la persona lo escribe en su primer ingreso)</span>' : '*'}<input name="name" ${auth && !id ? '' : 'required'} value="${U.esc(u.name)}"></label>
+          <label class="field">Correo ${auth ? '*' : ''} <span class="hint">${Store.isOwner(u) ? '(cuenta principal)' : auth ? '(con este correo entra al CRM)' : ''}</span><input name="email" type="email" ${auth ? 'required' : ''} value="${U.esc(u.email)}" ${emailLocked ? 'readonly' : ''}></label>
           <label class="field">Teléfono<input name="phone" value="${U.esc(u.phone)}"></label>
-          <label class="field">Rol<select name="role" ${isSelf ? 'disabled' : ''}>${Object.entries(ROLES).map(([k, r]) => `<option value="${k}" ${u.role === k ? 'selected' : ''}>${r.name}</option>`).join('')}</select></label>
+          <label class="field">Rol<select name="role" ${isSelf ? 'disabled' : ''}>${Object.entries(ROLES).map(([k, r]) => `<option value="${k}" ${u.role === k ? 'selected' : ''}>${r.name}</option>`).join('')}</select><span class="hint" id="roleHint">${ROLES[u.role].desc}</span></label>
           <label class="field">Color<div class="row wrap">${USER_COLORS.map((c) => `<label style="cursor:pointer"><input type="radio" name="color" value="${c}" ${u.color === c ? 'checked' : ''} hidden><span class="avatar" style="background:${c};outline:${u.color === c ? '3px solid var(--text)' : 'none'};outline-offset:2px" data-color="${c}"></span></label>`).join('')}</div></label>
           <label class="field">Meta de llamadas por día<input name="callGoal" type="number" min="0" value="${u.callGoal ?? 0}"></label>
           <label class="field">Meta de ventas por mes ($)<input name="salesGoal" type="number" min="0" value="${u.salesGoal ?? 0}"></label>
           ${u.role === 'admin' ? `<label class="check full"><input type="checkbox" name="sells" ${u.sells ? 'checked' : ''}> También vende (aparece en rankings y reparto de prospectos)</label>` : ''}
+          ${auth && (!id || !hasAccount) ? `
+          <div class="form-section full">Acceso al CRM</div>
+          <label class="check full"><input type="radio" name="access" value="invite" checked> <span>Enviarle un correo para que cree su propia contraseña <span class="muted">(recomendado)</span></span></label>
+          <label class="check full"><input type="radio" name="access" value="temp"> <span>Asignarle una contraseña temporal y dársela yo</span></label>
+          <label class="field full hidden" id="tempWrap">Contraseña temporal <span class="hint">(mínimo 6 caracteres; luego la puede cambiar desde su menú)</span><input name="tempPass" type="text" autocomplete="off"></label>` : ''}
           <label class="check full"><input type="checkbox" name="active" ${u.active ? 'checked' : ''} ${isSelf ? 'disabled' : ''}> Usuario activo (puede entrar al CRM)</label>
         </div>`,
-      onOpen: (form) => form.querySelectorAll('[data-color]').forEach((s) => s.addEventListener('click', () => form.querySelectorAll('[data-color]').forEach((x) => { x.style.outline = x === s ? '3px solid var(--text)' : 'none'; }))),
-      onSubmit: (d) => {
+      onOpen: (form, close) => {
+        form.querySelectorAll('[data-color]').forEach((sw) => sw.addEventListener('click', () => form.querySelectorAll('[data-color]').forEach((x) => { x.style.outline = x === sw ? '3px solid var(--text)' : 'none'; })));
+        const role = form.querySelector('[name=role]');
+        role.onchange = () => { form.querySelector('#roleHint').textContent = ROLES[role.value].desc; };
+        form.querySelectorAll('[name=access]').forEach((r) => r.onchange = () => form.querySelector('#tempWrap').classList.toggle('hidden', form.querySelector('[name=access]:checked').value !== 'temp'));
+        const sr = form.querySelector('#sendReset');
+        if (sr) sr.onclick = async () => {
+          try { await Store.auth().resetPassword(u.email); UI.toast(`Enlace enviado a ${u.email}`, 'good'); close(); }
+          catch (err) { UI.toast('No se pudo enviar: ' + (err.code || err.message), 'bad'); }
+        };
+      },
+      onSubmit: async (d) => {
         if (isSelf) { d.role = u.role; d.active = true; }
-        if (Store.isOwner(u)) d.email = u.email;
-        const em = String(d.email || '').trim().toLowerCase();
-        if (em && Store.all('users').some((x) => x.id !== id && String(x.email || '').trim().toLowerCase() === em)) { UI.toast('Ya existe un usuario con ese email', 'bad'); return false; }
+        if (emailLocked) d.email = u.email;
+        d.email = String(d.email || '').trim().toLowerCase();
+        const em = d.email.toLowerCase();
+        if (em && Store.all('users').some((x) => x.id !== id && String(x.email || '').trim().toLowerCase() === em)) { UI.toast('Ya existe un usuario con ese correo', 'bad'); return false; }
+        const access = d.access, tempPass = d.tempPass;
+        delete d.access; delete d.tempPass;
+
+        // Crear la cuenta de acceso (Firebase Authentication)
+        let createdAccount = false;
+        if (auth && (!id || !hasAccount)) {
+          if (!em) { UI.toast('Escribe el correo de la persona', 'bad'); return false; }
+          if (access === 'temp' && String(tempPass || '').length < 6) { UI.toast('La contraseña temporal debe tener al menos 6 caracteres', 'bad'); return false; }
+          const pass = access === 'temp' ? tempPass : (crypto.getRandomValues(new Uint32Array(4)).join('-') + 'Aa!');
+          try { await Store.auth().createAccount(em, pass); createdAccount = true; }
+          catch (err) {
+            if (err.code !== 'auth/email-already-in-use') { UI.toast('No se pudo crear la cuenta: ' + (err.code === 'auth/invalid-email' ? 'correo no válido' : err.code || err.message), 'bad'); return false; }
+          }
+          if (access !== 'temp' || !createdAccount) { try { await Store.auth().resetPassword(em); } catch (err) { console.warn(err); } }
+          d.authAccount = true;
+        }
+
+        let saved;
         if (id) {
           const wasActive = u.active;
-          Store.update('users', id, d);
+          saved = Store.update('users', id, d);
           if (wasActive && !d.active) {
             const n = Store.all('clients').filter((c) => c.ownerId === id && OPEN_STAGES.includes(c.stage)).length;
             if (n) setTimeout(() => { state.tab = 'asignacion'; App.refresh(); UI.toast(`${u.name} tiene ${n} prospectos abiertos: reasígnalos aquí`); }, 100);
           }
           UI.toast('Usuario actualizado', 'good');
         } else {
-          Store.insert('users', d);
-          UI.toast('Usuario creado. Cuando activemos el login podrá entrar con su email.', 'good');
+          saved = Store.insert('users', Object.assign({ name: d.name || em.split('@')[0], profileCompleted: false }, d, { name: d.name || em.split('@')[0] }));
+        }
+        if (auth && saved.authAccount) await Store.syncAccess(saved);
+        if (!id || createdAccount) {
+          UI.toast(!auth ? 'Usuario creado' : access === 'temp' && createdAccount
+            ? `Usuario creado. Dale a ${em} su contraseña temporal para que entre.`
+            : `Usuario creado. Le enviamos a ${em} un correo para crear su contraseña.`, 'good');
         }
         App.shell(); App.route();
       }
     });
   }
+
 
   /* ---------- Asignación ---------- */
   function asignacion(el) {

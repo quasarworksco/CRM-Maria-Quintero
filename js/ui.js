@@ -14,7 +14,7 @@ const UI = (() => {
   }
 
   /* ---------- Modal ---------- */
-  function modal({ title, body, size = '', submitLabel = 'Guardar', cancelLabel = 'Cancelar', onSubmit, onOpen, danger = false, footer, hideFooter = false }) {
+  function modal({ title, body, size = '', submitLabel = 'Guardar', cancelLabel = 'Cancelar', onSubmit, onOpen, danger = false, footer, hideFooter = false, locked = false }) {
     const back = document.createElement('div');
     back.className = 'modal-backdrop';
     back.innerHTML = `
@@ -26,9 +26,11 @@ const UI = (() => {
     document.body.appendChild(back);
     const form = back.querySelector('form');
     const close = () => { back.remove(); document.removeEventListener('keydown', onKey); };
-    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    // locked: la ventana solo se cierra al completar el formulario (p. ej. primer ingreso)
+    const onKey = (e) => { if (e.key === 'Escape' && !locked) close(); };
     document.addEventListener('keydown', onKey);
-    back.addEventListener('mousedown', (e) => { if (e.target === back) close(); });
+    back.addEventListener('mousedown', (e) => { if (e.target === back && !locked) close(); });
+    if (locked) back.querySelectorAll('[data-close]').forEach((b) => b.remove());
     back.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', close));
     form.addEventListener('submit', async (e) => {
       e.preventDefault();

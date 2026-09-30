@@ -131,7 +131,7 @@ Views.dashboard = (() => {
       return `<div class="welcome" id="welcome">
         <div class="welcome-icon">${icon('star')}</div>
         <div style="flex:1">
-          <strong style="font-size:15px">Bienvenida a tu CRM</strong>
+          <strong style="font-size:15px">Te damos la bienvenida a tu CRM</strong>
           <div class="muted small" style="margin-top:2px">Todo tu negocio en un solo lugar: prospectos, llamadas del equipo, ventas y cobros. Estos son <strong>datos de ejemplo</strong> para que lo explores; cuando quieras empezar de verdad, bórralos en Panel admin → Datos.</div>
         </div>
         <div class="row wrap">
