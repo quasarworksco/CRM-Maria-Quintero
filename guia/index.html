@@ -248,6 +248,7 @@
         <span class="eyebrow">Guía paso a paso · 16 secciones</span>
         <h1>Aprende a usar tu CRM <span>en 15 minutos.</span></h1>
         <p>Esta guía explica qué hace cada pantalla, cuándo usarla y cómo sacarle el máximo provecho. No necesitas saber nada de CRM: empezamos por lo básico.</p>
+        <p style="font-size:14px;color:var(--text-3);margin-top:10px">Las capturas usan datos de ejemplo para que se entienda cada pantalla. Tu CRM en línea empieza vacío, listo para tus datos reales. Para practicar sin tocar nada real, usa la <a href="../?local=1">demo sin conexión</a>.</p>
         <div class="quick">
           <a href="#llamadas"><strong>Soy agente de ventas</strong><span>Empieza por Modo llamadas, Ficha del cliente y Agenda.</span></a>
           <a href="#reportes"><strong>Soy supervisora</strong><span>Mira Reportes, Embudo y cómo reasignar clientes.</span></a>
@@ -298,7 +299,7 @@
           <div class="card"><h4>¿Todavía no tienes contraseña?</h4><p>Cuando la administración te crea un usuario, te llega un correo de Firebase con un enlace para <strong>crear tu contraseña</strong>. Si no lo ves, revisa la carpeta de spam. También puede darte una contraseña temporal.</p></div>
           <div class="card"><h4>¿La olvidaste?</h4><p>En la pantalla de ingreso presiona <strong>"¿Olvidaste tu contraseña?"</strong>, escribe tu correo y te llegará un enlace para crear una nueva.</p></div>
         </div>
-        <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div><strong>Primer ingreso de la cuenta principal</strong>La cuenta principal (<code>inventusmq@gmail.com</code>) es la dueña del CRM. La primera vez, en la pantalla de ingreso, presiona <strong>"Primer ingreso de la cuenta principal"</strong>, crea tu contraseña (dos veces) y listo. Desde esa cuenta se crean todos los demás usuarios.</div></div>
+        <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div><strong>La cuenta principal</strong>La cuenta principal (<code>inventusmq@gmail.com</code>) es la dueña del CRM: siempre es administradora y desde ella se crean todos los demás usuarios. Ya está creada, así que entra como cualquier persona, con su correo y contraseña. Si algún día olvidas la contraseña, usa "¿Olvidaste tu contraseña?".</div></div>
 
         <h3>Tu primer ingreso: nombre y apellido</h3>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/primer-ingreso.jpg" width="1280" height="800" alt="Ventana del primer ingreso que pide nombre y apellido" loading="lazy"></div><figcaption>Solo la primera vez: el CRM te pide el nombre y apellido con el que vas a atender.</figcaption></figure>
@@ -630,7 +631,8 @@
         <ul class="list">
           <li><strong>Descargar respaldo</strong>: una copia completa de toda la información. Recomendado cada semana.</li>
           <li><strong>Restaurar respaldo</strong>: vuelve a cargar una copia (reemplaza lo actual).</li>
-          <li><strong>Borrar todo y empezar de cero</strong>: quita los datos de ejemplo para empezar a trabajar de verdad. Conserva la configuración y <strong>todos los usuarios con acceso</strong> (se borran solo las personas de ejemplo). Después, el Inicio te muestra una lista de <strong>primeros pasos</strong>.</li>
+          <li><strong>Borrar todo y empezar de cero</strong>: reinicia el CRM para todo el equipo (clientes, ventas, pagos, tareas y productos). Conserva la configuración y <strong>todos los usuarios con acceso</strong>. Úsalo solo si de verdad quieres empezar de nuevo; después, el Inicio te muestra la lista de <strong>primeros pasos</strong>.</li>
+          <li><strong>Practicar</strong>: la <a href="../?local=1">demo sin conexión</a> tiene datos de ejemplo y se guarda solo en tu navegador. Ahí puedes probar todo sin afectar los datos reales.</li>
         </ul>
         <div class="warn"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div><strong>Borrar y restaurar afectan a todo el equipo</strong>Como los datos están en la nube, estas acciones cambian la información de todas las personas al mismo tiempo. Descarga un respaldo antes de hacerlas.</div></div>
       </section>
@@ -708,7 +710,7 @@
         <details class="faq"><summary>La foto del producto no se sube</summary><p>Verifica que sea una imagen (JPG, PNG o WEBP) de menos de 10 MB. Si el CRM muestra un error de Cloudinary, la administración debe revisar que el "upload preset" esté en modo <em>Unsigned</em>.</p></details>
         <details class="faq"><summary>Aparece "No se pudo conectar con la base de datos"</summary><p>Revisa tu internet y presiona "Reintentar". Si el mensaje habla de permisos, la administración debe revisar las reglas de Firestore en la consola de Firebase.</p></details>
         <details class="faq"><summary>¿Qué pasa si dos personas editan al mismo cliente?</summary><p>Cada cambio se guarda al instante y se ve en tiempo real. Si dos personas cambian el mismo dato a la vez, queda el último que se guardó. Por eso cada cliente tiene un responsable.</p></details>
-        <details class="faq"><summary>¿Cómo empiezo a usarlo con mis datos reales?</summary><p>Panel admin → Datos → "Borrar todo y empezar de cero". Luego sigue la lista de primeros pasos que aparece en Inicio: agrega a tu equipo, carga tus productos, importa tus clientes y empieza a llamar.</p></details>
+        <details class="faq"><summary>¿Cómo empiezo a usarlo con mis datos reales?</summary><p>El CRM en línea ya empieza vacío. Sigue la lista de <strong>primeros pasos</strong> que aparece en Inicio: agrega a tu equipo, carga tus productos, importa tus clientes, registra la primera llamada y la primera venta.</p></details>
       </section>
 
       <footer>CRM Maria Quintero · Guía de uso · <a href="../">Abrir el CRM</a></footer>

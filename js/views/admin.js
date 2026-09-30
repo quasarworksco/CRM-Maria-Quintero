@@ -254,13 +254,14 @@ Views.admin = (() => {
             <label class="btn">${icon('upload', 'sm')} Restaurar respaldo<input type="file" id="restore" accept=".json,application/json" hidden></label>
           </div>
         </div></div>
-        <div class="card"><div class="card-head"><h2>Datos de demostración</h2></div><div class="card-body stack" style="gap:10px">
-          <p class="small" style="margin:0">El CRM trae datos de ejemplo para que puedas explorarlo. Cuando vayas a empezar a usarlo de verdad, bórralos.</p>
+        <div class="card"><div class="card-head"><h2>${Store.mode() === 'firestore' ? 'Empezar de cero' : 'Datos de demostración'}</h2></div><div class="card-body stack" style="gap:10px">
+          ${Store.mode() === 'firestore'
+            ? '<p class="small" style="margin:0">Borra clientes, ventas, pagos, tareas y productos para todo el equipo. Se conservan la configuración y todas las cuentas con acceso. Úsalo solo si de verdad quieres reiniciar el CRM.</p><p class="small muted" style="margin:0">La demo con datos de ejemplo está aparte, en <a href="?local=1" target="_blank" rel="noopener">la demo sin conexión</a>, y no toca estos datos.</p>'
+            : '<p class="small" style="margin:0">Esta demo trae datos de ejemplo para explorar el CRM. Lo que hagas aquí se guarda solo en este navegador.</p>'}
           <div class="row wrap">
-            <button class="btn" id="demo">${icon('refresh', 'sm')} Recargar datos demo</button>
+            ${Store.mode() === 'firestore' ? '' : `<button class="btn" id="demo">${icon('refresh', 'sm')} Recargar datos demo</button>`}
             <button class="btn danger solid" id="wipe">${icon('trash', 'sm')} Borrar todo y empezar de cero</button>
           </div>
-          <p class="small muted" style="margin:0">“Empezar de cero” conserva tu usuario administrador y la configuración.</p>
         </div></div>
       </div>`;
     el.querySelector('#bk').onclick = () => U.download(`respaldo-crm-${U.toDateInput(new Date())}.json`, Store.exportJSON(), 'application/json');
@@ -269,7 +270,7 @@ Views.admin = (() => {
       if (!(await UI.confirm('Restaurar reemplazará TODA la información actual por la del archivo. ¿Continuar?'))) return;
       try { UI.toast('Restaurando…'); await Store.importJSON(await f.text()); App.shell(); App.route(); UI.toast('Respaldo restaurado', 'good'); } catch (err) { UI.toast('Archivo no válido: ' + err.message, 'bad'); }
     };
-    el.querySelector('#demo').onclick = async () => { if (await UI.confirm(`Esto reemplaza todo por los datos de demostración${Store.mode() === 'firestore' ? ' <strong>para todo el equipo</strong>' : ''}. ¿Continuar?`)) { UI.toast('Cargando datos demo…'); try { await Store.resetDemo(); App.shell(); App.route(); UI.toast('Datos demo cargados', 'good'); } catch (err) { UI.toast('Error: ' + (err.code || err.message), 'bad'); } } };
+    if (el.querySelector('#demo')) el.querySelector('#demo').onclick = async () => { if (await UI.confirm(`Esto reemplaza todo por los datos de demostración${Store.mode() === 'firestore' ? ' <strong>para todo el equipo</strong>' : ''}. ¿Continuar?`)) { UI.toast('Cargando datos demo…'); try { await Store.resetDemo(); App.shell(); App.route(); UI.toast('Datos demo cargados', 'good'); } catch (err) { UI.toast('Error: ' + (err.code || err.message), 'bad'); } } };
     el.querySelector('#wipe').onclick = async () => {
       if (!(await UI.confirm('Se borrarán TODOS los clientes, ventas, pagos, tareas, productos y usuarios (excepto tú). ¿Seguro? Descarga un respaldo antes si lo necesitas.', { okLabel: 'Sí, borrar todo' }))) return;
       UI.toast('Borrando…');

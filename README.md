@@ -2,11 +2,12 @@
 
 CRM de ventas para un negocio de filtros de aire, purificadores y productos para el hogar, con un equipo de agentes que llaman y prospectan todo el día.
 
-Está hecho en HTML, CSS y JavaScript puro, sin instalar nada. Abre `index.html` en el navegador y listo. Trae datos de demostración para explorarlo.
+Está hecho en HTML, CSS y JavaScript puro, sin instalar nada. La versión en línea empieza vacía; la demo sin conexión (`?local=1`) trae datos de ejemplo para explorarlo.
 
 ## En línea
 
-- CRM (demo): https://crmsystempb.dgp-link.com/
+- CRM (en línea, con login): https://crmsystempb.dgp-link.com/
+- Demo con datos de ejemplo (sin conexión, sin login): https://crmsystempb.dgp-link.com/?local=1
 - Propuesta: https://crmsystempb.dgp-link.com/propuesta/
 - Guía de uso: https://crmsystempb.dgp-link.com/guia/
 
@@ -65,13 +66,13 @@ js/views/*.js         ← una sección por archivo
 
 El CRM guarda todo en **Firebase Firestore** (proyecto `crm-maria-8f7af`) y escucha los cambios en tiempo real: lo que registra una agente le aparece al resto del equipo al instante. También guarda una copia local, así que sigue funcionando si se cae el internet y sincroniza al volver.
 
-- La primera vez que se abre, carga los datos de ejemplo en la nube (una sola vez). Para empezar a usarlo de verdad: Panel admin → Datos → **Borrar todo y empezar de cero**.
+- La base en línea empieza vacía (sin datos de ejemplo). Si encuentra datos de ejemplo de versiones anteriores (`demoData: true`), la administración los borra automáticamente una sola vez al entrar, conservando las cuentas y la configuración.
 - Colecciones: `users`, `clients`, `activities`, `tasks`, `products`, `orders`, `payments` y el documento `meta/settings`.
 - Con `?local=1` en la dirección se abre la demo sin conexión, que guarda solo en el navegador.
 
 ## Ingreso y seguridad
 
-- **Firebase Authentication** (correo y contraseña). La cuenta principal `inventusmq@gmail.com` (`CRM_CONFIG.ownerEmail`) siempre es administradora; su primer ingreso se hace con "Primer ingreso de la cuenta principal" en la pantalla de ingreso. **Ninguna contraseña se guarda en el repositorio.**
+- **Firebase Authentication** (correo y contraseña). La cuenta principal `inventusmq@gmail.com` (`CRM_CONFIG.ownerEmail`) siempre es administradora; su contraseña se creó con "Primer ingreso de la cuenta principal", enlace que ahora solo aparece abriendo el CRM con `?setup=1`. **Ninguna contraseña se guarda en el repositorio.**
 - **Primer ingreso**: cada persona escribe una sola vez el nombre y apellido con el que atiende (`profileCompleted`).
 - **Usuarios**: la administración los crea en Panel admin → Usuarios con correo y rol; la persona recibe un correo para crear su contraseña o una contraseña temporal. El rol y el estado se guardan en `access/{correo}`, que es lo que leen las reglas.
 - **Reglas** (`firestore.rules`): solo entran personas con acceso activo; agentes solo leen y editan sus clientes y ventas; supervisores todo el equipo; administración todo. Se copian en Firebase → Firestore → Reglas.

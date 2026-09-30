@@ -215,7 +215,7 @@ const App = (() => {
               ${mode === 'create' ? '<label class="field">Repite la contraseña<input name="pass2" type="password" autocomplete="new-password" required minlength="6"></label>' : ''}
               <button class="btn primary login-btn" type="submit">${{ in: 'Ingresar', create: 'Crear contraseña e ingresar', reset: 'Enviar enlace' }[mode]}</button>
               <div class="login-links">
-                ${mode === 'in' ? '<a href="#" data-mode="reset">¿Olvidaste tu contraseña?</a><a href="#" data-mode="create">Primer ingreso de la cuenta principal</a>' : '<a href="#" data-mode="in">← Volver a ingresar</a>'}
+                ${mode === 'in' ? `<a href="#" data-mode="reset">¿Olvidaste tu contraseña?</a>${/[?&]setup=1/.test(location.search) ? '<a href="#" data-mode="create">Primer ingreso de la cuenta principal</a>' : ''}` : '<a href="#" data-mode="in">← Volver a ingresar</a>'}
               </div>
             </form>
             <div class="login-foot"><a href="guia/" target="_blank" rel="noopener">Guía de uso</a> · <a href="?local=1">Ver demo sin conexión</a></div>

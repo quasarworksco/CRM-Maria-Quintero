@@ -81,26 +81,19 @@ const FirestoreAdapter = {
     this.access = { email, role, userId: access ? access.userId : null, isOwner };
     const manager = role === 'admin' || role === 'supervisor';
 
-    // 3) Primera vez: cargar datos de ejemplo (solo la administración, una sola vez)
+    // 3) La base en línea empieza vacía: solo se crea la configuración la primera vez.
+    //    (Los datos de ejemplo viven únicamente en la demo sin conexión, ?local=1)
     const settingsRef = fs.doc(this.fdb, 'meta', 'settings');
     if (role === 'admin') {
-      let seedNow = false;
       try {
-        seedNow = await fs.runTransaction(this.fdb, async (tx) => {
+        await fs.runTransaction(this.fdb, async (tx) => {
           const snap = await tx.get(settingsRef);
-          if (snap.exists()) return false;
-          tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { seededAt: new Date().toISOString(), demoData: true })));
-          return true;
+          if (!snap.exists()) tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { createdAt: new Date().toISOString(), demoData: false })));
         });
       } catch (e) {
         // Sin internet la transacción falla: se sigue con lo guardado en la caché local
         if (e && e.code === 'permission-denied') throw e;
         console.warn('No se pudo verificar la base (¿sin conexión?)', e);
-      }
-      if (seedNow) {
-        const data = ctx.seed();
-        delete data.settings;
-        await this._writeAll(data);
       }
     }
 
@@ -218,6 +211,13 @@ const Store = (() => {
     COLLECTIONS.forEach((c) => { db[c] = db[c] || []; });
     db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings || {});
     ensureOwner();
+    // Limpieza única: si la base en línea todavía tiene los datos de ejemplo de las pruebas,
+    // se borran (se conservan las cuentas reales y la configuración) para empezar en cero.
+    if (authMode() && adapter.access && adapter.access.role === 'admin' && db.settings.demoData === true) {
+      await wipeAll();
+      db.settings.cleanedDemoAt = new Date().toISOString();
+      saveSettings({ demoData: false, cleanedDemoAt: db.settings.cleanedDemoAt });
+    }
   }
   const mode = () => adapter.name;
 
