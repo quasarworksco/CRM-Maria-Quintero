@@ -154,36 +154,46 @@ const U = (() => {
 
 /* ---------- Constantes del negocio ---------- */
 const STAGES = [
-  { id: 'nuevo', name: 'Nuevo', color: '#a1a1aa', prob: 0.05, desc: 'Prospecto sin contactar' },
-  { id: 'contactado', name: 'Contactado', color: '#8b8b94', prob: 0.1, desc: 'Ya se habló al menos una vez' },
-  { id: 'interesado', name: 'Interesado', color: '#71717a', prob: 0.25, desc: 'Mostró interés en algún producto' },
-  { id: 'cotizacion', name: 'Cotización', color: '#52525b', prob: 0.45, desc: 'Se envió precio / propuesta' },
-  { id: 'negociacion', name: 'Negociación', color: '#27272a', prob: 0.7, desc: 'Definiendo detalles para cerrar' },
-  { id: 'ganado', name: 'Ganado', color: '#15803d', prob: 1, desc: 'Compró — ahora es cliente' },
-  { id: 'perdido', name: 'Perdido', color: '#dc2626', prob: 0, desc: 'No compró / descartado' }
+  { id: 'nuevo', name: 'Nuevo', color: '#a1a1aa', prob: 0.05, desc: 'Prospecto recién ingresado, todavía sin llamar' },
+  { id: 'intentando', name: 'Intentando contactar', color: '#8b8b94', prob: 0.08, desc: 'Se ha llamado o escrito pero aún no contesta' },
+  { id: 'contactado', name: 'Contactado', color: '#71717a', prob: 0.15, desc: 'Ya se habló con la persona' },
+  { id: 'cita_agendada', name: 'Cita agendada', color: '#52525b', prob: 0.35, desc: 'Tiene fecha y hora para la demostración' },
+  { id: 'cita_confirmada', name: 'Cita confirmada', color: '#3f3f46', prob: 0.5, desc: 'La persona confirmó que asistirá a la cita' },
+  { id: 'demo_realizada', name: 'Demo realizada', color: '#27272a', prob: 0.65, desc: 'Ya se hizo la demostración; falta cerrar' },
+  { id: 'ganado', name: 'Venta', color: '#15803d', prob: 1, desc: 'Compró: ahora es cliente' },
+  { id: 'perdido', name: 'Perdido / Sin respuesta', color: '#dc2626', prob: 0, desc: 'No compró, no está interesado o nunca respondió' }
 ];
-const OPEN_STAGES = ['nuevo', 'contactado', 'interesado', 'cotizacion', 'negociacion'];
-const stageById = (id) => STAGES.find((s) => s.id === id) || STAGES[0];
+const OPEN_STAGES = ['nuevo', 'intentando', 'contactado', 'cita_agendada', 'cita_confirmada', 'demo_realizada'];
+const APPT_STAGES = ['cita_agendada', 'cita_confirmada'];
+// Etapas de versiones anteriores → etapa actual
+const STAGE_ALIASES = { interesado: 'contactado', cotizacion: 'contactado', negociacion: 'demo_realizada' };
+const stageById = (id) => STAGES.find((s) => s.id === (STAGE_ALIASES[id] || id)) || STAGES[0];
 
-const TEMPS = [
-  { id: 'frio', name: 'Frío', cls: 'cold', icon: 'snow', desc: 'Sin interés claro todavía' },
-  { id: 'tibio', name: 'Tibio', cls: 'warm', icon: 'sun', desc: 'Interesado, evaluando' },
-  { id: 'caliente', name: 'Caliente', cls: 'hot', icon: 'flame', desc: 'Listo para comprar' }
-];
-const tempById = (id) => TEMPS.find((t) => t.id === id) || TEMPS[0];
-
-/* Resultados de llamada: cada uno puede mover etapa/temperatura y programar seguimiento */
+/* Resultado de la última llamada: cada uno puede mover la etapa y programar el seguimiento */
 const OUTCOMES = [
-  { id: 'no_contesta', name: 'No contesta', color: '#a1a1aa', contact: false, followDays: 1, icon: 'phoneOff' },
-  { id: 'buzon', name: 'Buzón de voz', color: '#c4c4ca', contact: false, followDays: 1, icon: 'voicemail' },
-  { id: 'llamar_despues', name: 'Llamar después', color: '#71717a', contact: true, followDays: 2, icon: 'clock' },
-  { id: 'interesado', name: 'Interesado', color: '#52525b', contact: true, followDays: 2, stage: 'interesado', temp: 'tibio', icon: 'thumbUp' },
-  { id: 'cotizacion', name: 'Pidió cotización', color: '#27272a', contact: true, followDays: 1, stage: 'cotizacion', temp: 'caliente', icon: 'file' },
-  { id: 'venta', name: 'Venta cerrada', color: '#16a34a', contact: true, followDays: 30, stage: 'ganado', temp: 'caliente', icon: 'check', sale: true },
-  { id: 'no_interesado', name: 'No interesado', color: '#ef4444', contact: true, followDays: 90, temp: 'frio', icon: 'x' },
-  { id: 'equivocado', name: 'Número equivocado', color: '#b91c1c', contact: false, followDays: null, stage: 'perdido', icon: 'alert' }
+  { id: 'no_contesto', name: 'No contestó', color: '#a1a1aa', contact: false, followDays: 1, icon: 'phoneOff', stage: 'intentando' },
+  { id: 'contesto', name: 'Contestó', color: '#71717a', contact: true, followDays: 2, icon: 'phone', stage: 'contactado' },
+  { id: 'dejo_mensaje', name: 'Dejó mensaje', color: '#8e8e96', contact: false, followDays: 1, icon: 'voicemail', stage: 'intentando' },
+  { id: 'whatsapp', name: 'WhatsApp enviado', color: '#6b6b74', contact: false, followDays: 1, icon: 'message', stage: 'intentando' },
+  { id: 'interesado', name: 'Interesado', color: '#52525b', contact: true, followDays: 2, icon: 'thumbUp', stage: 'contactado' },
+  { id: 'no_interesado', name: 'No interesado', color: '#ef4444', contact: true, followDays: 90, icon: 'x' },
+  { id: 'cita_agendada', name: 'Cita agendada', color: '#16a34a', contact: true, followDays: null, icon: 'calendar', stage: 'cita_agendada', appointment: true },
+  { id: 'reagendar', name: 'Reagendar', color: '#27272a', contact: true, followDays: 1, icon: 'clock', reschedule: true }
 ];
-const outcomeById = (id) => OUTCOMES.find((o) => o.id === id);
+// Resultados de versiones anteriores (solo para mostrar el historial)
+const LEGACY_OUTCOMES = [
+  { id: 'no_contesta', name: 'No contestó', color: '#a1a1aa', contact: false },
+  { id: 'buzon', name: 'Dejó mensaje', color: '#c4c4ca', contact: false },
+  { id: 'llamar_despues', name: 'Reagendar', color: '#27272a', contact: true },
+  { id: 'cotizacion', name: 'Interesado', color: '#52525b', contact: true },
+  { id: 'venta', name: 'Venta cerrada', color: '#16a34a', contact: true },
+  { id: 'equivocado', name: 'Número equivocado', color: '#b91c1c', contact: false }
+];
+const outcomeById = (id) => OUTCOMES.find((o) => o.id === id) || LEGACY_OUTCOMES.find((o) => o.id === id);
+
+/* Fuente / cómo llegó: las que piden un dato adicional */
+const isReferralSource = (src) => /referid/i.test(String(src || ''));
+const isEventSource = (src) => /feria|evento/i.test(String(src || ''));
 
 const ACTIVITY_TYPES = {
   llamada: { name: 'Llamada', icon: 'phone' },
@@ -194,6 +204,7 @@ const ACTIVITY_TYPES = {
   etapa: { name: 'Cambio de etapa', icon: 'flag' },
   venta: { name: 'Venta', icon: 'cart' },
   pago: { name: 'Pago', icon: 'dollar' },
+  cita: { name: 'Cita', icon: 'calendar' },
   asignacion: { name: 'Asignación', icon: 'users' },
   sistema: { name: 'Sistema', icon: 'info' }
 };

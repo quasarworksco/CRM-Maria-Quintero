@@ -15,14 +15,16 @@ const Metrics = (() => {
     const clients = Store.all('clients').filter((c) => !userId || c.ownerId === userId);
     const newLeads = clients.filter((c) => inRange(c.createdAt, from, to)).length;
     const won = clients.filter((c) => c.wonAt ? inRange(c.wonAt, from, to) : false).length;
-    const quotes = calls.filter((a) => a.outcome === 'cotizacion').length;
+    const appts = acts.filter((a) => a.type === 'cita' && (a.kind === 'agendada' || a.kind === 'reagendada')).length;
+    const demos = acts.filter((a) => a.type === 'cita' && a.kind === 'realizada').length;
     const salesAmount = U.sum(orders, (o) => o.total);
     return {
       calls: calls.length,
       contacts: contacts.length,
       contactRate: calls.length ? contacts.length / calls.length : 0,
       talkTime: U.sum(calls, (a) => a.duration),
-      quotes,
+      appts,
+      demos,
       newLeads,
       won,
       salesCount: orders.length,
@@ -31,8 +33,7 @@ const Metrics = (() => {
       collected: U.sum(payments, (p) => p.amount),
       closeRate: contacts.length ? orders.length / contacts.length : 0,
       openLeads: clients.filter((c) => OPEN_STAGES.includes(c.stage)).length,
-      hotLeads: clients.filter((c) => OPEN_STAGES.includes(c.stage) && c.temperature === 'caliente').length,
-      pipelineValue: U.sum(clients.filter((c) => OPEN_STAGES.includes(c.stage)), (c) => (c.estValue || 0) * stageById(c.stage).prob)
+      upcomingAppts: clients.filter((c) => { const a = Store.activeAppointment(c); return a && new Date(a.at) >= U.startOfDay(); }).length
     };
   }
 

@@ -25,7 +25,7 @@ Views.cliente = (() => {
       <div class="page-head">
         <div class="row" style="gap:12px">
           <a class="btn ghost icon" href="#/clientes" title="Volver">${icon('arrowLeft')}</a>
-          <div><h1>${U.esc(c.name)}</h1><p>${c.company ? U.esc(c.company) + ' · ' : ''}Cliente desde ${U.date(c.createdAt)} · ${c.callCount || 0} llamadas</p></div>
+          <div><h1>${U.esc(c.name)}</h1><p>${c.company ? U.esc(c.company) + ' · ' : ''}Cliente desde ${U.date(c.createdAt)} · ${c.callCount || 0} intento${c.callCount === 1 ? '' : 's'} de contacto</p></div>
         </div>
         <div class="page-actions">
           <a class="btn good" href="${U.telLink(c.phone)}" id="callBtn">${icon('phone', 'sm')} Llamar</a>
@@ -55,22 +55,23 @@ Views.cliente = (() => {
               <span class="avatar lg" style="background:${stageById(c.stage).color}">${U.esc(U.initials(c.name))}</span>
               <div style="min-width:0">
                 <div class="call-phone" style="font-size:18px">${U.esc(c.phone)}</div>
-                <div class="row wrap" style="margin-top:4px">${UI.scoreBadge(Store.leadScore(c))} ${c.dnc ? `<span class="badge bad">${icon('ban', 'sm')} No llamar</span>` : ''} ${(c.tags || []).map((t) => `<span class="badge violet">${U.esc(t)}</span>`).join(' ')}</div>
+                <div class="row wrap" style="margin-top:4px">${UI.stageBadge(c.stage)} ${c.dnc ? `<span class="badge bad">${icon('ban', 'sm')} No llamar</span>` : ''}</div>
               </div>
             </div>
-            <div>
-              <div class="small muted" style="margin-bottom:6px">Temperatura</div>
-              <div class="temp-picker">${TEMPS.map((t) => `<button data-temp="${t.id}" class="${t.id} ${c.temperature === t.id ? 'active' : ''}" title="${t.desc}">${icon(t.icon, 'sm')} ${t.name}</button>`).join('')}</div>
+            <div class="mini-stats">
+              <div><span>Último resultado</span><strong>${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : '—'}</strong></div>
+              <div><span>Intentos</span><strong class="num">${c.callCount || 0}</strong></div>
             </div>
             <dl class="info-list" style="margin:0">
               ${info('Responsable', `<span class="row">${UI.avatar(owner)} ${U.esc(owner ? owner.name : 'Sin asignar')}</span>`)}
               ${info('Seguimiento', OPEN_STAGES.includes(c.stage) ? UI.followLabel(c.nextFollowUp) : '—')}
               ${info('Último contacto', c.lastContact ? `${U.dateTime(c.lastContact)} <span class="muted">(${U.ago(c.lastContact)})</span>` : 'Nunca')}
+              ${info('Fuente', U.esc(c.source || '—'))}
+              ${c.referredBy || isReferralSource(c.source) ? info('Referido por', c.referredBy ? `<strong>${U.esc(c.referredBy)}</strong>` : '<span class="muted">Sin registrar</span>') : ''}
+              ${c.eventName || isEventSource(c.source) ? info('Evento', c.eventName ? U.esc(c.eventName) : '<span class="muted">Sin registrar</span>') : ''}
               ${c.phone2 ? info('Tel. alterno', `<a href="${U.telLink(c.phone2)}">${U.esc(c.phone2)}</a>`) : ''}
               ${info('Email', c.email ? `<a href="mailto:${U.esc(c.email)}">${U.esc(c.email)}</a>` : '—')}
               ${info('Dirección', [c.address, c.city, c.state, c.zip].filter(Boolean).map(U.esc).join(', ') + (c.address ? ` <a target="_blank" rel="noopener" href="https://maps.google.com/?q=${encodeURIComponent([c.address, c.city, c.state, c.zip].join(' '))}">Mapa</a>` : '') || '—')}
-              ${info('Fuente', U.esc(c.source || '—'))}
-              ${info('Valor estimado', U.money(c.estValue))}
               ${info('Hogar', [c.acUnits ? c.acUnits + ' A/C' : '', c.householdSize ? c.householdSize + ' personas' : '', c.pets ? 'Mascotas' : '', c.allergies ? 'Alergias/asma' : ''].filter(Boolean).join(' · ') || '—')}
               ${info('Preferencia', [c.preferredContact, c.bestTime].filter(Boolean).map(U.esc).join(' · ') || '—')}
               ${c.birthday ? info('Cumpleaños', U.date(c.birthday + 'T12:00', { day: 'numeric', month: 'long' })) : ''}
@@ -138,6 +139,7 @@ Views.cliente = (() => {
 
         <!-- Columna derecha: dinero y tareas -->
         <div class="stack detail-right">
+          ${apptCard(c)}
           <div class="card">
             <div class="card-head"><h2>Resumen financiero</h2></div>
             <div class="card-body grid cols-3" style="gap:8px;text-align:center">
@@ -200,9 +202,10 @@ Views.cliente = (() => {
       if (!o) { h.textContent = ''; return; }
       const bits = [];
       if (o.stage && o.stage !== c.stage) bits.push(`mover a <strong>${stageById(o.stage).name}</strong>`);
-      if (o.temp && o.temp !== c.temperature) bits.push(`marcar como <strong>${tempById(o.temp).name}</strong>`);
       if (o.followDays && !d.follow) bits.push(`programar seguimiento en <strong>${o.followDays} día(s)</strong>`);
-      if (o.sale) bits.push('abrir el formulario de <strong>venta</strong>');
+      if (o.appointment) bits.push('abrir el formulario para agendar la <strong>cita</strong>');
+      if (o.reschedule) bits.push(Store.activeAppointment(c) ? 'abrir la <strong>cita</strong> para cambiarle la fecha' : 'dejar el seguimiento en la fecha que elijas');
+      bits.push('sumar un intento y guardar la fecha y hora del contacto');
       h.innerHTML = bits.length ? 'Al guardar se va a: ' + bits.join(', ') + '.' : '';
     };
     showHint();
@@ -226,7 +229,7 @@ Views.cliente = (() => {
         if (!d.outcome) return UI.toast('Selecciona el resultado del contacto', 'bad');
         const o = outcomeById(d.outcome);
         Store.logCall(id, { outcome: d.outcome, type: d.type, notes: d.notes.trim(), nextFollowUp: d.follow ? U.fromInput(d.follow) : undefined, duration: 0 });
-        if (o.sale) setTimeout(() => Views.ventas.openOrderForm({ clientId: id }), 50);
+        afterOutcome(id, o.id);
       }
       draft[id] = { type: d.type, outcome: '', notes: '', follow: '' };
       UI.toast('Interacción registrada', 'good');
@@ -234,7 +237,13 @@ Views.cliente = (() => {
 
     el.querySelectorAll('[data-tl]').forEach((b) => b.onclick = () => { tlFilter = b.dataset.tl; render(el, [id]); });
     el.querySelectorAll('[data-stage]').forEach((b) => b.onclick = () => setStage(id, b.dataset.stage));
-    el.querySelectorAll('[data-temp]').forEach((b) => b.onclick = () => { Store.update('clients', id, { temperature: b.dataset.temp }); });
+    el.querySelectorAll('[data-appt]').forEach((b) => b.onclick = async () => {
+      const act = b.dataset.appt;
+      if (act === 'new' || act === 'edit') return openAppointment(id);
+      if (act === 'cancelada' && !(await UI.confirm('¿Cancelar esta cita?', { okLabel: 'Sí, cancelar cita' }))) return;
+      Store.setAppointmentStatus(id, act);
+      UI.toast({ confirmada: 'Cita confirmada', realizada: 'Demostración registrada', cancelada: 'Cita cancelada' }[act], 'good');
+    });
     el.querySelectorAll('[data-del-act]').forEach((b) => b.onclick = async () => { if (await UI.confirm('¿Eliminar esta actividad del historial?')) Store.remove('activities', b.dataset.delAct); });
     el.querySelectorAll('[data-order]').forEach((x) => x.onclick = () => Views.ventas.openOrderDetail(x.dataset.order));
     Views.agenda.bindTaskItems(el);
@@ -283,18 +292,97 @@ Views.cliente = (() => {
     if (c.stage === stage) return;
     if (stage === 'perdido') {
       UI.modal({
-        title: 'Marcar como perdido', size: 'sm', submitLabel: 'Marcar perdido', danger: true,
+        title: 'Marcar como perdido / sin respuesta', size: 'sm', submitLabel: 'Marcar perdido', danger: true,
         body: `<label class="field">¿Por qué se perdió?<select name="reason" required>${UI.options(Store.settings().lostReasons, '', { blank: 'Seleccionar motivo…' })}</select></label>
                <label class="field">Comentario<textarea name="note" rows="2"></textarea></label>`,
         onSubmit: (f) => { Store.changeStage(id, 'perdido', { lostReason: f.reason, nextFollowUp: null }); if (f.note) Store.logActivity({ clientId: id, type: 'nota', text: f.note }); }
       });
       return;
     }
+    const appt = Store.activeAppointment(c);
+    // Las etapas de cita necesitan una cita con fecha, hora y dirección
+    if (APPT_STAGES.includes(stage) && !appt) return openAppointment(id, { confirmAfter: stage === 'cita_confirmada' });
+    if (stage === 'cita_confirmada' && appt) return Store.setAppointmentStatus(id, 'confirmada');
+    if (stage === 'demo_realizada' && appt) return Store.setAppointmentStatus(id, 'realizada');
     Store.changeStage(id, stage);
     if (stage === 'ganado' && !Store.clientOrders(id).length) {
       UI.toast('¡Felicitaciones! Registra la venta 🎉', 'good');
       setTimeout(() => Views.ventas.openOrderForm({ clientId: id }), 100);
     }
+  }
+
+  // Acciones que siguen a un resultado de llamada
+  function afterOutcome(id, outcome) {
+    const o = outcomeById(outcome);
+    if (!o) return;
+    const c = Store.get('clients', id);
+    if (o.appointment || (o.reschedule && Store.activeAppointment(c))) setTimeout(() => openAppointment(id), 60);
+  }
+
+  /* ---------- Cita: fecha, hora, dirección y quién hace la demostración ---------- */
+  function apptCard(c) {
+    const a = Store.activeAppointment(c);
+    const last = !a && c.appointment ? c.appointment : null;
+    if (!a) {
+      return `<div class="card">
+        <div class="card-head"><h2>${icon('calendar', 'sm')} Cita</h2><button class="btn sm" data-appt="new">${icon('plus', 'sm')} Agendar cita</button></div>
+        <div class="card-body small muted">${last ? `Última cita: ${U.dateTime(last.at)} · <strong>${Store.APPT_STATUS[last.status] || ''}</strong>` : 'Sin cita agendada.'}</div>
+      </div>`;
+    }
+    const past = new Date(a.at) < new Date();
+    const map = a.address ? ` <a target="_blank" rel="noopener" href="https://maps.google.com/?q=${encodeURIComponent(a.address)}">Mapa</a>` : '';
+    return `<div class="card appt-card">
+      <div class="card-head"><h2>${icon('calendar', 'sm')} Cita</h2><span class="badge ${a.status === 'confirmada' ? 'good' : 'warn'}">${Store.APPT_STATUS[a.status]}</span></div>
+      <div class="card-body stack" style="gap:10px">
+        <div class="appt-when ${past ? 'overdue' : ''}">${U.date(a.at, { weekday: 'long', day: 'numeric', month: 'long' })}<strong>${U.time(a.at)}</strong></div>
+        <dl class="info-list" style="margin:0">
+          ${info('Dirección', a.address ? U.esc(a.address) + map : '<span class="muted">Sin dirección</span>')}
+          ${info('Demostración', `<strong>${U.esc(Store.demoByName(a))}</strong>`)}
+          ${a.notes ? info('Notas', U.esc(a.notes)) : ''}
+        </dl>
+        <div class="row wrap">
+          ${a.status === 'agendada' ? `<button class="btn sm primary" data-appt="confirmada">${icon('check', 'sm')} Confirmar</button>` : ''}
+          <button class="btn sm ${a.status === 'confirmada' ? 'primary' : ''}" data-appt="realizada">${icon('flag', 'sm')} Demo realizada</button>
+          <button class="btn sm" data-appt="edit">${icon('clock', 'sm')} Reagendar</button>
+          <button class="btn sm ghost danger" data-appt="cancelada">Cancelar</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function openAppointment(id, { confirmAfter = false } = {}) {
+    const c = Store.get('clients', id);
+    if (!c) return;
+    const a = Store.activeAppointment(c);
+    const def = a ? new Date(a.at) : (() => { const d = U.addDays(new Date(), 1); d.setHours(10, 0, 0, 0); return d; })();
+    const addr = a ? a.address : [c.address, c.city, c.state, c.zip].filter(Boolean).join(', ');
+    const demoBy = a ? (a.demoBy || (a.demoByName ? '__otro' : '')) : c.ownerId;
+    UI.modal({
+      title: `${a ? 'Reagendar' : 'Agendar'} cita · ${U.esc(c.name)}`,
+      submitLabel: a ? 'Guardar nueva fecha' : 'Agendar cita',
+      body: `
+        <div class="form-grid">
+          <label class="field">Fecha *<input name="date" type="date" required value="${U.toDateInput(def)}"></label>
+          <label class="field">Hora *<input name="time" type="time" required value="${U.toLocalInput(def).slice(11, 16)}"></label>
+          <label class="field full">Dirección de la cita *<input name="address" required value="${U.esc(addr)}" placeholder="Dirección donde se hará la demostración"></label>
+          <label class="field">¿Quién realizará la demostración? *<select name="demoBy" id="demoBySel" required>${UI.userOptions(demoBy, { blank: 'Seleccionar…' })}<option value="__otro" ${demoBy === '__otro' ? 'selected' : ''}>Otra persona…</option></select></label>
+          <label class="field ${demoBy === '__otro' ? '' : 'hidden'}" id="demoOtherWrap">Nombre de quien hará la demostración<input name="demoByName" value="${U.esc(a ? a.demoByName : '')}"></label>
+          <label class="field full">Notas para la cita <span class="hint">(opcional)</span><textarea name="notes" rows="2" placeholder="Referencias de la dirección, productos a mostrar…">${U.esc(a ? a.notes : '')}</textarea></label>
+        </div>
+        <p class="small muted" style="margin:0">Se programa un seguimiento para confirmar la cita el día anterior.</p>`,
+      onOpen: (form) => {
+        const sel = form.querySelector('#demoBySel');
+        sel.onchange = () => form.querySelector('#demoOtherWrap').classList.toggle('hidden', sel.value !== '__otro');
+      },
+      onSubmit: (f) => {
+        const at = new Date(`${f.date}T${f.time}`);
+        if (isNaN(at)) { UI.toast('Fecha u hora no válida', 'bad'); return false; }
+        if (f.demoBy === '__otro' && !f.demoByName) { UI.toast('Escribe quién hará la demostración', 'bad'); return false; }
+        Store.saveAppointment(id, { at: at.toISOString(), address: f.address, demoBy: f.demoBy === '__otro' ? '' : f.demoBy, demoByName: f.demoBy === '__otro' ? f.demoByName : '', notes: f.notes });
+        if (confirmAfter) Store.setAppointmentStatus(id, 'confirmada');
+        UI.toast(a ? 'Cita reagendada' : 'Cita agendada', 'good');
+      }
+    });
   }
 
   // Registro rápido tras marcar desde la lista
@@ -304,16 +392,17 @@ Views.cliente = (() => {
     UI.modal({
       title: `Resultado de la llamada · ${U.esc(c.name)}`,
       body: `<div class="outcomes">${OUTCOMES.map((o) => `<label class="outcome-btn"><input type="radio" name="outcome" value="${o.id}" hidden><span class="dot" style="background:${o.color}"></span>${o.name}</label>`).join('')}</div>
-             <label class="field">Notas<textarea name="notes" rows="3"></textarea></label>`,
+             <label class="field">Notas<textarea name="notes" rows="3"></textarea></label>
+             <label class="field">Próximo seguimiento <span class="hint">(fecha y hora · si lo dejas vacío se programa solo según el resultado)</span><input type="datetime-local" name="follow"></label>`,
       onOpen: (form) => form.querySelectorAll('.outcome-btn').forEach((l) => l.addEventListener('click', () => { form.querySelectorAll('.outcome-btn').forEach((x) => x.classList.remove('selected')); l.classList.add('selected'); })),
       onSubmit: (f) => {
         if (!f.outcome) { UI.toast('Selecciona un resultado', 'bad'); return false; }
-        Store.logCall(id, { outcome: f.outcome, notes: f.notes });
+        Store.logCall(id, { outcome: f.outcome, notes: f.notes, nextFollowUp: f.follow ? U.fromInput(f.follow) : undefined });
         UI.toast('Llamada registrada', 'good');
-        if (outcomeById(f.outcome).sale) setTimeout(() => Views.ventas.openOrderForm({ clientId: id }), 50);
+        afterOutcome(id, f.outcome);
       }
     });
   }
 
-  return { title: 'Cliente', render, setStage, quickLog };
+  return { title: 'Cliente', render, setStage, quickLog, openAppointment, afterOutcome };
 })();

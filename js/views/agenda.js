@@ -22,43 +22,46 @@ Views.agenda = (() => {
     const me = Store.currentUser();
     const manager = Store.can('viewAll');
     const ownerFilter = (id) => state.owner === 'all' ? true : state.owner === 'me' ? id === me.id : id === state.owner;
+    // El próximo seguimiento de cada cliente es una tarea pendiente más ("Llamar a…")
     const follows = Store.myClients().filter((c) => OPEN_STAGES.includes(c.stage) && c.nextFollowUp && ownerFilter(c.ownerId));
     const tasks = Store.myTasks().filter((t) => ownerFilter(t.userId) && (state.showDone || !t.done));
-    const fb = buckets(follows, (c) => c.nextFollowUp);
-    const tb = buckets(tasks.filter((t) => !t.done), (t) => t.due);
+    const items = follows.map((c) => ({ kind: 'follow', at: c.nextFollowUp, c })).concat(tasks.filter((t) => !t.done).map((t) => ({ kind: 'task', at: t.due, t })));
+    const ib = buckets(items, (x) => x.at);
     const done = tasks.filter((t) => t.done);
+    const appts = U.sortBy(Store.myClients().filter((c) => {
+      const a = Store.activeAppointment(c);
+      return a && new Date(a.at) >= U.startOfDay() && (ownerFilter(c.ownerId) || a.demoBy === me.id);
+    }), (c) => Store.activeAppointment(c).at);
 
     el.innerHTML = `
       <div class="page-head">
-        <div><h1>Agenda y tareas</h1><p>${fb.vencido.length + tb.vencido.length} vencidos · ${fb.hoy.length + tb.hoy.length} para hoy</p></div>
+        <div><h1>Agenda y tareas</h1><p>${ib.vencido.length} vencidos · ${ib.hoy.length} para hoy · ${appts.length} citas próximas</p></div>
         <div class="page-actions">
           ${manager ? `<select id="owner" style="width:auto"><option value="me" ${state.owner === 'me' ? 'selected' : ''}>Mi agenda</option><option value="all" ${state.owner === 'all' ? 'selected' : ''}>Todo el equipo</option>${Store.activeUsers().filter((u) => u.id !== me.id).map((u) => `<option value="${u.id}" ${state.owner === u.id ? 'selected' : ''}>${U.esc(u.name)}</option>`).join('')}</select>` : ''}
           <a class="btn" href="#/llamadas">${icon('play', 'sm')} Llamar seguimientos</a>
           <button class="btn primary" id="newTask">${icon('plus', 'sm')} Nueva tarea</button>
         </div>
       </div>
-      <div class="grid cols-2">
+      <div class="grid span-2-1">
         <div class="card">
-          <div class="card-head"><h2>${icon('phone', 'sm')} Seguimientos a clientes</h2><span class="muted small">${follows.length}</span></div>
+          <div class="card-head"><h2>${icon('check', 'sm')} ${state.owner === 'me' ? 'Mis pendientes' : 'Pendientes'}</h2><label class="check small"><input type="checkbox" id="showDone" ${state.showDone ? 'checked' : ''}> Ver tareas completadas</label></div>
           <div class="card-body flush">
-            ${Object.keys(LABELS).map((k) => fb[k].length ? `
-              <div class="list-item" style="background:var(--surface-2);padding:6px 16px"><strong class="small ${k === 'vencido' ? 'overdue' : ''}">${LABELS[k]} · ${fb[k].length}</strong></div>
-              ${fb[k].slice(0, k === 'despues' ? 20 : 100).map((c) => `
-                <div class="list-item clickable" data-go="#/cliente/${c.id}">
-                  ${UI.avatar(Store.get('users', c.ownerId))}
-                  <div class="grow"><div class="title">${U.esc(c.name)}</div><div class="small muted">${stageById(c.stage).name} · ${U.esc(c.phone)}</div></div>
-                  <div style="text-align:right"><div class="small ${k === 'vencido' ? 'overdue' : ''}">${k === 'hoy' ? U.time(c.nextFollowUp) : U.dateTime(c.nextFollowUp)}</div>${UI.tempBadge(c.temperature)}</div>
-                </div>`).join('')}` : '').join('') || UI.empty('No hay seguimientos programados.', 'calendar')}
+            ${Object.keys(LABELS).map((k) => ib[k].length ? `
+              <div class="list-item" style="background:var(--surface-2);padding:6px 16px"><strong class="small ${k === 'vencido' ? 'overdue' : ''}">${LABELS[k]} · ${ib[k].length}</strong></div>
+              ${ib[k].slice(0, k === 'despues' ? 30 : 200).map((x) => x.kind === 'task' ? taskItem(x.t, { showOwner: state.owner !== 'me' }) : followItem(x.c, k)).join('')}` : '').join('')}
+            ${state.showDone && done.length ? `<div class="list-item" style="background:var(--surface-2);padding:6px 16px"><strong class="small">Tareas completadas · ${done.length}</strong></div>${U.sortBy(done, (t) => t.updatedAt, -1).slice(0, 50).map((t) => taskItem(t, { showOwner: state.owner !== 'me' })).join('')}` : ''}
+            ${!items.length && !(state.showDone && done.length) ? UI.empty('No hay pendientes. 🎉', 'check') : ''}
           </div>
         </div>
         <div class="card">
-          <div class="card-head"><h2>${icon('check', 'sm')} Tareas</h2><label class="check small"><input type="checkbox" id="showDone" ${state.showDone ? 'checked' : ''}> Ver completadas</label></div>
+          <div class="card-head"><h2>${icon('calendar', 'sm')} Próximas citas</h2><span class="muted small">${appts.length}</span></div>
           <div class="card-body flush">
-            ${Object.keys(LABELS).map((k) => tb[k].length ? `
-              <div class="list-item" style="background:var(--surface-2);padding:6px 16px"><strong class="small ${k === 'vencido' ? 'overdue' : ''}">${LABELS[k]} · ${tb[k].length}</strong></div>
-              ${tb[k].map((t) => taskItem(t, { showOwner: state.owner !== 'me' })).join('')}` : '').join('')}
-            ${state.showDone && done.length ? `<div class="list-item" style="background:var(--surface-2);padding:6px 16px"><strong class="small">Completadas · ${done.length}</strong></div>${U.sortBy(done, (t) => t.updatedAt, -1).slice(0, 50).map((t) => taskItem(t, { showOwner: state.owner !== 'me' })).join('')}` : ''}
-            ${!tasks.length ? UI.empty('No hay tareas pendientes. 🎉', 'check') : ''}
+            ${appts.length ? appts.map((c) => { const a = Store.activeAppointment(c); return `
+              <div class="list-item clickable" data-go="#/cliente/${c.id}">
+                <div class="appt-date"><strong>${U.date(a.at, { day: 'numeric' })}</strong><span>${U.date(a.at, { month: 'short' })}</span></div>
+                <div class="grow"><div class="title">${U.esc(c.name)}</div><div class="small muted">${U.time(a.at)} · Demo: ${U.esc(Store.demoByName(a))}</div>${a.address ? `<div class="small muted">${U.esc(a.address)}</div>` : ''}</div>
+                <span class="badge ${a.status === 'confirmada' ? 'good' : 'warn'}">${Store.APPT_STATUS[a.status]}</span>
+              </div>`; }).join('') : UI.empty('No hay citas próximas.', 'calendar')}
           </div>
         </div>
       </div>`;
@@ -67,8 +70,24 @@ Views.agenda = (() => {
     if (own) own.onchange = () => { state.owner = own.value; render(el); };
     el.querySelector('#showDone').onchange = (e) => { state.showDone = e.target.checked; render(el); };
     el.querySelector('#newTask').onclick = () => openTaskForm({});
-    el.querySelectorAll('[data-go]').forEach((x) => x.onclick = () => { location.hash = x.dataset.go; });
+    el.querySelectorAll('[data-go]').forEach((x) => x.onclick = (e) => { if (e.target.closest('[data-log]')) return; location.hash = x.dataset.go; });
+    el.querySelectorAll('[data-log]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); Views.cliente.quickLog(b.dataset.log); });
     bindTaskItems(el);
+  }
+
+  function followItem(c, bucket) {
+    const showOwner = state.owner !== 'me';
+    return `<div class="list-item clickable" data-go="#/cliente/${c.id}">
+      <span class="tl-icon" style="width:28px;height:28px">${icon('phone', 'sm')}</span>
+      <div class="grow">
+        <div class="title">Llamar a ${U.esc(c.name)}</div>
+        <div class="small muted">${stageById(c.stage).name}${c.lastOutcome ? ' · ' + U.esc((outcomeById(c.lastOutcome) || {}).name || '') : ''} · ${c.callCount || 0} intento${c.callCount === 1 ? '' : 's'}${showOwner ? ' · ' + U.esc(UI.userName(c.ownerId)) : ''}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="small ${bucket === 'vencido' ? 'overdue' : ''}">${bucket === 'hoy' ? U.time(c.nextFollowUp) : U.dateTime(c.nextFollowUp)}</div>
+        <button class="btn xs" data-log="${c.id}" title="Anotar el resultado de la llamada">Registrar</button>
+      </div>
+    </div>`;
   }
 
   function taskItem(t, { hideClient = false, showOwner = false } = {}) {

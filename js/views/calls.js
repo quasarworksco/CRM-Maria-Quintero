@@ -6,10 +6,10 @@ Views.llamadas = (() => {
   let tick = null;
 
   const QUEUES = {
-    smart: { label: 'Prioridad inteligente', desc: 'Vencidos → hoy → calientes → nuevos → olvidados' },
+    smart: { label: 'Prioridad inteligente', desc: 'Vencidos → hoy → citas por confirmar → nuevos → reintentos → olvidados' },
     follow: { label: 'Seguimientos de hoy', desc: 'Seguimientos vencidos y programados para hoy' },
     nuevos: { label: 'Nuevos sin contactar', desc: 'Prospectos a los que nunca se ha llamado' },
-    calientes: { label: 'Calientes y tibios', desc: 'Los que están más cerca de comprar' },
+    citas: { label: 'Citas por confirmar', desc: 'Clientes con cita agendada que falta confirmar' },
     retry: { label: 'Reintentar no contestados', desc: 'No contestaron en el último intento' },
     cobro: { label: 'Cobranza', desc: 'Clientes con saldo pendiente' }
   };
@@ -20,9 +20,10 @@ Views.llamadas = (() => {
     if (f && f < U.startOfDay().getTime()) return 0;           // vencidos
     if (f && f <= now) return 1;                                // ya es la hora
     if (f && f <= U.endOfDay().getTime()) return 2;             // hoy
-    if (c.temperature === 'caliente') return 3;
+    const a = Store.activeAppointment(c);
+    if (a && a.status === 'agendada' && new Date(a.at).getTime() - now < 2 * U.DAY) return 3;
     if (c.stage === 'nuevo' && !c.callCount) return 4;
-    if (c.temperature === 'tibio' && Store.isStale(c)) return 5;
+    if (c.stage === 'intentando' && (!c.lastCallAt || now - new Date(c.lastCallAt).getTime() > 3 * 3600000)) return 5;
     if (Store.isStale(c)) return 6;
     return 9;
   }
@@ -35,7 +36,7 @@ Views.llamadas = (() => {
     switch (st.queue) {
       case 'follow': list = list.filter((c) => OPEN_STAGES.includes(c.stage) && c.nextFollowUp && new Date(c.nextFollowUp).getTime() <= eod); return U.sortBy(list, (c) => c.nextFollowUp);
       case 'nuevos': list = list.filter((c) => c.stage === 'nuevo' && !c.callCount); return U.sortBy(list, (c) => c.createdAt);
-      case 'calientes': list = list.filter((c) => OPEN_STAGES.includes(c.stage) && c.temperature !== 'frio'); return U.sortBy(list, (c) => Store.leadScore(c), -1);
+      case 'citas': list = list.filter((c) => { const a = Store.activeAppointment(c); return a && a.status === 'agendada'; }); return U.sortBy(list, (c) => Store.activeAppointment(c).at);
       case 'retry': list = list.filter((c) => OPEN_STAGES.includes(c.stage) && c.noAnswerCount > 0 && (!c.lastCallAt || Date.now() - new Date(c.lastCallAt).getTime() > 3 * 3600000)); return U.sortBy(list, (c) => c.lastCallAt || '');
       case 'cobro': list = list.filter((c) => Store.clientBalance(c.id) > 0); return U.sortBy(list, (c) => Store.clientBalance(c.id), -1);
       default:
@@ -70,7 +71,7 @@ Views.llamadas = (() => {
           ${me.callGoal ? `<div class="progress ${today.calls >= me.callGoal ? 'good' : ''}"><span style="width:${Math.min(100, (today.calls / me.callGoal) * 100)}%"></span></div>` : ''}</div>
         <div class="card kpi"><div class="kpi-label">Contactos efectivos</div><div class="kpi-value">${today.contacts}</div><div class="kpi-sub">${U.pct(today.contactRate)} de las llamadas</div></div>
         <div class="card kpi"><div class="kpi-label">En esta sesión</div><div class="kpi-value">${st.session.calls}</div><div class="kpi-sub">${st.session.contacts} contactos · ${U.duration(st.session.talk)} al teléfono</div></div>
-        <div class="card kpi"><div class="kpi-label">En cola</div><div class="kpi-value">${queue.length}</div><div class="kpi-sub">${st.session.sales} ventas en la sesión</div></div>
+        <div class="card kpi"><div class="kpi-label">En cola</div><div class="kpi-value">${queue.length}</div><div class="kpi-sub">${st.session.sales} citas agendadas en la sesión</div></div>
       </div>
       <div class="call-layout">
         <div class="stack">
@@ -87,7 +88,7 @@ Views.llamadas = (() => {
                   <div class="title" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.esc(x.name)}</div>
                   <div class="small muted">${stageById(x.stage).name} · ${x.nextFollowUp ? UI.followLabel(x.nextFollowUp) : x.callCount ? x.callCount + ' intentos' : 'Nunca llamado'}</div>
                 </div>
-                ${UI.tempBadge(x.temperature)}
+                ${Store.activeAppointment(x) ? UI.apptBadge(x) : UI.stageBadge(x.stage)}
               </div>`).join('') || UI.empty('Cola vacía')}
           </div>
         </div>
@@ -105,9 +106,9 @@ Views.llamadas = (() => {
           <div class="call-card-head">
             <span class="avatar lg" style="background:${stageById(c.stage).color}">${U.esc(U.initials(c.name))}</span>
             <div style="flex:1;min-width:200px">
-              <div class="row wrap"><h2 style="font-size:20px">${U.esc(c.name)}</h2>${UI.stageBadge(c.stage)}${UI.tempBadge(c.temperature)}${UI.scoreBadge(Store.leadScore(c))}</div>
+              <div class="row wrap"><h2 style="font-size:20px">${U.esc(c.name)}</h2>${UI.stageBadge(c.stage)}${UI.apptBadge(c)}${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : ''}</div>
               <div class="call-phone">${U.esc(c.phone)}</div>
-              <div class="small muted">${[c.city, c.source, c.callCount ? c.callCount + ' llamadas previas' : 'Primera llamada', c.bestTime ? 'Prefiere: ' + c.bestTime : ''].filter(Boolean).map(U.esc).join(' · ')}</div>
+              <div class="small muted">${[c.city, c.source, c.callCount ? c.callCount + ' intentos previos' : 'Primer intento', c.lastContact ? 'Último contacto: ' + U.dateTime(c.lastContact) : '', c.referredBy ? 'Referido por ' + c.referredBy : '', c.bestTime ? 'Prefiere: ' + c.bestTime : ''].filter(Boolean).map(U.esc).join(' · ')}</div>
             </div>
             <div class="stack" style="gap:8px;align-items:flex-end">
               <div class="timer ${st.timerStart ? 'running' : ''}" id="timer">${U.duration(currentElapsed())}</div>
@@ -191,13 +192,13 @@ Views.llamadas = (() => {
     st.session.calls++;
     if (o.contact) st.session.contacts++;
     st.session.talk += dur;
-    if (o.sale) st.session.sales++;
+    if (o.appointment) st.session.sales++;
     st.skipped.add(c.id); // no volver a mostrarlo en esta sesión
     st.currentId = null;
     resetCall();
     UI.toast(`Guardado: ${o.name}`, 'good');
     render(el);
-    if (o.sale) setTimeout(() => Views.ventas.openOrderForm({ clientId: c.id }), 50);
+    Views.cliente.afterOutcome(c.id, o.id);
   }
 
   return { title: 'Modo llamadas', render, noAutoRefresh: true };

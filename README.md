@@ -25,16 +25,16 @@ Se publica con GitHub Pages desde la rama `main` (carpeta raíz). El archivo `CN
 
 | Módulo | Qué hace |
 |---|---|
-| **Inicio** | Tablero con ventas, recaudo, cartera, llamadas, meta del mes, embudo, temperatura de prospectos, seguimientos del día, prospectos calientes y ranking del equipo. La agente ve sus propios números. |
-| **Modo llamadas** | Cola de marcación priorizada (vencidos → hoy → calientes → nuevos → olvidados), guion con el nombre del cliente, cronómetro, resultados con atajos de teclado 1–8, "Guardar y siguiente", meta diaria. |
-| **Agenda y tareas** | Seguimientos y tareas agrupados en vencidos / hoy / mañana / semana. |
-| **Clientes y prospectos** | Lista con búsqueda, filtros rápidos (sin contactar, vencidos, olvidados, con saldo…), acciones masivas (asignar, cambiar etapa o temperatura, exportar, eliminar), importación desde Excel/CSV con reparto automático entre agentes y detección de duplicados. |
-| **Ficha del cliente** | Barra de etapas, temperatura frío/tibio/caliente, puntaje del prospecto, registro de llamadas, WhatsApp, email, visitas y notas con reglas automáticas, historial completo, ventas, saldo, tareas y archivos (Cloudinary). |
-| **Embudo de ventas** | Tablero Kanban: se arrastran las tarjetas entre etapas. Muestra valor y pronóstico por etapa. |
+| **Inicio** | Tablero con ventas, recaudo, cartera, llamadas, meta del mes, embudo por etapas, seguimientos del día, próximas citas y ranking del equipo. La agente ve sus propios números. |
+| **Modo llamadas** | Cola de marcación priorizada (vencidos → hoy → citas por confirmar → nuevos → reintentos → olvidados), guion con el nombre del cliente, cronómetro, resultados con atajos de teclado 1–8, "Guardar y siguiente", meta diaria. |
+| **Agenda y tareas** | "Mis pendientes": cada próximo seguimiento aparece como tarea ("Llamar a…") junto con las tareas, por fecha y hora; y las próximas citas. |
+| **Clientes y prospectos** | Lista con búsqueda, filtros rápidos (sin contactar, vencidos, olvidados, con saldo…), acciones masivas (asignar, cambiar etapa, exportar, eliminar), importación desde Excel/CSV con reparto automático entre agentes y detección de duplicados. |
+| **Ficha del cliente** | Etapas (Nuevo → Intentando contactar → Contactado → Cita agendada → Cita confirmada → Demo realizada → Venta / Perdido), fuente con **Referido por** o **Nombre del evento**, resultado de la última llamada, intentos y último contacto automáticos, cita (fecha, hora, dirección y quién hace la demostración), historial, ventas, saldo, tareas y archivos. |
+| **Embudo de ventas** | Tablero Kanban por etapas: se arrastran las tarjetas; cada una muestra último resultado, intentos, cita y seguimiento. |
 | **Ventas y pedidos** | Pedidos con varios productos, descuento, envío, impuesto, condiciones de pago, estado de entrega, abono inicial y recibo imprimible. Descuenta el inventario. |
 | **Recaudo / Cartera** | Saldos pendientes con antigüedad (al día, 1–15, 16–30, 31–60, 60+ días), abonos, recordatorio de cobro por WhatsApp e historial de pagos por método. |
 | **Productos** | Catálogo con imagen, SKU, precio, costo y margen (solo lo ve la admin), stock y alertas de stock bajo. |
-| **Reportes** | Rendimiento por vendedor (llamadas, tasa de contacto, tiempo al teléfono, cotizaciones, ventas, recaudo, cierre, meta), llamadas por día, resultados, fuentes que más venden, productos más vendidos y motivos de pérdida. |
+| **Reportes** | Rendimiento por vendedor (llamadas, tasa de contacto, tiempo al teléfono, cotizaciones, ventas, recaudo, cierre, meta), llamadas por día, resultados, fuentes que más venden, quién trae referidos, productos más vendidos y motivos de pérdida. |
 | **Panel de administración** | Usuarios y roles, metas por persona, "ver como" otro usuario, transferir cartera, repartir prospectos, configuración del negocio (moneda, fuentes, motivos de pérdida, categorías, guion), respaldo y restauración, borrar datos demo. |
 
 ## Roles

@@ -156,13 +156,13 @@ Views.admin = (() => {
         <div class="card">
           <div class="card-head"><h2>Carga de trabajo por vendedor</h2></div>
           <div class="table-wrap"><table class="table">
-            <thead><tr><th>Vendedor</th><th class="right">Nuevos sin llamar</th><th class="right">Activos</th><th class="right">Calientes</th><th class="right">Vencidos</th><th class="right">Clientes (ganados)</th></tr></thead>
+            <thead><tr><th>Vendedor</th><th class="right">Nuevos sin llamar</th><th class="right">Activos</th><th class="right">Con cita</th><th class="right">Vencidos</th><th class="right">Clientes (ganados)</th></tr></thead>
             <tbody>${users.filter((u) => u.active).map((u) => {
               const cl = Store.all('clients').filter((c) => c.ownerId === u.id);
               return `<tr><td><div class="row">${UI.avatar(u)} ${U.esc(u.name)}</div></td>
                 <td class="right num">${cl.filter((c) => c.stage === 'nuevo' && !c.callCount).length}</td>
                 <td class="right num">${cl.filter((c) => OPEN_STAGES.includes(c.stage)).length}</td>
-                <td class="right num">${cl.filter((c) => OPEN_STAGES.includes(c.stage) && c.temperature === 'caliente').length}</td>
+                <td class="right num">${cl.filter((c) => Store.activeAppointment(c)).length}</td>
                 <td class="right num" style="color:var(--bad)">${cl.filter((c) => OPEN_STAGES.includes(c.stage) && c.nextFollowUp && new Date(c.nextFollowUp) < new Date()).length}</td>
                 <td class="right num">${cl.filter((c) => c.stage === 'ganado').length}</td></tr>`;
             }).join('')}</tbody>

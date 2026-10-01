@@ -19,6 +19,7 @@ const LocalAdapter = {
     let db = null;
     try { db = JSON.parse(localStorage.getItem(this.KEY)) || null; } catch (e) { db = null; }
     if (!db || !db.users) { db = ctx.seed(); this.replaceAll(db); }
+    COLLECTIONS.forEach((c) => (db[c] || []).forEach((d) => normalizeDoc(c, d)));
     return db;
   },
   _timer: null,
@@ -88,7 +89,7 @@ const FirestoreAdapter = {
       try {
         await fs.runTransaction(this.fdb, async (tx) => {
           const snap = await tx.get(settingsRef);
-          if (!snap.exists()) tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { createdAt: new Date().toISOString(), demoData: false })));
+          if (!snap.exists()) tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { createdAt: new Date().toISOString(), demoData: false, schemaVersion: 2 })));
         });
       } catch (e) {
         // Sin internet la transacción falla: se sigue con lo guardado en la caché local
@@ -116,7 +117,7 @@ const FirestoreAdapter = {
       }, (err) => { console.error(err); if (first) { first = false; reject(err); } else UI.toast('Se perdió la conexión con la base de datos', 'bad'); });
     });
     await Promise.all([
-      ...COLLECTIONS.map((col) => listen(source(col), (snap) => { cache[col] = snap.docs.map((d) => Object.assign({ id: d.id }, d.data())); })),
+      ...COLLECTIONS.map((col) => listen(source(col), (snap) => { cache[col] = snap.docs.map((d) => normalizeDoc(col, Object.assign({ id: d.id }, d.data()))); })),
       listen(settingsRef, (snap) => { cache.settings = Object.assign({}, ctx.defaults, snap.exists() ? snap.data() : {}); })
     ]);
 
@@ -179,6 +180,15 @@ const FirestoreAdapter = {
   }
 };
 
+// Fuentes / cómo llegó (las nuevas van primero; se conservan las anteriores)
+const SOURCE_DEFAULTS = ['Florida Mall / Tienda', 'Feria / Evento', 'Referido', 'Cliente anterior', 'Leads', 'Facebook', 'Instagram', 'Indeed', 'Base de datos', 'Llamada entrante', 'Llamada en frío', 'Google', 'WhatsApp', 'Volante', 'Sitio web', 'Cliente recurrente'];
+
+// Ajusta documentos guardados con versiones anteriores del CRM
+function normalizeDoc(col, d) {
+  if (col === 'clients' && d && STAGE_ALIASES[d.stage]) d.stage = STAGE_ALIASES[d.stage];
+  return d;
+}
+
 const Store = (() => {
   let db = null;
   // ?local=1 fuerza la demo en el navegador aunque Firestore esté configurado
@@ -192,7 +202,7 @@ const Store = (() => {
     currency: 'USD',
     locale: 'es-US',
     phoneCountryCode: '1',
-    sources: ['Llamada en frío', 'Referido', 'Facebook', 'Instagram', 'Google', 'WhatsApp', 'Feria / Evento', 'Volante', 'Sitio web', 'Cliente recurrente'],
+    sources: SOURCE_DEFAULTS.slice(),
     lostReasons: ['Precio alto', 'Compró con la competencia', 'No lo necesita', 'No contesta nunca', 'Sin presupuesto', 'Número equivocado', 'Otro'],
     categories: ['Filtros de aire', 'Purificadores', 'Filtros de agua', 'Deshumidificadores', 'Accesorios', 'Servicios'],
     staleDays: 7,
@@ -211,6 +221,7 @@ const Store = (() => {
     COLLECTIONS.forEach((c) => { db[c] = db[c] || []; });
     db.settings = Object.assign({}, DEFAULT_SETTINGS, db.settings || {});
     ensureOwner();
+    migrateSettings();
     // Limpieza única: si la base en línea todavía tiene los datos de ejemplo de las pruebas,
     // se borran (se conservan las cuentas reales y la configuración) para empezar en cero.
     if (authMode() && adapter.access && adapter.access.role === 'admin' && db.settings.demoData === true) {
@@ -220,6 +231,16 @@ const Store = (() => {
     }
   }
   const mode = () => adapter.name;
+
+  // Agrega las fuentes nuevas a la configuración guardada (una sola vez)
+  function migrateSettings() {
+    if ((db.settings.schemaVersion || 1) >= 2) return;
+    if (authMode() && (!adapter.access || adapter.access.role !== 'admin')) return;
+    const have = db.settings.sources || [];
+    const norm = (x) => U.normalize(x).trim();
+    const merged = SOURCE_DEFAULTS.concat(have.filter((x) => !SOURCE_DEFAULTS.some((d) => norm(d) === norm(x))));
+    saveSettings({ sources: merged, schemaVersion: 2 });
+  }
 
   // Garantiza que la cuenta principal exista, sea administradora y esté activa
   const ownerEmail = () => String((window.CRM_CONFIG || {}).ownerEmail || '').trim().toLowerCase();
@@ -355,17 +376,16 @@ const Store = (() => {
     return 'V-' + (max + 1);
   };
 
-  // Puntaje de prospecto 0-100: etapa + temperatura + recencia + valor
+  // Prioridad del prospecto 0-100 (para ordenar colas): etapa + cita próxima + recencia del contacto
   function leadScore(c) {
     if (c.stage === 'ganado') return 100;
     if (c.stage === 'perdido' || c.dnc) return 0;
-    let s = stageById(c.stage).prob * 50;
-    s += { frio: 0, tibio: 15, caliente: 30 }[c.temperature] || 0;
+    let s = stageById(c.stage).prob * 70;
+    if (c.appointment && c.appointment.at && c.appointment.status !== 'cancelada' && new Date(c.appointment.at) > new Date()) s += 15;
     if (c.lastContact) {
       const days = (Date.now() - new Date(c.lastContact).getTime()) / U.DAY;
       s += days < 3 ? 10 : days < 7 ? 6 : days < 14 ? 3 : 0;
     }
-    if ((c.estValue || 0) > 500) s += 10; else if ((c.estValue || 0) > 150) s += 5;
     return Math.max(0, Math.min(99, Math.round(s)));
   }
   const isStale = (c) => OPEN_STAGES.includes(c.stage) && (!c.lastContact || (Date.now() - new Date(c.lastContact).getTime()) / U.DAY > (settings().staleDays || 7));
@@ -380,38 +400,59 @@ const Store = (() => {
     if (!c || c.stage === stage) return;
     const from = c.stage;
     const patch = Object.assign({ stage }, extra);
-    if (stage === 'ganado') { patch.temperature = 'caliente'; patch.wonAt = new Date().toISOString(); }
+    if (stage === 'ganado') patch.wonAt = new Date().toISOString();
     if (stage === 'perdido') patch.lostAt = new Date().toISOString();
     update('clients', clientId, patch);
     logActivity({ clientId, type: 'etapa', text: `${stageById(from).name} → ${stageById(stage).name}${extra.lostReason ? ' · Motivo: ' + extra.lostReason : ''}` });
   }
 
-  // Registrar una llamada aplicando las reglas del resultado
+  // Registrar un intento de contacto. Actualiza solo: último resultado, fecha y hora del último
+  // contacto, número de intentos, próximo seguimiento y etapa (solo avanza, nunca retrocede).
   function logCall(clientId, { outcome, duration = 0, notes = '', nextFollowUp, type = 'llamada' }) {
     const c = get('clients', clientId);
     const o = outcomeById(outcome);
     const now = new Date().toISOString();
     logActivity({ clientId, type, outcome, duration, text: notes });
-    const patch = { lastCallAt: now, callCount: (c.callCount || 0) + 1 };
-    if (!o || o.contact) patch.lastContact = now;
+    const patch = { lastOutcome: outcome || '', lastContact: now, lastCallAt: now, callCount: (c.callCount || 0) + 1 };
     if (o && !o.contact) patch.noAnswerCount = (c.noAnswerCount || 0) + 1; else patch.noAnswerCount = 0;
-    if (o && o.temp) patch.temperature = o.temp;
     if (nextFollowUp !== undefined) patch.nextFollowUp = nextFollowUp;
     else if (o && o.followDays) patch.nextFollowUp = new Date(Date.now() + o.followDays * U.DAY).toISOString();
     else if (o && o.followDays === null) patch.nextFollowUp = null;
-    if (c.stage === 'nuevo' && o && o.contact) patch.stage = 'contactado';
     update('clients', clientId, patch);
-    if (o && o.stage) {
-      const order = STAGES.map((s) => s.id);
-      // Solo avanzar (o ir a ganado/perdido); no retroceder etapas por un resultado
-      if (o.stage === 'ganado' || o.stage === 'perdido' || order.indexOf(o.stage) > order.indexOf(get('clients', clientId).stage)) {
-        changeStage(clientId, o.stage, o.stage === 'perdido' ? { lostReason: 'Número equivocado' } : {});
-      }
+    const order = STAGES.map((x) => x.id);
+    const cur = get('clients', clientId).stage;
+    if (o && o.stage && OPEN_STAGES.includes(cur) && order.indexOf(o.stage) > order.indexOf(cur)) changeStage(clientId, o.stage);
+    if (o && o.id === 'no_interesado') {
+      if (OPEN_STAGES.includes(c.stage) && (c.noInterestCount || 0) >= 1) changeStage(clientId, 'perdido', { lostReason: 'No lo necesita' });
+      update('clients', clientId, { noInterestCount: (c.noInterestCount || 0) + 1 });
     }
-    if (o && o.id === 'no_interesado' && OPEN_STAGES.includes(c.stage) && (c.noInterestCount || 0) >= 1) {
-      changeStage(clientId, 'perdido', { lostReason: 'No lo necesita' });
-    }
-    if (o && o.id === 'no_interesado') update('clients', clientId, { noInterestCount: (c.noInterestCount || 0) + 1 });
+  }
+
+  /* ---------- Citas (demostraciones) ---------- */
+  const APPT_STATUS = { agendada: 'Agendada', confirmada: 'Confirmada', realizada: 'Demo realizada', cancelada: 'Cancelada' };
+  const demoByName = (a) => (a && (a.demoBy ? (get('users', a.demoBy) || {}).name : '') ) || (a && a.demoByName) || 'Sin asignar';
+  const activeAppointment = (c) => (c && c.appointment && c.appointment.at && ['agendada', 'confirmada'].includes(c.appointment.status)) ? c.appointment : null;
+  function saveAppointment(clientId, { at, address, demoBy = '', demoByName: extName = '', notes = '' }) {
+    const c = get('clients', clientId);
+    const prev = activeAppointment(c);
+    const now = new Date().toISOString();
+    const appt = { at, address: address || '', demoBy, demoByName: demoBy ? '' : extName, notes, status: 'agendada', createdAt: prev ? prev.createdAt : now, updatedAt: now, by: currentUser().id };
+    // El seguimiento queda para confirmar la cita el día anterior (o el mismo día si es muy pronto)
+    const t = new Date(at).getTime();
+    const confirmAt = t - U.DAY > Date.now() ? new Date(t - U.DAY) : new Date(Math.max(Date.now(), t - 2 * 3600000));
+    update('clients', clientId, { appointment: appt, nextFollowUp: confirmAt.toISOString() });
+    logActivity({ clientId, type: 'cita', kind: prev ? 'reagendada' : 'agendada', text: `${prev ? 'Cita reagendada' : 'Cita agendada'} para el ${U.dateTime(at)}${address ? ' · ' + address : ''} · Demostración: ${demoByName(appt)}${notes ? '\n' + notes : ''}` });
+    if (OPEN_STAGES.includes(c.stage) && c.stage !== 'cita_agendada') changeStage(clientId, 'cita_agendada');
+  }
+  function setAppointmentStatus(clientId, status, note = '') {
+    const c = get('clients', clientId);
+    if (!c || !c.appointment) return;
+    update('clients', clientId, { appointment: Object.assign({}, c.appointment, { status, updatedAt: new Date().toISOString() }) });
+    const label = { confirmada: 'Cita confirmada', realizada: 'Demostración realizada', cancelada: 'Cita cancelada' }[status];
+    logActivity({ clientId, type: 'cita', kind: status, text: label + (note ? ' · ' + note : '') });
+    if (status === 'confirmada') changeStage(clientId, 'cita_confirmada');
+    if (status === 'realizada') { changeStage(clientId, 'demo_realizada'); update('clients', clientId, { nextFollowUp: new Date(Date.now() + U.DAY).toISOString() }); }
+    if (status === 'cancelada' && APPT_STAGES.includes(c.stage)) changeStage(clientId, 'contactado');
   }
 
   function registerPayment({ orderId, amount, method, date, reference, notes }) {
@@ -491,6 +532,7 @@ const Store = (() => {
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
     exportJSON, importJSON, resetDemo, wipeAll, mode, isOwner,
+    saveAppointment, setAppointmentStatus, activeAppointment, demoByName, APPT_STATUS,
     realUser, isViewingAs, setViewAs, authMode, syncAccess, auth
   };
 })();
@@ -540,9 +582,10 @@ const Seed = {
     const companies = ['', '', '', '', 'Oficinas Brisa LLC', 'Clínica Dental Sonrisa', 'Restaurante El Fogón', 'Colegio San Marcos', 'Gimnasio Fit Zone', 'Hotel Palmeras'];
     const notesPool = ['Tiene 2 aires centrales', 'Hijo con asma, muy interesado en purificador', 'Pidió que la llamen después de las 5pm', 'Tiene 3 perros, cambia filtros cada mes', 'Casa de 2 pisos, 4 habitaciones', 'Prefiere WhatsApp', 'Compró filtros en Home Depot, compara precios', 'Quiere cotización para su oficina', ''];
 
-    const stageWeights = [['nuevo', 22], ['contactado', 18], ['interesado', 14], ['cotizacion', 9], ['negociacion', 6], ['ganado', 20], ['perdido', 11]];
+    const stageWeights = [['nuevo', 16], ['intentando', 14], ['contactado', 14], ['cita_agendada', 9], ['cita_confirmada', 6], ['demo_realizada', 8], ['ganado', 20], ['perdido', 13]];
     const pickStage = () => { let t = r() * 100; for (const [s, w] of stageWeights) { if ((t -= w) < 0) return s; } return 'nuevo'; };
-    const tempFor = (s) => ({ nuevo: 'frio', contactado: r.pick(['frio', 'frio', 'tibio']), interesado: r.pick(['tibio', 'tibio', 'caliente']), cotizacion: r.pick(['tibio', 'caliente', 'caliente']), negociacion: 'caliente', ganado: 'caliente', perdido: 'frio' }[s]);
+    const referrers = ['Gloria Pérez', 'Roberto Díaz', 'Carmen Ruiz', 'Luis Romero', 'Ana Vargas'];
+    const events = ['Feria de Hogar Miami 2026', 'Expo Salud Doral', 'Feria Latina Kendall'];
 
     let orderNo = 1000;
     const N = 96;
@@ -566,12 +609,12 @@ const Seed = {
         city,
         state: 'FL',
         zip: String(r.int(33010, 33199)),
-        source: r.pick(settings.sources),
+        source: r.pick(settings.sources.slice(0, 11)),
+        referredBy: '',
+        eventName: '',
         interests: [...new Set(interest)],
         stage,
-        temperature: tempFor(stage),
         ownerId: owner.id,
-        estValue: r.pick([45, 90, 120, 189, 240, 349, 459, 600, 900, 1200]),
         acUnits: r.int(1, 3),
         householdSize: r.int(1, 6),
         pets: r.chance(0.4),
@@ -579,7 +622,6 @@ const Seed = {
         preferredContact: r.pick(['Llamada', 'WhatsApp', 'Llamada', 'Email']),
         bestTime: r.pick(['Mañana', 'Tarde', 'Noche', 'Cualquiera']),
         birthday: '',
-        tags: r.chance(0.3) ? [r.pick(['VIP', 'Referidor', 'Mayorista', 'Recompra', 'Urgente'])] : [],
         notes: r.pick(notesPool),
         dnc: false,
         attachments: [],
@@ -587,32 +629,44 @@ const Seed = {
         noAnswerCount: 0,
         lastContact: null,
         lastCallAt: null,
+        lastOutcome: '',
         nextFollowUp: null,
         lostReason: stage === 'perdido' ? r.pick(settings.lostReasons) : '',
         createdAt: iso(created),
         updatedAt: iso(created)
       };
+      if (isReferralSource(c.source)) c.referredBy = r.pick(referrers);
+      if (isEventSource(c.source)) c.eventName = r.pick(events);
       // Historial de llamadas
-      const nCalls = stage === 'nuevo' ? (r.chance(0.3) ? 1 : 0) : r.int(1, 7);
+      const nCalls = stage === 'nuevo' ? 0 : stage === 'intentando' ? r.int(1, 4) : r.int(2, 7);
       let t = created;
       for (let k = 0; k < nCalls; k++) {
-        t = Math.min(now - r.int(0, 8) * 3600000, t + r.int(1, 9) * U.DAY + r.int(0, 30000) * 1000);
+        t = Math.min(now - r.int(0, 8) * 3600000, t + r.int(1, 6) * U.DAY + r.int(0, 30000) * 1000);
         let outcome;
         const lastOne = k === nCalls - 1;
-        if (lastOne && stage === 'ganado') outcome = 'venta';
-        else if (lastOne && stage === 'cotizacion') outcome = 'cotizacion';
-        else if (lastOne && stage === 'interesado') outcome = 'interesado';
-        else if (lastOne && stage === 'perdido') outcome = r.pick(['no_interesado', 'no_interesado', 'equivocado']);
-        else if (stage === 'nuevo') outcome = r.pick(['no_contesta', 'buzon']);
-        else outcome = r.pick(['no_contesta', 'no_contesta', 'buzon', 'llamar_despues', 'interesado']);
+        if (stage === 'intentando') outcome = r.pick(['no_contesto', 'dejo_mensaje', 'whatsapp']);
+        else if (lastOne && (APPT_STAGES.includes(stage) || stage === 'demo_realizada' || stage === 'ganado')) outcome = 'cita_agendada';
+        else if (lastOne && stage === 'contactado') outcome = r.pick(['contesto', 'interesado', 'reagendar']);
+        else if (lastOne && stage === 'perdido') outcome = r.pick(['no_interesado', 'no_contesto']);
+        else outcome = r.pick(['no_contesto', 'no_contesto', 'dejo_mensaje', 'whatsapp', 'contesto', 'interesado']);
         const o = outcomeById(outcome);
-        db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: owner.id, type: r.chance(0.12) ? 'whatsapp' : 'llamada', outcome, duration: o.contact ? r.int(60, 900) : r.int(10, 40), text: o.contact ? r.pick(['Conversó sobre los filtros', 'Pidió precios del kit', 'Quedó en revisar con su esposo(a)', 'Le envié catálogo por WhatsApp', 'Muy amable, interesada', '']) : '', createdAt: iso(t), updatedAt: iso(t) });
+        db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: owner.id, type: outcome === 'whatsapp' ? 'whatsapp' : 'llamada', outcome, duration: o.contact ? r.int(60, 900) : r.int(10, 40), text: o.contact ? r.pick(['Conversó sobre los filtros', 'Pidió precios del kit', 'Quedó en revisar con su esposo(a)', 'Le envié catálogo por WhatsApp', 'Muy amable, interesada', '']) : '', createdAt: iso(t), updatedAt: iso(t) });
         c.callCount++;
         c.lastCallAt = iso(t);
-        if (o.contact) c.lastContact = iso(t);
+        c.lastContact = iso(t);
+        c.lastOutcome = outcome;
+      }
+      // Citas para las etapas de cita y demostración
+      if (APPT_STAGES.includes(stage) || stage === 'demo_realizada') {
+        const at = stage === 'demo_realizada' ? now - r.int(1, 5) * U.DAY : now + r.int(0, 7) * U.DAY;
+        const d = new Date(at); d.setHours(r.pick([10, 11, 14, 15, 16, 17]), r.pick([0, 30]), 0, 0);
+        c.appointment = { at: d.toISOString(), address: `${c.address}, ${c.city}, FL`, demoBy: r.chance(0.6) ? owner.id : 'us_2', demoByName: '', notes: '', status: stage === 'cita_confirmada' ? 'confirmada' : stage === 'demo_realizada' ? 'realizada' : 'agendada', createdAt: iso(t), updatedAt: iso(t), by: owner.id };
+        db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: owner.id, type: 'cita', kind: 'agendada', text: `Cita agendada para el ${U.dateTime(c.appointment.at)} · ${c.appointment.address}`, createdAt: iso(t + 60000), updatedAt: iso(t + 60000) });
       }
       if (OPEN_STAGES.includes(stage)) {
-        c.nextFollowUp = iso(now + r.int(-3, 6) * U.DAY + r.int(-4, 4) * 3600000);
+        c.nextFollowUp = c.appointment && c.appointment.status !== 'realizada'
+          ? iso(new Date(c.appointment.at).getTime() - U.DAY)
+          : iso(now + r.int(-3, 6) * U.DAY + r.int(-4, 4) * 3600000);
       }
       if (c.notes) db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: owner.id, type: 'nota', text: c.notes, createdAt: iso(created + 60000), updatedAt: iso(created + 60000) });
       db.clients.push(c);

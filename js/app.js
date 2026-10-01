@@ -130,7 +130,7 @@ const App = (() => {
       ).slice(0, 8);
       idx = -1;
       box.innerHTML = res.length ? res.map((c) => `
-        <a href="#/cliente/${c.id}"><div class="row between"><strong>${U.esc(c.name)}</strong>${UI.tempBadge(c.temperature)}</div>
+        <a href="#/cliente/${c.id}"><div class="row between"><strong>${U.esc(c.name)}</strong>${UI.stageBadge(c.stage)}</div>
         <div class="small muted">${U.esc(c.phone)} · ${U.esc(c.city || '')} · ${stageById(c.stage).name} · ${U.esc(UI.userName(c.ownerId))}</div></a>`).join('')
         : `<div class="empty small">Sin resultados. <a href="#" id="gcreate">Crear “${U.esc(input.value)}”</a></div>`;
       box.classList.remove('hidden');

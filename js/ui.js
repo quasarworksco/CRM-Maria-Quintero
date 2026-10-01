@@ -77,12 +77,11 @@ const UI = (() => {
     return `<span class="avatar ${size}" style="background:${u.color || '#7b8391'}" title="${U.esc(u.name)}">${U.esc(U.initials(u.name))}</span>`;
   };
   const userName = (id) => { const u = Store.get('users', id); return u ? u.name : 'Sin asignar'; };
-  const tempBadge = (t) => { const x = tempById(t); return `<span class="badge ${x.cls}">${icon(x.icon, 'sm')}${x.name}</span>`; };
   const stageBadge = (s) => { const x = stageById(s); return `<span class="badge" style="background:${x.color}1f;color:${x.color}"><span class="dot"></span>${x.name}</span>`; };
   const outcomeBadge = (id) => { const o = outcomeById(id); return o ? `<span class="badge" style="background:${o.color}1f;color:${o.color}">${o.name}</span>` : ''; };
   const orderStatusBadge = (s) => { const x = orderStatusById(s); return `<span class="badge ${x.cls}">${x.name}</span>`; };
   const payBadge = (o) => { const x = Store.orderPayStatus(o); return `<span class="badge ${x.cls}">${x.name}</span>`; };
-  const scoreBadge = (n) => `<span class="badge ${n >= 60 ? 'hot' : n >= 30 ? 'warm' : 'cold'}" title="Puntaje del prospecto">${icon('star', 'sm')}${n}</span>`;
+  const apptBadge = (c) => { const a = Store.activeAppointment(c); return a ? `<span class="badge ${a.status === 'confirmada' ? 'good' : 'warn'}" title="Cita ${Store.APPT_STATUS[a.status]}">${icon('calendar', 'sm')}${U.date(a.at, { day: 'numeric', month: 'short' })} ${U.time(a.at)}</span>` : ''; };
   const empty = (text, ic = 'info') => `<div class="empty">${icon(ic)}<div>${text}</div></div>`;
   const options = (list, selected, { value = (x) => x.id, label = (x) => x.name, blank } = {}) =>
     (blank !== undefined ? `<option value="">${U.esc(blank)}</option>` : '') +
@@ -184,7 +183,7 @@ const UI = (() => {
   }
 
   return {
-    toast, modal, confirm, formData, avatar, userName, tempBadge, stageBadge, outcomeBadge, orderStatusBadge, payBadge, scoreBadge,
+    toast, modal, confirm, formData, avatar, userName, stageBadge, outcomeBadge, orderStatusBadge, payBadge, apptBadge,
     empty, options, userOptions, followLabel, barChart, hbars, initTooltips, cloudinaryReady, uploadToCloudinary
   };
 })();

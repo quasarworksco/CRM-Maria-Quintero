@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Guía de uso · CRM Maria Quintero</title>
-  <meta name="description" content="Guía paso a paso del CRM de Maria Quintero: qué hace cada sección, cómo registrar llamadas, mover prospectos de frío a caliente, vender, cobrar y administrar al equipo.">
+  <meta name="description" content="Guía paso a paso del CRM de Maria Quintero: qué hace cada sección, cómo registrar llamadas, mover prospectos por etapas hasta la venta, vender, cobrar y administrar al equipo.">
   <meta name="theme-color" content="#18181b">
   <link rel="canonical" href="https://crmsystempb.dgp-link.com/guia/">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
@@ -14,7 +14,7 @@
   <meta property="og:locale" content="es_US">
   <meta property="og:url" content="https://crmsystempb.dgp-link.com/guia/">
   <meta property="og:title" content="Guía de uso · CRM Maria Quintero">
-  <meta property="og:description" content="Aprende a usar cada sección del CRM paso a paso: llamadas, embudo de frío a caliente, ventas, cobros, productos, reportes y administración del equipo.">
+  <meta property="og:description" content="Aprende a usar cada sección del CRM paso a paso: llamadas, embudo por etapas, citas, ventas, cobros, productos, reportes y administración del equipo.">
   <meta property="og:image" content="https://crmsystempb.dgp-link.com/guia/og-image.png">
   <meta property="og:image:secure_url" content="https://crmsystempb.dgp-link.com/guia/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -25,7 +25,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://crmsystempb.dgp-link.com/guia/">
   <meta name="twitter:title" content="Guía de uso · CRM Maria Quintero">
-  <meta name="twitter:description" content="Aprende a usar cada sección del CRM paso a paso: llamadas, embudo de frío a caliente, ventas, cobros, productos, reportes y administración del equipo.">
+  <meta name="twitter:description" content="Aprende a usar cada sección del CRM paso a paso: llamadas, embudo por etapas, citas, ventas, cobros, productos, reportes y administración del equipo.">
   <meta name="twitter:image" content="https://crmsystempb.dgp-link.com/guia/og-image.png">
   <meta name="twitter:image:alt" content="Guía de uso del CRM de Maria Quintero">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -151,7 +151,7 @@
     tr:last-child td { border-bottom: 0; }
     .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
 
-    .funnel { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 18px 0; }
+    .funnel { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; margin: 18px 0; }
     .funnel div { padding: 12px 8px; text-align: center; font-size: 12.5px; font-weight: 600; border-radius: 8px; background: var(--surface-3); color: var(--text-2); border: 1px solid var(--border); }
     .funnel div small { display: block; font-weight: 500; color: var(--text-3); font-size: 11.5px; margin-top: 2px; }
     .funnel .w { background: var(--good-soft); color: var(--good); border-color: transparent; }
@@ -258,30 +258,27 @@
 
       <!-- 1. Conceptos -->
       <section class="s" id="conceptos">
-        <div class="s-head"><div class="s-num">1</div><div><h2>Conceptos clave</h2><div class="sub">Las 8 palabras que vas a ver en todo el CRM.</div></div></div>
+        <div class="s-head"><div class="s-num">1</div><div><h2>Conceptos clave</h2><div class="sub">Las palabras que vas a ver en todo el CRM.</div></div></div>
         <p class="lead">Un <strong>CRM</strong> (del inglés <em>Customer Relationship Management</em>) es el lugar donde tu equipo guarda <strong>a quién se llamó, qué se habló, qué se vendió y quién debe</strong>. Reemplaza la libreta, el Excel y la memoria de cada persona.</p>
         <div class="grid g2">
           <div class="card"><h4>Prospecto</h4><p>Una persona que <strong>todavía no ha comprado</strong>, pero podría. Puede venir de una lista, un referido o un anuncio.</p><div class="ex">Ej.: Ana, que dejó su número en Facebook.</div></div>
-          <div class="card"><h4>Cliente</h4><p>Un prospecto que <strong>ya compró</strong>. En el CRM queda en la etapa <em>Ganado</em> y se le sigue atendiendo para la recompra.</p><div class="ex">Ej.: Ana compró un kit de filtros.</div></div>
-          <div class="card"><h4>Etapa</h4><p>En qué punto de la venta está la persona: nuevo, contactado, interesado, cotización, negociación, ganado o perdido.</p><div class="ex">Ej.: "Ana está en Cotización".</div></div>
-          <div class="card"><h4>Temperatura</h4><p>Qué tan cerca está de comprar: <strong>frío</strong>, <strong>tibio</strong> o <strong>caliente</strong>. Ayuda a decidir a quién llamar primero.</p><div class="ex">Ej.: "Ana está caliente, quiere comprar esta semana".</div></div>
-          <div class="card"><h4>Seguimiento</h4><p>La <strong>fecha y hora</strong> en que hay que volver a contactar a alguien. Es la clave para no perder ventas.</p><div class="ex">Ej.: "Llamar a Ana el jueves a las 10 a.m.".</div></div>
-          <div class="card"><h4>Puntaje (★)</h4><p>Un número del 0 al 100 que el CRM calcula solo con la etapa, la temperatura, el último contacto y el valor. Más alto, mejor oportunidad.</p><div class="ex">Ej.: ★ 72 = llámala hoy.</div></div>
+          <div class="card"><h4>Cliente</h4><p>Un prospecto que <strong>ya compró</strong>. En el CRM queda en la etapa <em>Venta</em> y se le sigue atendiendo para la recompra.</p><div class="ex">Ej.: Ana compró un kit de filtros.</div></div>
+          <div class="card"><h4>Etapa</h4><p>En qué punto del proceso está la persona: nuevo, intentando contactar, contactado, cita agendada, cita confirmada, demo realizada, venta o perdido.</p><div class="ex">Ej.: "Ana tiene la cita confirmada".</div></div>
+          <div class="card"><h4>Fuente y referido</h4><p>Cómo llegó la persona (Florida Mall, evento, referido, Facebook…). Si es <strong>referido</strong>, se anota <strong>quién la refirió</strong>; si es de un <strong>evento</strong>, el nombre del evento.</p><div class="ex">Ej.: "Referido por Gloria Pérez".</div></div>
+          <div class="card"><h4>Seguimiento</h4><p>La <strong>fecha y hora</strong> en que hay que volver a contactar a alguien. Aparece como <strong>tarea pendiente</strong> de la agente. Es la clave para no perder ventas.</p><div class="ex">Ej.: "Llamar a Ana el jueves a las 10 a.m.".</div></div>
+          <div class="card"><h4>Resultado de la última llamada</h4><p>Cómo terminó el último intento: no contestó, contestó, dejó mensaje, WhatsApp enviado, interesado, no interesado, cita agendada o reagendar.</p><div class="ex">Ej.: "Último resultado: Dejó mensaje".</div></div>
+          <div class="card"><h4>Intentos y último contacto</h4><p>Cada vez que registras una llamada o un WhatsApp, el CRM <strong>suma un intento</strong> y guarda la <strong>fecha y hora</strong>. No hay que escribirlo a mano.</p><div class="ex">Ej.: "4 intentos · último: 30 sept 3:15 p.m.".</div></div>
+          <div class="card"><h4>Cita</h4><p>La demostración en casa del cliente: <strong>fecha, hora, dirección y quién la realiza</strong>. Se confirma, se marca como realizada o se reagenda.</p><div class="ex">Ej.: "Cita jueves 4 p.m., demo con Juan".</div></div>
           <div class="card"><h4>Cartera</h4><p>El dinero que <strong>te deben</strong>: ventas hechas que todavía tienen saldo pendiente.</p><div class="ex">Ej.: Ana pagó $100 de $300 → debe $200.</div></div>
           <div class="card"><h4>Recaudo</h4><p>El dinero que <strong>ya entró</strong>: cada pago o abono que registra el equipo.</p><div class="ex">Ej.: "Esta semana recaudamos $4,500".</div></div>
         </div>
 
-        <h3>El embudo: de frío a caliente</h3>
-        <p>Cada prospecto recorre estas etapas. El porcentaje es la probabilidad aproximada de que termine comprando:</p>
-        <div class="funnel">
-          <div>Nuevo<small>5%</small></div><div>Contactado<small>10%</small></div><div>Interesado<small>25%</small></div><div>Cotización<small>45%</small></div><div>Negociación<small>70%</small></div><div class="w">Ganado<small>100%</small></div><div class="l">Perdido<small>0%</small></div>
+        <h3>Las etapas: del primer contacto a la venta</h3>
+        <p>Cada prospecto avanza por estas etapas. La mayoría de los cambios los hace el CRM solo según el resultado de cada llamada o cita:</p>
+        <div class="funnel funnel-8">
+          <div>Nuevo<small>Sin llamar</small></div><div>Intentando contactar<small>No contesta aún</small></div><div>Contactado<small>Ya se habló</small></div><div>Cita agendada<small>Tiene fecha</small></div><div>Cita confirmada<small>Confirmó</small></div><div>Demo realizada<small>Falta cerrar</small></div><div class="w">Venta<small>Compró</small></div><div class="l">Perdido / Sin respuesta<small>No compró</small></div>
         </div>
-        <div class="temps">
-          <div class="card"><h4><span class="t" style="background:var(--cold)"></span>Frío</h4><p>No ha mostrado interés claro. Se le llama menos seguido.</p></div>
-          <div class="card"><h4><span class="t" style="background:var(--warm)"></span>Tibio</h4><p>Está interesado, evaluando precios u opciones.</p></div>
-          <div class="card"><h4><span class="t" style="background:var(--hot)"></span>Caliente</h4><p>Listo para comprar. Prioridad máxima.</p></div>
-        </div>
-        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>No tienes que mover todo a mano</strong>Cuando registras el resultado de una llamada, el CRM cambia solo la etapa, la temperatura y la fecha del próximo seguimiento. Lo verás en la sección 4.</div></div>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>No tienes que mover todo a mano</strong>Cuando registras el resultado de una llamada, el CRM actualiza solo la etapa, el último resultado, los intentos, la fecha y hora del último contacto y el próximo seguimiento. Lo verás en la sección 4.</div></div>
       </section>
 
       <!-- 2. Entrar -->
@@ -360,12 +357,12 @@
             <tr><td><strong>Ventas</strong></td><td>Cuánto se vendió en el periodo y cuántos pedidos. El <em>ticket promedio</em> es lo que se vende en promedio por pedido.</td></tr>
             <tr><td><strong>Recaudado</strong></td><td>Cuánto dinero entró de verdad (pagos registrados).</td></tr>
             <tr><td><strong>Por cobrar</strong></td><td>Cuánto te deben en total y qué parte ya está vencida.</td></tr>
-            <tr><td><strong>Llamadas</strong></td><td>Cuántas llamadas se hicieron, qué porcentaje contestó y cuántas terminaron en cotización.</td></tr>
+            <tr><td><strong>Llamadas</strong></td><td>Cuántas llamadas y WhatsApp se registraron, qué porcentaje contestó y cuántas citas se agendaron.</td></tr>
             <tr><td><strong>Meta del mes</strong></td><td>El avance contra la meta de ventas. Las metas se definen por persona en Administración.</td></tr>
-            <tr><td><strong>Prospectos activos</strong></td><td>Cuántas oportunidades hay abiertas y cuántas están calientes.</td></tr>
+            <tr><td><strong>Prospectos activos</strong></td><td>Cuántos prospectos están en proceso y cuántas citas próximas hay.</td></tr>
           </tbody>
         </table></div>
-        <p>Debajo encuentras las ventas por día, el embudo, los <strong>seguimientos para hoy</strong>, los <strong>prospectos calientes</strong> y el <strong>ranking del equipo</strong>. Arriba puedes cambiar el periodo: Hoy, Esta semana, Este mes, 30 o 90 días.</p>
+        <p>Debajo encuentras las ventas por día, el embudo, los <strong>seguimientos para hoy</strong>, las <strong>próximas citas</strong> y el <strong>ranking del equipo</strong>. Arriba puedes cambiar el periodo: Hoy, Esta semana, Este mes, 30 o 90 días.</p>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/inicio-agente.jpg" width="1280" height="800" alt="Inicio visto por una agente con su meta de llamadas" loading="lazy"></div><figcaption>Inicio visto por una agente: su meta diaria, sus seguimientos y sus números.</figcaption></figure>
         <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Los números rojos son para actuar</strong>"Seguimientos vencidos" en rojo quiere decir que hay personas a las que se quedó en llamar y todavía no se ha hecho. Son las ventas más fáciles de perder.</div></div>
       </section>
@@ -375,10 +372,10 @@
         <div class="s-head"><div class="s-num">4</div><div><h2>Modo llamadas</h2><div class="sub">La pantalla de trabajo de cada agente: le dice a quién llamar y registra todo con un clic.</div></div></div>
         <div class="who"><span class="pill">Agentes</span><span class="pill">Supervisora</span></div>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/llamadas.jpg" width="1280" height="800" alt="Modo llamadas con el cliente actual, guion y cola de llamadas" loading="lazy"></div><figcaption>A la izquierda, la persona que toca llamar; a la derecha, la cola de las siguientes.</figcaption></figure>
-        <p>En vez de pensar "¿a quién llamo ahora?", el CRM arma una <strong>cola ordenada por prioridad</strong> con los clientes de cada agente. Primero van los seguimientos vencidos, luego los programados para hoy, luego los calientes, luego los nuevos que nunca se han llamado y por último los que llevan días sin contacto.</p>
+        <p>En vez de pensar "¿a quién llamo ahora?", el CRM arma una <strong>cola ordenada por prioridad</strong> con los clientes de cada agente. Primero van los seguimientos vencidos, luego los programados para hoy, luego las citas que hay que confirmar, luego los nuevos que nunca se han llamado, después los reintentos y por último los que llevan días sin contacto.</p>
         <h3>Paso a paso para hacer una llamada</h3>
         <ol class="steps">
-          <li><strong>Mira quién sigue.</strong> Arriba aparece el nombre, el teléfono, la etapa, la temperatura y los productos que le interesan. Si tiene saldo pendiente, también lo verás.</li>
+          <li><strong>Mira quién sigue.</strong> Arriba aparece el nombre, el teléfono, la etapa, el último resultado, los intentos, quién lo refirió y los productos que le interesan. Si tiene cita o saldo pendiente, también lo verás.</li>
           <li><strong>Presiona "Llamar".</strong> En el celular marca directo; en el computador abre tu aplicación de llamadas. El cronómetro arranca solo.</li>
           <li><strong>Apóyate en el guion.</strong> Ya trae el nombre del cliente, el tuyo y su ciudad. La administración lo puede cambiar.</li>
           <li><strong>Elige el resultado</strong> de la llamada con un clic (o con las teclas <kbd>1</kbd> a <kbd>8</kbd>).</li>
@@ -388,16 +385,16 @@
         </ol>
         <h3>Qué hace cada resultado automáticamente</h3>
         <div class="table-wrap"><table>
-          <thead><tr><th>Tecla</th><th>Resultado</th><th>Lo que el CRM hace solo</th></tr></thead>
+          <thead><tr><th>Tecla</th><th>Resultado</th><th>Lo que el CRM hace solo (además de sumar un intento y guardar la fecha y hora)</th></tr></thead>
           <tbody>
-            <tr><td><kbd>1</kbd></td><td><span class="dot" style="background:#a1a1aa"></span>No contesta</td><td>Programa volver a llamar mañana. Cuenta como intento sin contacto.</td></tr>
-            <tr><td><kbd>2</kbd></td><td><span class="dot" style="background:#c4c4ca"></span>Buzón de voz</td><td>Igual que "No contesta": reintento mañana.</td></tr>
-            <tr><td><kbd>3</kbd></td><td><span class="dot" style="background:#71717a"></span>Llamar después</td><td>Seguimiento en 2 días (o la fecha que elijas).</td></tr>
-            <tr><td><kbd>4</kbd></td><td><span class="dot" style="background:#52525b"></span>Interesado</td><td>Lo pasa a <strong>Interesado</strong>, lo marca <strong>tibio</strong> y programa seguimiento en 2 días.</td></tr>
-            <tr><td><kbd>5</kbd></td><td><span class="dot" style="background:#27272a"></span>Pidió cotización</td><td>Lo pasa a <strong>Cotización</strong>, lo marca <strong>caliente</strong> y programa seguimiento para mañana.</td></tr>
-            <tr><td><kbd>6</kbd></td><td><span class="dot" style="background:#16a34a"></span>Venta cerrada</td><td>Lo marca <strong>Ganado</strong> y abre el formulario para registrar la venta.</td></tr>
-            <tr><td><kbd>7</kbd></td><td><span class="dot" style="background:#ef4444"></span>No interesado</td><td>Lo marca <strong>frío</strong> y lo deja para dentro de 3 meses. Si pasa dos veces, lo marca <strong>Perdido</strong>.</td></tr>
-            <tr><td><kbd>8</kbd></td><td><span class="dot" style="background:#b91c1c"></span>Número equivocado</td><td>Lo marca <strong>Perdido</strong> y ya no vuelve a salir en la cola.</td></tr>
+            <tr><td><kbd>1</kbd></td><td><span class="dot" style="background:#a1a1aa"></span>No contestó</td><td>Lo pasa a <strong>Intentando contactar</strong> y programa volver a llamar mañana.</td></tr>
+            <tr><td><kbd>2</kbd></td><td><span class="dot" style="background:#71717a"></span>Contestó</td><td>Lo pasa a <strong>Contactado</strong> y programa seguimiento en 2 días.</td></tr>
+            <tr><td><kbd>3</kbd></td><td><span class="dot" style="background:#8e8e96"></span>Dejó mensaje</td><td><strong>Intentando contactar</strong>, reintento mañana.</td></tr>
+            <tr><td><kbd>4</kbd></td><td><span class="dot" style="background:#6b6b74"></span>WhatsApp enviado</td><td><strong>Intentando contactar</strong>, seguimiento mañana.</td></tr>
+            <tr><td><kbd>5</kbd></td><td><span class="dot" style="background:#52525b"></span>Interesado</td><td>Lo pasa a <strong>Contactado</strong> y programa seguimiento en 2 días.</td></tr>
+            <tr><td><kbd>6</kbd></td><td><span class="dot" style="background:#ef4444"></span>No interesado</td><td>Lo deja para dentro de 3 meses. Si pasa dos veces, lo marca <strong>Perdido / Sin respuesta</strong>.</td></tr>
+            <tr><td><kbd>7</kbd></td><td><span class="dot" style="background:#16a34a"></span>Cita agendada</td><td>Abre el formulario de la <strong>cita</strong> (fecha, hora, dirección y quién hace la demostración) y lo pasa a <strong>Cita agendada</strong>.</td></tr>
+            <tr><td><kbd>8</kbd></td><td><span class="dot" style="background:#27272a"></span>Reagendar</td><td>Deja el seguimiento en la fecha y hora que elijas. Si ya tenía cita, abre la cita para cambiarle la fecha.</td></tr>
           </tbody>
         </table></div>
         <h3>Las colas disponibles</h3>
@@ -405,7 +402,7 @@
           <li><strong>Prioridad inteligente</strong>: la recomendada para el día a día.</li>
           <li><strong>Seguimientos de hoy</strong>: solo lo que está programado o vencido.</li>
           <li><strong>Nuevos sin contactar</strong>: ideal cuando llega una lista nueva.</li>
-          <li><strong>Calientes y tibios</strong>: para cerrar ventas.</li>
+          <li><strong>Citas por confirmar</strong>: clientes con cita agendada a los que hay que confirmar.</li>
           <li><strong>Reintentar no contestados</strong>: quienes no contestaron hace más de 3 horas.</li>
           <li><strong>Cobranza</strong>: clientes con saldo pendiente.</li>
         </ul>
@@ -417,7 +414,13 @@
         <div class="s-head"><div class="s-num">5</div><div><h2>Agenda y tareas</h2><div class="sub">Todo lo pendiente, ordenado por fecha.</div></div></div>
         <div class="who"><span class="pill">Todos</span></div>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/agenda.jpg" width="1280" height="800" alt="Agenda con seguimientos y tareas agrupados por fecha" loading="lazy"></div><figcaption>A la izquierda los seguimientos a clientes; a la derecha las tareas.</figcaption></figure>
-        <p>La agenda junta dos cosas: los <strong>seguimientos</strong> (a quién hay que volver a llamar) y las <strong>tareas</strong> (cualquier pendiente, como "enviar cotización" o "confirmar dirección"). Todo aparece agrupado en <strong>Vencidos, Hoy, Mañana, Próximos 7 días y Más adelante</strong>.</p>
+        <p>La agenda junta todo lo que tienes que hacer en una sola lista, <strong>Mis pendientes</strong>: cada <strong>próximo seguimiento</strong> aparece como una tarea ("Llamar a Ana López") junto con las <strong>tareas</strong> que hayas creado ("enviar catálogo", "confirmar dirección"). Todo queda ordenado por fecha y hora en <strong>Vencidos, Hoy, Mañana, Próximos 7 días y Más adelante</strong>. A la derecha verás las <strong>próximas citas</strong> con su hora, dirección y quién hace la demostración.</p>
+        <h3>Cumplir un seguimiento</h3>
+        <ol class="steps">
+          <li>En "Mis pendientes", busca la línea <strong>"Llamar a…"</strong>.</li>
+          <li>Haz la llamada y presiona <strong>"Registrar"</strong>: eliges el resultado, escribes una nota y, si quieres, la fecha y hora del siguiente seguimiento.</li>
+          <li>Al guardar, ese pendiente se reemplaza solo por el siguiente seguimiento.</li>
+        </ol>
         <h3>Crear una tarea</h3>
         <ol class="steps">
           <li>Presiona <strong>"Nueva tarea"</strong>, aquí o desde la ficha de un cliente.</li>
@@ -438,27 +441,32 @@
           <div class="card"><h4>Sin contactar</h4><p>Prospectos nuevos a los que nadie ha llamado.</p></div>
           <div class="card"><h4>Seguimiento vencido</h4><p>Personas a las que se quedó en llamar y no se ha hecho.</p></div>
           <div class="card"><h4>Sin actividad</h4><p>Oportunidades abiertas que llevan más de 7 días sin contacto.</p></div>
-          <div class="card"><h4>Ya compraron</h4><p>Tus clientes (etapa Ganado).</p></div>
+          <div class="card"><h4>Con cita</h4><p>Prospectos con una cita agendada o confirmada.</p></div>
+          <div class="card"><h4>Referidos</h4><p>Todos los que llegaron referidos por alguien.</p></div>
+          <div class="card"><h4>Ya compraron</h4><p>Tus clientes (etapa Venta).</p></div>
           <div class="card"><h4>Con saldo pendiente</h4><p>Clientes que te deben dinero.</p></div>
           <div class="card"><h4>Perdidos</h4><p>Quienes no compraron, con su motivo.</p></div>
         </div>
-        <p style="margin-top:14px">Además puedes filtrar por etapa, temperatura, responsable y fuente, y <strong>ordenar</strong> haciendo clic en el título de cualquier columna.</p>
+        <p style="margin-top:14px">Además puedes filtrar por etapa, resultado de la última llamada, responsable y fuente, y <strong>ordenar</strong> haciendo clic en el título de cualquier columna.</p>
         <h3>Crear un prospecto</h3>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/prospecto-nuevo.jpg" width="1280" height="800" alt="Formulario de nuevo prospecto con la fuente Referido y el campo Referido por" loading="lazy"></div><figcaption>Al elegir la fuente "Referido" aparece el campo "Referido por".</figcaption></figure>
         <ol class="steps">
           <li>Presiona <strong>"Nuevo prospecto"</strong> (está siempre arriba, en cualquier pantalla).</li>
           <li>Llena al menos el <strong>nombre</strong> y el <strong>teléfono</strong>. Si el teléfono ya existe, el CRM te avisa para no duplicar.</li>
-          <li>Agrega lo que sepas: fuente, productos de interés, cuántos aires acondicionados tiene, si hay mascotas o alergias, el mejor horario para llamarle.</li>
+          <li>Elige la <strong>fuente / cómo llegó</strong>. Si eliges <strong>Referido</strong>, aparece <strong>"Referido por"</strong>: escribe el nombre de quien lo refirió (es obligatorio). Si eliges <strong>Feria / Evento</strong>, aparece <strong>"Nombre del evento"</strong>.</li>
+          <li>En <strong>Seguimiento</strong>: la etapa, el responsable (la agente asignada), el <strong>próximo seguimiento con fecha y hora</strong> y, si ya lo llamaste, el <strong>resultado de la última llamada</strong> (se cuenta como un intento).</li>
+          <li>Agrega lo que sepas del hogar: productos de interés, cuántos aires acondicionados tiene, si hay mascotas o alergias, el mejor horario para llamarle.</li>
           <li>Guarda: se abre su ficha para registrar la primera llamada.</li>
         </ol>
         <h3>Importar una lista desde Excel</h3>
         <ol class="steps">
-          <li>En Excel, usa <strong>Archivo → Guardar como → CSV</strong>. La primera fila debe tener títulos como <code>nombre</code>, <code>telefono</code>, <code>email</code>, <code>ciudad</code>, <code>fuente</code> y <code>notas</code>.</li>
+          <li>En Excel, usa <strong>Archivo → Guardar como → CSV</strong>. La primera fila debe tener títulos como <code>nombre</code>, <code>telefono</code>, <code>email</code>, <code>ciudad</code>, <code>fuente</code>, <code>referido por</code>, <code>evento</code> y <code>notas</code>.</li>
           <li>En Clientes, presiona <strong>"Importar"</strong> y elige el archivo.</li>
           <li>Elige a quién asignarlos. La supervisora y la dueña pueden <strong>repartirlos en partes iguales</strong> entre todas las agentes.</li>
           <li>Deja marcado <strong>"Omitir teléfonos que ya existen"</strong> y presiona Importar.</li>
         </ol>
         <h3>Acciones masivas</h3>
-        <p>Marca varias casillas a la izquierda y aparece una barra para <strong>asignarlos a otra persona</strong>, <strong>moverlos de etapa</strong>, <strong>cambiar su temperatura</strong>, <strong>exportarlos a Excel</strong> o eliminarlos (solo la administración).</p>
+        <p>Marca varias casillas a la izquierda y aparece una barra para <strong>asignarlos a otra persona</strong>, <strong>moverlos de etapa</strong>, <strong>exportarlos a Excel</strong> o eliminarlos (solo la administración).</p>
       </section>
 
       <!-- 7. Ficha -->
@@ -468,36 +476,45 @@
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/ficha.jpg" width="1280" height="800" alt="Ficha de un cliente con etapas, datos, registro de interacción e historial" loading="lazy"></div><figcaption>Arriba la barra de etapas; a la izquierda los datos; al centro el registro y el historial; a la derecha el dinero y las tareas.</figcaption></figure>
         <h3>Las partes de la ficha</h3>
         <ul class="list">
-          <li><strong>Barra de etapas</strong> (arriba): haz clic en una etapa para mover al cliente. Si eliges "Perdido", el CRM te pide el motivo; si eliges "Ganado", te ofrece registrar la venta.</li>
-          <li><strong>Temperatura</strong>: tres botones (frío, tibio, caliente) para cambiarla con un clic.</li>
-          <li><strong>Datos</strong>: responsable, seguimiento, último contacto, dirección con enlace a Google Maps, fuente, valor estimado y perfil del hogar.</li>
+          <li><strong>Barra de etapas</strong> (arriba): haz clic en una etapa para mover al cliente. Si eliges "Perdido", el CRM te pide el motivo; si eliges "Cita agendada" o "Cita confirmada" sin cita, te pide los datos de la cita; si eliges "Venta", te ofrece registrar la venta.</li>
+          <li><strong>Último resultado e intentos</strong>: cómo terminó la última llamada y cuántos intentos de contacto lleva. Se actualizan solos.</li>
+          <li><strong>Datos</strong>: responsable, próximo seguimiento, último contacto (fecha y hora), fuente, <strong>referido por</strong> o evento, dirección con enlace a Google Maps y perfil del hogar.</li>
           <li><strong>Botones de contacto</strong>: Llamar, WhatsApp (con un saludo ya escrito) y Email.</li>
           <li><strong>Registrar interacción</strong>: llamada, WhatsApp, email, visita o nota.</li>
           <li><strong>Historial</strong>: todo lo que ha pasado con esa persona, de lo más reciente a lo más antiguo. Se puede filtrar por contactos, notas o ventas y pagos.</li>
+          <li><strong>Cita</strong>: fecha, hora, dirección y quién hace la demostración, con botones para <strong>Confirmar</strong>, <strong>Demo realizada</strong>, <strong>Reagendar</strong> o <strong>Cancelar</strong>.</li>
           <li><strong>Resumen financiero</strong>: cuánto ha comprado, cuánto pagó y cuánto debe.</li>
           <li><strong>Ventas, tareas y archivos</strong>: sus pedidos, sus pendientes y las fotos o documentos (facturas, fotos de la instalación).</li>
         </ul>
         <h3>Registrar lo que pasó en una llamada o visita</h3>
         <ol class="steps">
           <li>Elige el tipo: <strong>Llamada, WhatsApp, Email, Visita o Nota</strong>.</li>
-          <li>Elige el resultado. Debajo verás un aviso de lo que el CRM hará solo, por ejemplo "mover a Cotización, marcar como caliente".</li>
+          <li>Elige el resultado. Debajo verás un aviso de lo que el CRM hará solo, por ejemplo "mover a Contactado, programar seguimiento en 2 días".</li>
           <li>Escribe qué se habló y, si quieres, elige la fecha del próximo seguimiento.</li>
           <li>Presiona <strong>Guardar</strong>.</li>
+        </ol>
+        <h3>Agendar y manejar una cita</h3>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/cita.jpg" width="1280" height="800" alt="Formulario de cita con fecha, hora, dirección y quién realiza la demostración" loading="lazy"></div><figcaption>La cita guarda fecha, hora, dirección y quién realizará la demostración.</figcaption></figure>
+        <ol class="steps">
+          <li>Registra la llamada con el resultado <strong>"Cita agendada"</strong>, o presiona <strong>"Agendar cita"</strong> en la tarjeta <em>Cita</em> de la ficha.</li>
+          <li>Escribe la <strong>fecha</strong>, la <strong>hora</strong>, la <strong>dirección</strong> (viene llena con la del cliente) y elige <strong>quién realizará la demostración</strong> (alguien del equipo u "Otra persona").</li>
+          <li>Al guardar, el cliente pasa a <strong>Cita agendada</strong> y queda un seguimiento para <strong>confirmar la cita el día anterior</strong>.</li>
+          <li>Cuando el cliente confirme, presiona <strong>Confirmar</strong>; después de la visita, <strong>Demo realizada</strong>. Si cambia la fecha, <strong>Reagendar</strong>.</li>
         </ol>
         <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Escribe notas que le sirvan a otra persona</strong>Si mañana otra agente toma este cliente, debería entender todo con solo leer el historial. Mejor "quiere el kit de 6 filtros, lo decide con su esposo el viernes" que "interesada".</div></div>
       </section>
 
       <!-- 8. Embudo -->
       <section class="s" id="embudo">
-        <div class="s-head"><div class="s-num">8</div><div><h2>Embudo de ventas</h2><div class="sub">Todas las oportunidades en un tablero visual.</div></div></div>
+        <div class="s-head"><div class="s-num">8</div><div><h2>Embudo de ventas</h2><div class="sub">Todos los prospectos en un tablero visual, por etapa.</div></div></div>
         <div class="who"><span class="pill">Todos</span></div>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/embudo.jpg" width="1280" height="800" alt="Tablero Kanban con columnas por etapa y tarjetas de clientes" loading="lazy"></div><figcaption>Cada columna es una etapa; cada tarjeta, un prospecto.</figcaption></figure>
-        <p>Es la misma información de Clientes, pero en forma de tablero: <strong>cada columna es una etapa</strong> y cada tarjeta es una persona. El borde izquierdo de la tarjeta muestra la temperatura.</p>
+        <p>Es la misma información de Clientes, pero en forma de tablero: <strong>cada columna es una etapa</strong> y cada tarjeta es una persona. Cada tarjeta muestra el teléfono, la fuente, el último resultado, los intentos, la cita (si tiene) y el próximo seguimiento.</p>
         <ol class="steps">
           <li><strong>Arrastra una tarjeta</strong> a otra columna para cambiarla de etapa.</li>
           <li><strong>Haz clic en una tarjeta</strong> para abrir la ficha del cliente.</li>
-          <li>Arriba de cada columna ves <strong>cuántos hay</strong>, <strong>cuánto dinero representan</strong> y la probabilidad de cierre.</li>
-          <li>El <strong>pronóstico</strong> (arriba de la página) suma el valor de cada oportunidad multiplicado por su probabilidad: es una estimación de lo que probablemente se venderá.</li>
+          <li>Arriba de cada columna ves <strong>cuántos hay</strong> y qué significa esa etapa.</li>
+          <li>Si arrastras a <strong>Cita agendada</strong> a alguien sin cita, el CRM te pide los datos de la cita; si lo arrastras a <strong>Venta</strong>, te ofrece registrar la venta.</li>
         </ol>
         <p>Las tarjetas con el aviso "Sin contacto hace…" son oportunidades olvidadas: vale la pena llamarlas pronto.</p>
       </section>
@@ -510,12 +527,12 @@
         <h3>Registrar una venta</h3>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/venta-nueva.jpg" width="1280" height="800" alt="Formulario de nueva venta con productos, descuentos y pago inicial" loading="lazy"></div><figcaption>El formulario de venta calcula el total mientras agregas productos.</figcaption></figure>
         <ol class="steps">
-          <li>Presiona <strong>"Nueva venta"</strong> aquí, en la ficha del cliente o marcando "Venta cerrada" en una llamada.</li>
+          <li>Presiona <strong>"Nueva venta"</strong> aquí, en la ficha del cliente o moviendo al cliente a la etapa <strong>Venta</strong>.</li>
           <li>Elige el <strong>cliente</strong> y agrega los <strong>productos</strong> con su cantidad. El precio sale del catálogo, pero lo puedes ajustar. Para algo que no está en el catálogo, usa "Otro (escribir)".</li>
           <li>Si aplica, agrega <strong>descuento</strong>, <strong>envío o instalación</strong> e <strong>impuesto</strong>.</li>
           <li>Elige la <strong>condición de pago</strong> (contado, cuotas, crédito), la fecha límite de pago y la fecha de entrega.</li>
           <li>Si el cliente pagó algo en ese momento, escríbelo en <strong>"Pago inicial / abono"</strong> con su método.</li>
-          <li>Presiona <strong>"Registrar venta"</strong>. El inventario se descuenta solo y el cliente pasa a <strong>Ganado</strong>.</li>
+          <li>Presiona <strong>"Registrar venta"</strong>. El inventario se descuenta solo y el cliente pasa a <strong>Venta</strong>.</li>
         </ol>
         <h3>Después de la venta</h3>
         <ul class="list">
@@ -581,12 +598,12 @@
             <tr><td><strong>Llamadas</strong></td><td>Llamadas y WhatsApp registrados.</td><td>Mide el esfuerzo. Compáralo con la meta diaria de cada persona.</td></tr>
             <tr><td><strong>Contacto</strong></td><td>% de llamadas en que sí se habló con alguien.</td><td>Si es bajo, prueba otros horarios o revisa la calidad de la lista.</td></tr>
             <tr><td><strong>Tiempo</strong></td><td>Tiempo total al teléfono.</td><td>Mucho tiempo y pocas ventas puede indicar que hace falta mejorar el guion.</td></tr>
-            <tr><td><strong>Cotizaciones</strong></td><td>Llamadas que terminaron en "pidió cotización".</td><td>Es el mejor anticipo de las ventas de la semana siguiente.</td></tr>
+            <tr><td><strong>Citas y demos</strong></td><td>Citas agendadas y demostraciones realizadas en el periodo.</td><td>Es el mejor anticipo de las ventas de la semana siguiente.</td></tr>
             <tr><td><strong>Cierre</strong></td><td>Ventas ÷ contactos efectivos.</td><td>Muestra quién convierte mejor las conversaciones en ventas. Ideal para que enseñe al resto.</td></tr>
             <tr><td><strong>Cartera</strong></td><td>Saldo pendiente de las ventas de esa persona.</td><td>Vender sin cobrar no sirve: revísalo junto con las ventas.</td></tr>
           </tbody>
         </table></div>
-        <p>Más abajo: <strong>llamadas por día</strong>, <strong>resultados de las llamadas</strong>, <strong>de dónde vienen los clientes</strong> (qué fuente vende más), <strong>productos más vendidos</strong> y <strong>por qué se pierden ventas</strong>. Todo se puede exportar a Excel o imprimir.</p>
+        <p>Más abajo: <strong>llamadas por día</strong>, <strong>resultados de las llamadas</strong>, <strong>de dónde vienen los clientes</strong> (qué fuente vende más), <strong>¿quién trae referidos?</strong> (cuántos refirió cada persona y cuántos compraron), <strong>productos más vendidos</strong> y <strong>por qué se pierden ventas</strong>. Todo se puede exportar a Excel o imprimir.</p>
       </section>
 
       <!-- 13. Admin -->
@@ -621,7 +638,7 @@
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/admin-asignacion.jpg" width="1280" height="800" alt="Herramientas para transferir cartera y repartir prospectos" loading="lazy"></div><figcaption>Asignación: carga de trabajo por persona, transferir cartera y repartir prospectos nuevos.</figcaption></figure>
         <h3>Asignación de prospectos</h3>
         <ul class="list">
-          <li><strong>Carga de trabajo</strong>: cuántos nuevos, activos, calientes y vencidos tiene cada persona.</li>
+          <li><strong>Carga de trabajo</strong>: cuántos nuevos, activos, con cita y vencidos tiene cada persona.</li>
           <li><strong>Transferir cartera</strong>: pasa los clientes de una persona a otra (por ejemplo, si alguien se va).</li>
           <li><strong>Repartir prospectos nuevos</strong>: distribuye en partes iguales los prospectos sin llamar entre las personas que elijas.</li>
         </ul>
@@ -646,7 +663,7 @@
             <div class="day">
               <div><b>8:30</b> <span>Abre Inicio: revisa su meta y los seguimientos vencidos.</span></div>
               <div><b>8:45</b> <span>Modo llamadas → "Seguimientos de hoy". Primero lo prometido.</span></div>
-              <div><b>10:30</b> <span>Cambia a "Calientes y tibios" para cerrar ventas.</span></div>
+              <div><b>10:30</b> <span>Cambia a "Citas por confirmar" y confirma las citas de mañana.</span></div>
               <div><b>2:00</b> <span>"Nuevos sin contactar" para llenar el embudo.</span></div>
               <div><b>4:30</b> <span>"Reintentar no contestados" (la tarde contesta más).</span></div>
               <div><b>5:30</b> <span>Revisa la Agenda de mañana y cierra sus tareas.</span></div>
@@ -702,6 +719,8 @@
         <details class="faq"><summary>Dice "Tu correo no tiene acceso a este CRM"</summary><p>Ese correo no tiene un usuario creado, o está escrito diferente. Pide a la administración que te cree el usuario con ese mismo correo.</p></details>
         <details class="faq"><summary>Dice "Tu usuario está desactivado"</summary><p>La administración desactivó tu acceso. Si es un error, pídele que te vuelva a activar en Panel admin → Usuarios → Editar.</p></details>
         <details class="faq"><summary>Me equivoqué al escribir mi nombre en el primer ingreso</summary><p>Abre tu menú (arriba a la derecha) → "Mi perfil" y corrígelo. El cambio se ve en todo el CRM.</p></details>
+        <details class="faq"><summary>¿Dónde anoto quién me refirió a un cliente?</summary><p>En el formulario del prospecto, elige la fuente <strong>Referido</strong> y aparecerá el campo <strong>"Referido por"</strong>. En Reportes, la tabla "¿Quién trae referidos?" muestra cuántos refirió cada persona.</p></details>
+        <details class="faq"><summary>El cliente quiere cambiar la fecha de la cita</summary><p>En la ficha, tarjeta <em>Cita</em> → <strong>Reagendar</strong>, o registra la llamada con el resultado <strong>Reagendar</strong>. Cambias la fecha y hora y la cita vuelve a quedar "agendada" para confirmarla.</p></details>
         <details class="faq"><summary>No veo a un cliente que sé que existe</summary><p>Si eres agente, solo ves los clientes asignados a ti. Pídele a la supervisora que te lo asigne. Si eres supervisora o dueña, revisa que no haya filtros activos en la lista (botón "Limpiar").</p></details>
         <details class="faq"><summary>Me equivoqué al registrar una llamada</summary><p>En el historial del cliente, junto a cada llamada o nota que tú registraste, hay un ícono de papelera para eliminarla. Luego regístrala de nuevo bien.</p></details>
         <details class="faq"><summary>¿Cómo cambio a un cliente de agente?</summary><p>Desde su ficha, con "Reasignar a…", o en la lista de clientes marcando varios y usando "Asignar a…". Solo la supervisora y la administración pueden hacerlo.</p></details>

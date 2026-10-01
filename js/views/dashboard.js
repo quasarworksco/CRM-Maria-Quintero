@@ -31,7 +31,7 @@ Views.dashboard = (() => {
     const now = Date.now();
     const myFollow = clients.filter((c) => OPEN_STAGES.includes(c.stage) && c.nextFollowUp && new Date(c.nextFollowUp).getTime() <= U.endOfDay().getTime() && (manager ? true : c.ownerId === me.id));
     const overdue = myFollow.filter((c) => new Date(c.nextFollowUp).getTime() < now);
-    const hot = U.sortBy(clients.filter((c) => OPEN_STAGES.includes(c.stage) && c.temperature === 'caliente'), (c) => Store.leadScore(c), -1).slice(0, 6);
+    const upcoming = U.sortBy(clients.filter((c) => { const a = Store.activeAppointment(c); return a && new Date(a.at) >= U.startOfDay(); }), (c) => Store.activeAppointment(c).at).slice(0, 8);
     const recent = U.sortBy(Store.myActivities(), (a) => a.createdAt, -1).slice(0, 8);
 
     el.innerHTML = `
@@ -64,9 +64,9 @@ Views.dashboard = (() => {
         ${kpi('Ventas', U.money(m.salesAmount), `${m.salesCount} pedidos · ticket prom. ${U.money(m.avgTicket)}`, 'cart', '#52525b')}
         ${kpi('Recaudado', U.money(m.collected), `Pagos recibidos · ${Metrics.RANGES[range].label.toLowerCase()}`, 'wallet', '#52525b')}
         ${kpi('Por cobrar', U.money(rec.total), `${rec.count} pedidos · ${U.money(rec.overdue)} vencido`, 'alert', '#52525b')}
-        ${kpi('Llamadas', U.num(m.calls), `${U.pct(m.contactRate)} contestaron · ${m.quotes} cotizaciones`, 'phone', '#52525b')}
+        ${kpi('Llamadas', U.num(m.calls), `${U.pct(m.contactRate)} contestaron · ${m.appts} ${m.appts === 1 ? 'cita agendada' : 'citas agendadas'}`, 'phone', '#52525b')}
         ${kpi('Meta del mes', salesGoal ? U.pct(monthMine.salesAmount / salesGoal) : '—', salesGoal ? `${U.money(monthMine.salesAmount)} de ${U.money(salesGoal)}` : 'Define metas en el panel admin', 'target', '#52525b', salesGoal ? monthMine.salesAmount / salesGoal : undefined)}
-        ${kpi('Prospectos activos', U.num(m.openLeads), `${m.hotLeads} calientes · ${m.newLeads} nuevos en el periodo`, 'flame', '#52525b')}
+        ${kpi('Prospectos activos', U.num(m.openLeads), `${m.upcomingAppts} ${m.upcomingAppts === 1 ? 'cita próxima' : 'citas próximas'} · ${m.newLeads} nuevos en el periodo`, 'users', '#52525b')}
       </div>
 
       <div class="grid span-2-1" style="margin-bottom:16px">
@@ -78,10 +78,7 @@ Views.dashboard = (() => {
           <div class="card-head"><h2>Embudo de ventas</h2><a href="#/pipeline" class="small">Ver tablero →</a></div>
           <div class="card-body">
             ${UI.hbars(OPEN_STAGES.concat('ganado').map((s) => ({ label: stageById(s).name, value: clients.filter((c) => c.stage === s).length })), { ramp: true })}
-            <div style="margin-top:18px">
-              <div class="row between small" style="margin-bottom:6px"><strong>Temperatura de prospectos activos</strong></div>
-              ${tempBar(clients.filter((c) => OPEN_STAGES.includes(c.stage)))}
-            </div>
+            <div class="small muted" style="margin-top:14px">${clients.filter((c) => c.stage === 'perdido').length} perdidos / sin respuesta</div>
           </div>
         </div>
       </div>
@@ -94,18 +91,19 @@ Views.dashboard = (() => {
               <div class="list-item clickable" data-go="#/cliente/${c.id}">
                 ${UI.avatar(Store.get('users', c.ownerId))}
                 <div class="grow"><div class="title">${U.esc(c.name)}</div><div class="small">${UI.followLabel(c.nextFollowUp)}</div></div>
-                ${UI.tempBadge(c.temperature)}
+                ${UI.stageBadge(c.stage)}
               </div>`).join('') : UI.empty('¡Todo al día! No hay seguimientos pendientes para hoy.', 'check')}
           </div>
         </div>
         <div class="card">
-          <div class="card-head"><h2>${icon('flame', 'sm')} Prospectos calientes</h2><a href="#/clientes?temp=caliente" class="small">Ver todos →</a></div>
+          <div class="card-head"><h2>${icon('calendar', 'sm')} Próximas citas</h2><a href="#/clientes?quick=citas" class="small">Ver todas →</a></div>
           <div class="card-body flush">
-            ${hot.length ? hot.map((c) => `
+            ${upcoming.length ? upcoming.map((c) => { const a = Store.activeAppointment(c); return `
               <div class="list-item clickable" data-go="#/cliente/${c.id}">
-                <div class="grow"><div class="title">${U.esc(c.name)}</div><div class="small muted">${stageById(c.stage).name} · ${U.money(c.estValue)} · ${U.ago(c.lastContact)}</div></div>
-                ${UI.scoreBadge(Store.leadScore(c))}
-              </div>`).join('') : UI.empty('Aún no hay prospectos calientes.', 'flame')}
+                <div class="appt-date"><strong>${U.date(a.at, { day: 'numeric' })}</strong><span>${U.date(a.at, { month: 'short' })}</span></div>
+                <div class="grow"><div class="title">${U.esc(c.name)}</div><div class="small muted">${U.time(a.at)} · ${U.esc(Store.demoByName(a))}${a.address ? ' · ' + U.esc(a.address) : ''}</div></div>
+                <span class="badge ${a.status === 'confirmada' ? 'good' : 'warn'}">${Store.APPT_STATUS[a.status]}</span>
+              </div>`; }).join('') : UI.empty('No hay citas próximas.', 'calendar')}
           </div>
         </div>
         ${manager ? leaderboard() : `
@@ -164,14 +162,6 @@ Views.dashboard = (() => {
   }
 
   function welcomeClosed() { try { return localStorage.getItem('crm_mq_welcome') === '1'; } catch (e) { return false; } }
-
-  function tempBar(list) {
-    const counts = TEMPS.map((t) => ({ t, n: list.filter((c) => c.temperature === t.id).length }));
-    const total = Math.max(1, list.length);
-    const colors = { frio: 'var(--cold)', tibio: 'var(--warm)', caliente: 'var(--hot)' };
-    return `<div class="stackbar">${counts.filter((x) => x.n).map((x) => `<span data-tip="${x.t.name}: ${x.n}" style="width:${(x.n / total) * 100}%;background:${colors[x.t.id]}"></span>`).join('')}</div>
-      <div class="legend">${counts.map((x) => `<span><i style="background:${colors[x.t.id]}"></i>${x.t.name} <strong>${x.n}</strong></span>`).join('')}</div>`;
-  }
 
   function leaderboard() {
     const [from, to] = Metrics.RANGES[range].get();

@@ -21,6 +21,10 @@ Views.reportes = (() => {
     const products = {};
     orders.forEach((o) => o.items.forEach((i) => { const k = i.name; products[k] = products[k] || { qty: 0, amount: 0 }; products[k].qty += i.qty; products[k].amount += i.qty * i.price; }));
     const lost = U.groupBy(clients.filter((c) => c.stage === 'perdido'), (c) => c.lostReason || 'Sin motivo');
+    // Quién entrega referidos: cuántos refirió cada persona y cuántos terminaron en venta
+    const referrers = Object.entries(U.groupBy(clients.filter((c) => c.referredBy), (c) => c.referredBy.trim())).map(([k, list]) => ({
+      k, n: list.length, appts: list.filter((c) => c.appointment).length, won: list.filter((c) => c.stage === 'ganado').length, revenue: U.sum(list, (c) => Store.clientRevenue(c.id))
+    }));
     const days = state.range === 'hoy' ? 1 : state.range === 'semana' ? 7 : state.range === '90d' ? 90 : 30;
 
     el.innerHTML = `
@@ -38,13 +42,13 @@ Views.reportes = (() => {
         <div class="card kpi"><div class="kpi-label">Llamadas</div><div class="kpi-value">${U.num(team.calls)}</div><div class="kpi-sub">${U.duration(team.talkTime)} al teléfono</div></div>
         <div class="card kpi"><div class="kpi-label">Tasa de contacto</div><div class="kpi-value">${U.pct(team.contactRate)}</div><div class="kpi-sub">${team.contacts} conversaciones reales</div></div>
         <div class="card kpi"><div class="kpi-label">Cierre</div><div class="kpi-value">${U.pct(team.closeRate)}</div><div class="kpi-sub">Ventas / contactos efectivos</div></div>
-        <div class="card kpi"><div class="kpi-label">Nuevos prospectos</div><div class="kpi-value">${periodClients.length}</div><div class="kpi-sub">${U.money(team.pipelineValue)} pronóstico en embudo</div></div>
+        <div class="card kpi"><div class="kpi-label">Nuevos prospectos</div><div class="kpi-value">${periodClients.length}</div><div class="kpi-sub">${team.upcomingAppts} citas próximas</div></div>
       </div>
 
       <div class="card" style="margin-bottom:16px">
         <div class="card-head"><h2>${icon('trophy', 'sm')} Rendimiento por vendedor</h2></div>
         <div class="table-wrap"><table class="table">
-          <thead><tr><th>#</th><th>Vendedor</th><th class="right">Llamadas</th><th class="right">Contacto</th><th class="right">Tiempo</th><th class="right">Cotiz.</th><th class="right">Ventas</th><th class="right">Monto</th><th class="right">Recaudado</th><th class="right">Cierre</th>${monthFactor ? '<th style="min-width:140px">Meta del mes</th>' : ''}<th class="right">Cartera</th></tr></thead>
+          <thead><tr><th>#</th><th>Vendedor</th><th class="right">Llamadas</th><th class="right">Contacto</th><th class="right">Tiempo</th><th class="right">Citas</th><th class="right">Demos</th><th class="right">Ventas</th><th class="right">Monto</th><th class="right">Recaudado</th><th class="right">Cierre</th>${monthFactor ? '<th style="min-width:140px">Meta del mes</th>' : ''}<th class="right">Cartera</th></tr></thead>
           <tbody>${rows.map((r, i) => {
             const goalPct = r.u.salesGoal ? r.m.salesAmount / r.u.salesGoal : 0;
             const rec = Metrics.receivables(r.u.id);
@@ -54,7 +58,7 @@ Views.reportes = (() => {
               <td class="right num">${r.m.calls}</td>
               <td class="right num">${U.pct(r.m.contactRate)}</td>
               <td class="right num">${U.duration(r.m.talkTime)}</td>
-              <td class="right num">${r.m.quotes}</td>
+              <td class="right num">${r.m.appts}</td><td class="right num">${r.m.demos}</td>
               <td class="right num">${r.m.salesCount}</td>
               <td class="right num"><strong>${U.money(r.m.salesAmount)}</strong></td>
               <td class="right num">${U.money(r.m.collected)}</td>
@@ -87,13 +91,20 @@ Views.reportes = (() => {
         <div class="card"><div class="card-head"><h2>¿Por qué se pierden ventas?</h2></div><div class="card-body">
           ${Object.keys(lost).length ? UI.hbars(U.sortBy(Object.entries(lost).map(([k, v]) => ({ label: k, value: v.length })), (x) => x.value, -1)) : UI.empty('Sin ventas perdidas')}
         </div></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h2>${icon('users', 'sm')} ¿Quién trae referidos?</h2><span class="muted small">Todo el historial</span></div>
+        ${referrers.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>Referido por</th><th class="right">Referidos</th><th class="right">Con cita</th><th class="right">Compraron</th><th class="right">Conversión</th><th class="right">Ventas</th></tr></thead>
+          <tbody>${U.sortBy(referrers, (r) => r.n, -1).map((r) => `<tr><td><strong>${U.esc(r.k)}</strong></td><td class="right num">${r.n}</td><td class="right num">${r.appts}</td><td class="right num">${r.won}</td><td class="right num">${U.pct(r.won / r.n)}</td><td class="right num">${U.money(r.revenue)}</td></tr>`).join('')}</tbody></table></div>`
+          : UI.empty('Aún no hay prospectos con "Referido por".', 'users')}
       </div>`;
 
     el.querySelectorAll('#rangeSeg button').forEach((b) => b.onclick = () => { state.range = b.dataset.r; render(el); });
     el.querySelector('#exportBtn').onclick = () => {
       const csv = U.toCSV(rows, [
         { label: 'Vendedor', value: (r) => r.u.name }, { label: 'Llamadas', value: (r) => r.m.calls }, { label: 'Contactos', value: (r) => r.m.contacts },
-        { label: 'Tasa contacto', value: (r) => U.pct(r.m.contactRate) }, { label: 'Minutos', value: (r) => Math.round(r.m.talkTime / 60) }, { label: 'Cotizaciones', value: (r) => r.m.quotes },
+        { label: 'Tasa contacto', value: (r) => U.pct(r.m.contactRate) }, { label: 'Minutos', value: (r) => Math.round(r.m.talkTime / 60) }, { label: 'Citas agendadas', value: (r) => r.m.appts }, { label: 'Demos realizadas', value: (r) => r.m.demos },
         { label: 'Ventas', value: (r) => r.m.salesCount }, { label: 'Monto', value: (r) => r.m.salesAmount }, { label: 'Recaudado', value: (r) => r.m.collected },
         { label: 'Meta', value: (r) => r.u.salesGoal || '' }, { label: 'Cartera', value: (r) => Metrics.receivables(r.u.id).total }
       ]);
