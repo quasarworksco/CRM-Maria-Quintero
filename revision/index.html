@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Revisión de cambios · CRM Maria Quintero</title>
+  <meta name="description" content="Todos los cambios realizados en el CRM de Maria Quintero, con un checklist para revisarlos uno por uno.">
+  <meta name="theme-color" content="#0b2a5c">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CRM Maria Quintero">
+  <meta property="og:url" content="https://crmsystempb.dgp-link.com/revision/">
+  <meta property="og:title" content="Revisión de cambios · CRM Maria Quintero">
+  <meta property="og:description" content="Todos los cambios del CRM con su checklist.">
+  <meta property="og:image" content="https://crmsystempb.dgp-link.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Revisión de cambios · CRM Maria Quintero">
+  <meta name="twitter:image" content="https://crmsystempb.dgp-link.com/og-image.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6fb; --surface: #ffffff; --surface-2: #f8fafd; --surface-3: #edf2fa;
+      --border: #e1e8f3; --border-strong: #cbd6e8;
+      --text: #0b1f44; --text-2: #3c4f72; --text-3: #7c8ba8;
+      --primary: #1a4fd6; --primary-soft: #e8efff; --navy: #0b2a5c; --good: #15803d; --good-soft: #f0fdf4;
+      --shadow: 0 1px 2px rgba(11, 31, 68, .05); --shadow-md: 0 12px 32px -14px rgba(11, 31, 68, .25);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #07142b; --surface: #0d1d3a; --surface-2: #112345; --surface-3: #162b52; --border: #1f3561; --border-strong: #2b4677;
+        --text: #eef3fd; --text-2: #b7c6e3; --text-3: #7f93b9; --primary: #5b8cff; --primary-soft: #162b52; --navy: #061024; --good: #4ade80; --good-soft: #14261b;
+      }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #07142b; --surface: #0d1d3a; --surface-2: #112345; --surface-3: #162b52; --border: #1f3561; --border-strong: #2b4677;
+      --text: #eef3fd; --text-2: #b7c6e3; --text-3: #7f93b9; --primary: #5b8cff; --primary-soft: #162b52; --navy: #061024; --good: #4ade80; --good-soft: #14261b;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .top { position: sticky; top: 0; z-index: 10; background: var(--navy); color: #fff; }
+    .top-in { max-width: 1040px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+    .logo { width: 34px; height: 34px; border-radius: 9px; background: #fff; color: #0b2a5c; display: grid; place-items: center; font-weight: 700; font-size: 12px; flex: none; }
+    .top-title { font-weight: 650; }
+    .top-title small { display: block; font-weight: 500; font-size: 12px; color: #a9bde3; }
+    .top .sp { flex: 1; }
+    .top a.btn { color: #fff; border: 1px solid rgba(255,255,255,.25); padding: 7px 12px; border-radius: 9px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .top a.btn:hover { background: rgba(255,255,255,.1); text-decoration: none; }
+    .top .btn.solid { background: #fff; color: #0b2a5c; border-color: #fff; }
+    main { max-width: 1040px; margin: 0 auto; padding: 28px 16px 64px; }
+    .hero { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 26px; box-shadow: var(--shadow); display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; }
+    .hero h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -.02em; line-height: 1.15; }
+    .hero p { margin: 0; color: var(--text-2); }
+    .ring { width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--primary) calc(var(--p) * 1%), var(--surface-3) 0); }
+    .ring span { width: 88px; height: 88px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums; }
+    .ring small { display: block; text-align: center; font-size: 11px; font-weight: 500; color: var(--text-3); margin-top: -4px; }
+    .bar { height: 8px; background: var(--surface-3); border-radius: 99px; overflow: hidden; margin-top: 16px; }
+    .bar span { display: block; height: 100%; background: var(--primary); width: 0; transition: width .3s; }
+    .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .tools button { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 12px; border-radius: 9px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); cursor: pointer; }
+    .tools button.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 8px; }
+    .chips a { font-size: 13px; font-weight: 600; padding: 6px 11px; border-radius: 99px; background: var(--surface); border: 1px solid var(--border); color: var(--text-2); }
+    .todo { margin-top: 18px; background: var(--primary-soft); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 14px; padding: 18px 20px; }
+    .todo h2 { margin: 0 0 4px; font-size: 17px; }
+    .todo > p { margin: 0 0 10px; color: var(--text-2); font-size: 14px; }
+    .sec { margin-top: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+    .sec-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .sec-head h2 { margin: 4px 0 2px; font-size: 18px; letter-spacing: -.01em; }
+    .sec-head p { margin: 0; color: var(--text-2); font-size: 14px; }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--primary); background: var(--primary-soft); padding: 2px 8px; border-radius: 6px; }
+    .count { font-size: 13px; font-weight: 700; color: var(--text-2); background: var(--surface-3); padding: 4px 10px; border-radius: 99px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .count.done { background: var(--good-soft); color: var(--good); }
+    .list { list-style: none; margin: 0; padding: 0; }
+    .todo .list { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); }
+    .item + .item { border-top: 1px solid var(--border); }
+    .item label { display: flex; gap: 14px; padding: 14px 20px; cursor: pointer; align-items: flex-start; }
+    .item label:hover { background: var(--surface-2); }
+    .item input { position: absolute; opacity: 0; pointer-events: none; }
+    .box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--border-strong); flex: none; margin-top: 1px; display: grid; place-items: center; transition: all .12s; background: var(--surface); }
+    .item input:checked + .box { background: var(--primary); border-color: var(--primary); }
+    .item input:checked + .box::after { content: ""; width: 6px; height: 11px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg) translate(-1px, -1px); }
+    .item input:focus-visible + .box { outline: 3px solid var(--primary-soft); outline-offset: 2px; }
+    .body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .body strong { font-weight: 650; }
+    .item input:checked ~ .body strong { color: var(--text-3); text-decoration: line-through; text-decoration-color: var(--border-strong); }
+    .desc { color: var(--text-2); font-size: 14px; }
+    .how { color: var(--text-3); font-size: 13px; }
+    .how b { color: var(--text-2); font-weight: 600; }
+    .glink { white-space: nowrap; font-weight: 600; margin-left: 4px; }
+    body.hide-done .sec .item:has(input:checked) { display: none; }
+    .foot { margin-top: 28px; color: var(--text-3); font-size: 13px; text-align: center; }
+    @media (max-width: 640px) {
+      .hero { grid-template-columns: 1fr; padding: 20px; }
+      .hero h1 { font-size: 23px; }
+      .ring { width: 96px; height: 96px; } .ring span { width: 76px; height: 76px; font-size: 19px; }
+      .top a.btn:not(.solid) { display: none; }
+      .item label { padding: 13px 16px; } .sec-head { padding: 16px; }
+    }
+    @media print {
+      .top, .tools, .chips { display: none; } body { background: #fff; } .sec, .hero, .todo { box-shadow: none; break-inside: avoid-page; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top"><div class="top-in">
+    <div class="logo">MQ</div>
+    <div class="top-title">Revisión de cambios<small>CRM Maria Quintero</small></div>
+    <span class="sp"></span>
+    <a class="btn" href="../guia/">Guía de uso</a>
+    <a class="btn solid" href="../">Abrir el CRM</a>
+  </div></header>
+  <main>
+    <div class="hero">
+      <div>
+        <h1>Todo lo que se hizo en el CRM</h1>
+        <p>Cada cambio con una explicación corta y cómo comprobarlo. Marca la casilla cuando lo revises: el avance queda guardado en este navegador.</p>
+        <div class="bar"><span id="bar"></span></div>
+        <div class="tools">
+          <button type="button" id="hideDone">Ocultar lo revisado</button>
+          <button type="button" id="printBtn">Imprimir / PDF</button>
+          <button type="button" id="resetBtn">Desmarcar todo</button>
+        </div>
+      </div>
+      <div><div class="ring" id="ring" style="--p:0"><span id="pct">0%</span></div><small style="display:block;text-align:center;margin-top:6px;color:var(--text-3);font-size:12px"><span id="done">0</span> de 41 revisados</small></div>
+    </div>
+
+    <div class="todo" id="pendientes">
+      <h2>Pendientes de tu lado</h2>
+      <p>Lo que falta hacer en Firebase y en el CRM para dejarlo funcionando con tu equipo.</p>
+      <ul class="list">
+      <li class="item"><label><input type="checkbox" data-id="t-reglas"><span class="box" aria-hidden="true"></span><span class="body"><strong>Publicar las reglas nuevas de Firestore</strong><span class="desc">Firebase → Firestore Database → Reglas → pegar el archivo firestore.rules → Publicar.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="t-admin"><span class="box" aria-hidden="true"></span><span class="body"><strong>Entrar una vez con inventusmq@gmail.com</strong><span class="desc">Después de publicar las reglas: así se guardan los permisos de cada cuenta.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="t-usuarios"><span class="box" aria-hidden="true"></span><span class="body"><strong>Crear los usuarios del equipo y revisar sus permisos</strong><span class="desc">Panel admin → Usuarios → Nuevo usuario (rol Agente, Supervisor o Reclutamiento).</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="t-productos"><span class="box" aria-hidden="true"></span><span class="body"><strong>Cargar los productos</strong><span class="desc">Menú → Productos (con foto, precio y stock).</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="t-clientes"><span class="box" aria-hidden="true"></span><span class="body"><strong>Importar la lista de clientes</strong><span class="desc">Menú → Clientes y prospectos → Importar (Excel guardado como CSV).</span></span></label></li>
+      </ul>
+    </div>
+
+    <nav class="chips" aria-label="Secciones">
+      <a href="#base">Base del CRM</a>
+      <a href="#nube">Publicación, nube e ingreso</a>
+      <a href="#paso1">Paso 1 · Nuevo prospecto</a>
+      <a href="#paso2">Paso 2 · Historial de contacto</a>
+      <a href="#paso3">Paso 3 · Reclutamiento</a>
+      <a href="#paso4">Paso 4 · Perfil, permisos, canales y fotos</a>
+      <a href="#paso5">Paso 5 · Imagen corporativa y revisión</a>
+    </nav>
+
+    <section class="sec" id="base">
+      <div class="sec-head"><div><span class="tag">Inicial</span><h2>Base del CRM</h2><p>Lo que se construyó primero: todas las secciones del trabajo diario, ventas y cobros.</p></div><span class="count" data-count="base">0 / 8</span></div>
+      <ul class="list" data-sec="base">
+      <li class="item"><label><input type="checkbox" data-id="base-inicio"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Inicio (tablero)</strong><span class="desc">Indicadores del negocio o del día de cada persona, embudo por etapas, seguimientos de hoy, próximas citas, ranking del equipo y actividad reciente.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM: es la primera pantalla. <a class="glink" href="../guia/#inicio-sec">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-llamadas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Modo llamadas</strong><span class="desc">Cola de marcación priorizada, guion con el nombre del cliente, cronómetro, resultados con atajos 1–9 y &quot;Guardar y siguiente&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Modo llamadas → registra un resultado. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-agenda"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Agenda y tareas</strong><span class="desc">Seguimientos y tareas pendientes ordenados por fecha y hora, con el número de vencidos en el menú.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Agenda y tareas. <a class="glink" href="../guia/#agenda">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-clientes"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Clientes y prospectos</strong><span class="desc">Lista con búsqueda, filtros rápidos, acciones masivas e importación desde Excel / CSV con reparto entre agentes.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Clientes y prospectos → Importar. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-embudo"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Embudo de ventas</strong><span class="desc">Tablero Kanban por etapas: se arrastran las tarjetas para cambiar de etapa.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Embudo de ventas → arrastra una tarjeta. <a class="glink" href="../guia/#embudo">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-ventas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Ventas, recaudo y cartera</strong><span class="desc">Pedidos con varios productos, descuentos, abonos, recibo imprimible, cartera por antigüedad y pagos por método.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Ventas y pedidos → Nueva venta. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-productos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Productos</strong><span class="desc">Catálogo con foto (Cloudinary), precio, costo y margen (solo administración), stock y alerta de stock bajo.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Productos → Nuevo producto. <a class="glink" href="../guia/#productos">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-reportes"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Reportes y administración</strong><span class="desc">Rendimiento por persona, fuentes, productos y motivos de pérdida; usuarios, metas, &quot;Ver como&quot;, reparto de prospectos, configuración y respaldos.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Reportes y equipo / Panel de administración. <a class="glink" href="../guia/#reportes">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="nube">
+      <div class="sec-head"><div><span class="tag">Inicial</span><h2>Publicación, nube e ingreso</h2><p>Dónde vive el CRM y cómo entra cada persona.</p></div><span class="count" data-count="nube">0 / 6</span></div>
+      <ul class="list" data-sec="nube">
+      <li class="item"><label><input type="checkbox" data-id="nube-dominio"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Publicado en crmsystempb.dgp-link.com</strong><span class="desc">GitHub Pages desde la rama main, con Open Graph y Twitter Cards (vista previa al compartir el enlace).</span><span class="how"><b>Cómo verificarlo:</b> Abre crmsystempb.dgp-link.com y comparte el enlace por WhatsApp.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-firestore"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Base de datos Firestore en tiempo real</strong><span class="desc">Todo se guarda en la nube al instante y el equipo ve los cambios en segundos. Copia local si se cae el internet.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM en dos equipos y cambia algo en uno.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-login"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Ingreso con correo y contraseña</strong><span class="desc">Firebase Authentication. La cuenta principal inventusmq@gmail.com siempre es administradora y crea los demás usuarios.</span><span class="how"><b>Cómo verificarlo:</b> Cierra sesión y vuelve a entrar. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-primer"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Primer ingreso: nombre y apellido</strong><span class="desc">La primera vez, cada persona escribe el nombre con el que atiende (una sola vez).</span><span class="how"><b>Cómo verificarlo:</b> Crea un usuario de prueba y entra con él. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-limpio"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Base en línea limpia para trabajar</strong><span class="desc">La versión en línea empieza en cero; la demo con datos de ejemplo está aparte en ?local=1.</span><span class="how"><b>Cómo verificarlo:</b> Inicio muestra &quot;Primeros pasos&quot;.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-propuesta"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Propuesta y guía de uso</strong><span class="desc">Cotización en /propuesta y guía didáctica con capturas en /guia.</span><span class="how"><b>Cómo verificarlo:</b> Abre /propuesta y /guia.</span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso1">
+      <div class="sec-head"><div><span class="tag">Paso 1</span><h2>Paso 1 · Nuevo prospecto</h2><p>Formulario de prospecto, etapas, resultados de llamada y citas.</p></div><span class="count" data-count="paso1">0 / 6</span></div>
+      <ul class="list" data-sec="paso1">
+      <li class="item"><label><input type="checkbox" data-id="p1-fuentes"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Fuentes nuevas</strong><span class="desc">Florida Mall / Tienda, Feria / Evento, Referido, Cliente anterior, Leads, Facebook, Instagram, Indeed y más.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → campo Fuente. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-referido"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>&quot;Referido por&quot; y &quot;Nombre del evento&quot;</strong><span class="desc">Si la fuente es Referido aparece &quot;Referido por&quot; (obligatorio); si es Feria / Evento aparece &quot;Nombre del evento&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → Fuente: Referido. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-etapas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Etapas del embudo</strong><span class="desc">Nuevo, Intentando contactar, Contactado, Cita agendada, Cita confirmada, Demo realizada, Venta y Perdido / Sin respuesta.</span><span class="how"><b>Cómo verificarlo:</b> Ficha del cliente → barra de etapas. <a class="glink" href="../guia/#conceptos">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-resultados"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Resultados de llamada</strong><span class="desc">No contestó, Buzón de voz, WhatsApp enviado, Llamar después, Contactado, Cita agendada, No interesado, Número incorrecto y No volver a llamar. Cada uno mueve la etapa y programa el seguimiento.</span><span class="how"><b>Cómo verificarlo:</b> Registra un intento en la ficha. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-citas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Citas</strong><span class="desc">Fecha, hora, dirección y quién realiza la demostración; confirmar, demo realizada, reagendar o cancelar; seguimiento para confirmarla el día anterior.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Agendar cita. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-referidos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Reporte de referidos</strong><span class="desc">Quién trae referidos, cuántos agendaron cita y cuántos compraron.</span><span class="how"><b>Cómo verificarlo:</b> Reportes → ¿Quién trae referidos? <a class="glink" href="../guia/#reportes">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso2">
+      <div class="sec-head"><div><span class="tag">Paso 2</span><h2>Paso 2 · Historial de contacto</h2><p>Intentos numerados, regla de los 12 intentos y colores por etapa.</p></div><span class="count" data-count="paso2">0 / 4</span></div>
+      <ul class="list" data-sec="paso2">
+      <li class="item"><label><input type="checkbox" data-id="p2-historial"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Historial de contacto</strong><span class="desc">Cada intento guarda número, fecha, hora, agente, medio, resultado y comentario automáticamente.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Historial de contacto. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p2-contador"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Contador &quot;Intentos de contacto: X/12&quot;</strong><span class="desc">Visible en la ficha, en la lista de clientes y en el embudo.</span><span class="how"><b>Cómo verificarlo:</b> Lista de clientes → columna Intentos. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p2-doce"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Archivado a los 12 intentos sin respuesta</strong><span class="desc">Pasa solo a Perdido / Sin respuesta y conserva todo su historial; se puede reactivar.</span><span class="how"><b>Cómo verificarlo:</b> Registra 12 &quot;No contestó&quot; a un prospecto de prueba. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p2-colores"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Colores por etapa</strong><span class="desc">Azul (nuevo / intentando), verde (contactado), morado (citas), amarillo (demo), fucsia (venta) y rojo (perdido), en la ficha, la lista, el embudo y el Inicio.</span><span class="how"><b>Cómo verificarlo:</b> Lista de clientes → franja de color de cada fila. <a class="glink" href="../guia/#conceptos">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso3">
+      <div class="sec-head"><div><span class="tag">Paso 3</span><h2>Paso 3 · Reclutamiento</h2><p>Módulo aparte para candidatos, sin mezclarse con clientes ni ventas.</p></div><span class="count" data-count="paso3">0 / 7</span></div>
+      <ul class="list" data-sec="paso3">
+      <li class="item"><label><input type="checkbox" data-id="p3-modulo"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Sección independiente &quot;Reclutamiento&quot;</strong><span class="desc">Los candidatos no aparecen en Clientes, Embudo, Modo llamadas ni reportes de ventas.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Reclutamiento. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-ficha"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Ficha del candidato</strong><span class="desc">Nombre, teléfonos, email, ciudad, estado, idioma, puesto, vehículo propio, experiencia en ventas, fines de semana, fecha para comenzar y notas.</span><span class="how"><b>Cómo verificarlo:</b> Reclutamiento → Nuevo candidato. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-fuente"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Fuente y &quot;Referido por&quot; conectado</strong><span class="desc">Indeed, Referido, Facebook, Instagram, Florida Mall, Feria u Otra; el referido queda conectado a la persona (equipo, candidato o cliente).</span><span class="how"><b>Cómo verificarlo:</b> Nuevo candidato → Fuente: Referido. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-etapas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>12 etapas con color</strong><span class="desc">De Nuevo candidato a Contratado, más No seleccionado y Sin respuesta.</span><span class="how"><b>Cómo verificarlo:</b> Ficha del candidato → barra de etapas. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-entrevista"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Entrevista y seguimiento</strong><span class="desc">Fecha, hora, lugar, entrevistador y notas; próximo seguimiento con fecha, hora y comentario.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Agendar entrevista. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-historial"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Historial del candidato</strong><span class="desc">Llamadas, mensajes, intentos X/12, entrevistas, cambios de etapa y comentarios con agente, fecha y hora.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Historial. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-indeed"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Importar desde Indeed y exportar</strong><span class="desc">Carga el CSV de Indeed, reparte entre el equipo y omite repetidos.</span><span class="how"><b>Cómo verificarlo:</b> Reclutamiento → Importar. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso4">
+      <div class="sec-head"><div><span class="tag">Paso 4</span><h2>Paso 4 · Perfil, permisos, canales y fotos</h2><p>Perfil del hogar, permisos por usuario, montos solo para la administración y fotos.</p></div><span class="count" data-count="paso4">0 / 7</span></div>
+      <ul class="list" data-sec="paso4">
+      <li class="item"><label><input type="checkbox" data-id="p4-perfil"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Perfil del cliente / hogar</strong><span class="desc">Sin A/C ni cumpleaños. Vivienda, crédito, personas en el hogar, estado civil, mejor horario, contacto preferido, mascotas y alergias / asma, con &quot;No indicado&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → Perfil del cliente / hogar. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-roles"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Cuatro roles</strong><span class="desc">Administrador, Supervisor, Agente / Call center y Reclutamiento (rol nuevo).</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Usuarios → tabla &quot;Qué puede ver cada rol&quot;. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-permisos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Permisos ajustables por persona</strong><span class="desc">Prospectos, ventas, información financiera, reportes, ver todo el equipo, reasignar, reclutamiento, todos los candidatos y exportar.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Usuarios → Editar → Permisos. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-finanzas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Montos solo para la administración</strong><span class="desc">Quien no tiene &quot;Información financiera&quot; no ve montos, pagos, saldos ni Recaudo; los pagos ni siquiera se descargan y los montos no se guardan en el historial.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Ver como (una agente) → Ventas. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-canal"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Canal de cada venta</strong><span class="desc">Llamada / Call center, Instagram, Facebook, WhatsApp, Página web, Tienda, Referido, Feria / Evento u Otro; reporte &quot;Ventas por canal&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nueva venta → Canal de la venta. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-fotos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Fotos de perfil y de personas</strong><span class="desc">Cada cuenta pone su foto en Mi perfil; clientes y candidatos tienen foto en su ficha (Cloudinary).</span><span class="how"><b>Cómo verificarlo:</b> Menú de usuario → Mi perfil → Subir foto. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-reglas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Reglas de seguridad por permisos</strong><span class="desc">Firestore aplica los permisos de cada cuenta guardados en access/{correo}.</span><span class="how"><b>Cómo verificarlo:</b> Firebase → Firestore → Reglas (publicadas).</span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso5">
+      <div class="sec-head"><div><span class="tag">Paso 5</span><h2>Paso 5 · Imagen corporativa y revisión</h2><p>Los cambios de esta entrega.</p></div><span class="count" data-count="paso5">0 / 3</span></div>
+      <ul class="list" data-sec="paso5">
+      <li class="item"><label><input type="checkbox" data-id="p5-colores"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Colores azul y blanco corporativos</strong><span class="desc">Fondo blanco, acentos en azul corporativo y menú lateral azul marino en el CRM, la guía y la propuesta. Los colores de cada etapa se mantienen porque indican el estado.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM y la guía.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p5-revision"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Página /revision</strong><span class="desc">Esta página: todos los cambios con su checklist.</span><span class="how"><b>Cómo verificarlo:</b> Marca cada punto a medida que lo revisas.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p5-guia"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Guía actualizada</strong><span class="desc">Capturas nuevas con los colores corporativos y los cambios de los pasos 1 a 5.</span><span class="how"><b>Cómo verificarlo:</b> Abre /guia.</span></span></label></li>
+      </ul>
+    </section>
+
+    <p class="foot">Última actualización: octubre 2026 · <a href="../guia/">Guía de uso</a> · <a href="../propuesta/">Propuesta</a></p>
+  </main>
+  <script>
+    (function () {
+      var KEY = 'crm_mq_revision_v1';
+      var state = {};
+      try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { state = {}; }
+      var boxes = Array.prototype.slice.call(document.querySelectorAll('input[data-id]'));
+      var main = boxes.filter(function (b) { return b.closest('.sec'); });
+      function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+      function update() {
+        var n = main.filter(function (b) { return b.checked; }).length;
+        var p = Math.round(n / main.length * 100);
+        document.getElementById('done').textContent = n;
+        document.getElementById('pct').textContent = p + '%';
+        document.getElementById('ring').style.setProperty('--p', p);
+        document.getElementById('bar').style.width = p + '%';
+        document.querySelectorAll('[data-count]').forEach(function (c) {
+          var items = document.querySelectorAll('[data-sec="' + c.dataset.count + '"] input');
+          var k = Array.prototype.filter.call(items, function (b) { return b.checked; }).length;
+          c.textContent = k + ' / ' + items.length;
+          c.classList.toggle('done', k === items.length);
+        });
+      }
+      boxes.forEach(function (b) {
+        b.checked = !!state[b.dataset.id];
+        b.addEventListener('change', function () { state[b.dataset.id] = b.checked; save(); update(); });
+      });
+      document.getElementById('hideDone').onclick = function () { this.classList.toggle('on', document.body.classList.toggle('hide-done')); };
+      document.getElementById('printBtn').onclick = function () { window.print(); };
+      document.getElementById('resetBtn').onclick = function () {
+        if (!confirm('¿Desmarcar todos los puntos?')) return;
+        state = {}; save(); boxes.forEach(function (b) { b.checked = false; }); update();
+      };
+      update();
+    })();
+  </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 CRM de ventas para un negocio de filtros de aire, purificadores y productos para el hogar, con un equipo de agentes que llaman y prospectan todo el día.
 
-Está hecho en HTML, CSS y JavaScript puro, sin instalar nada. La versión en línea empieza vacía; la demo sin conexión (`?local=1`) trae datos de ejemplo para explorarlo.
+Está hecho en HTML, CSS y JavaScript puro, sin instalar nada, con los colores corporativos azul y blanco. La versión en línea empieza vacía; la demo sin conexión (`?local=1`) trae datos de ejemplo para explorarlo.
 
 ## En línea
 
@@ -10,12 +10,17 @@ Está hecho en HTML, CSS y JavaScript puro, sin instalar nada. La versión en l�
 - Demo con datos de ejemplo (sin conexión, sin login): https://crmsystempb.dgp-link.com/?local=1
 - Propuesta: https://crmsystempb.dgp-link.com/propuesta/
 - Guía de uso: https://crmsystempb.dgp-link.com/guia/
+- Revisión de cambios (checklist): https://crmsystempb.dgp-link.com/revision/
 
 Se publica con GitHub Pages desde la rama `main` (carpeta raíz). El archivo `CNAME` fija el dominio personalizado.
 
 ## Propuesta comercial
 
 `propuesta/index.html` (se abre como `/propuesta` al publicar) es la cotización para la clienta: plan base de **$445 USD** con lo que incluye, el cronograma, los costos de servicios externos, preguntas frecuentes y los adicionales opcionales. El total se recalcula al marcar adicionales y la página se puede guardar como PDF.
+
+## Revisión de cambios
+
+`revision/index.html` (`/revision`) resume todos los cambios por paso, cómo comprobar cada uno y un checklist que se guarda en el navegador, más los pendientes de configuración (reglas de Firestore, usuarios, productos).
 
 ## Guía de uso
 
@@ -54,6 +59,7 @@ Cada persona entra con su correo y contraseña (Firebase Authentication). En la 
 ```
 index.html
 propuesta/index.html  ← cotización para la clienta
+revision/index.html   ← resumen de cambios con checklist
 guia/index.html       ← guía de uso con capturas
 css/styles.css
 js/config.js          ← configuración de Firebase y Cloudinary

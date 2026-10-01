@@ -290,7 +290,10 @@ function channelFromSource(src) {
   return 'Llamada / Call center';
 }
 
-const USER_COLORS = ['#18181b', '#52525b', '#78716c', '#3f3f46', '#71717a', '#44403c', '#27272a', '#57534e'];
+const USER_COLORS = ['#1a4fd6', '#0b2a5c', '#2563eb', '#0e7490', '#1e40af', '#3b82f6', '#0369a1', '#4338ca'];
+// Colores grises de versiones anteriores → su equivalente azul
+const LEGACY_USER_COLORS = { '#18181b': '#1a4fd6', '#52525b': '#0b2a5c', '#78716c': '#2563eb', '#3f3f46': '#0e7490', '#71717a': '#1e40af', '#44403c': '#3b82f6', '#27272a': '#0369a1', '#57534e': '#4338ca' };
+const userColor = (c) => LEGACY_USER_COLORS[c] || c || '#5b7bbf';
 
 /* ---------- Íconos (SVG inline, estilo lucide) ---------- */
 const ICONS = {

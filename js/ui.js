@@ -73,9 +73,9 @@ const UI = (() => {
 
   /* ---------- Fragmentos ---------- */
   const avatar = (u, size = '') => {
-    if (!u) return `<span class="avatar ${size}" style="background:#9aa2ae">?</span>`;
+    if (!u) return `<span class="avatar ${size}" style="background:#93abd6">?</span>`;
     if (u.photoUrl) return `<span class="avatar ${size} has-photo" style="background-image:url('${U.esc(thumb(u.photoUrl, size === 'lg' || size === 'xl' ? 240 : 96))}')" title="${U.esc(u.name)}" role="img" aria-label="${U.esc(u.name)}"></span>`;
-    return `<span class="avatar ${size}" style="background:${u.color || '#7b8391'}" title="${U.esc(u.name)}">${U.esc(U.initials(u.name))}</span>`;
+    return `<span class="avatar ${size}" style="background:${userColor(u.color)}" title="${U.esc(u.name)}">${U.esc(U.initials(u.name))}</span>`;
   };
   // Foto grande de una persona (cliente o candidato) con color de respaldo
   const personPhoto = (p, color) => (p.photoUrl

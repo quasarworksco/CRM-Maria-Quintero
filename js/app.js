@@ -54,6 +54,7 @@ const App = (() => {
             <span class="demo-pill">${Store.mode() === 'firestore' ? 'En línea · tiempo real' : 'Demo sin conexión'}</span>
             <a href="guia/" target="_blank" rel="noopener" class="row" style="gap:6px">${icon('info', 'sm')}<span>Guía de uso</span></a>
             <a href="propuesta/" target="_blank" rel="noopener" class="row" style="gap:6px">${icon('file', 'sm')}<span>Ver propuesta</span></a>
+            ${Store.isAdmin() ? `<a href="revision/" target="_blank" rel="noopener" class="row" style="gap:6px">${icon('check', 'sm')}<span>Revisión de cambios</span></a>` : ''}
           </div>
         </aside>
         <div class="main">

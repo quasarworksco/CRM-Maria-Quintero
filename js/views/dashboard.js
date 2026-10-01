@@ -71,7 +71,7 @@ Views.dashboard = (() => {
         ${kpi('Llamadas', U.num(m.calls), `${U.duration(m.talkTime)} al teléfono`, 'phone', '#52525b')}
         ${kpi('Contactos efectivos', U.num(m.contacts), `${U.pct(m.contactRate)} de las llamadas`, 'thumbUp', '#52525b')}
         ${kpi('Citas agendadas', U.num(m.appts), `${m.upcomingAppts} ${m.upcomingAppts === 1 ? 'cita próxima' : 'citas próximas'}`, 'calendar', '#52525b')}
-        ${kpi('Demostraciones', U.num(m.demos), 'Realizadas en el periodo', 'flag', '#52525b')}
+        ${kpi('Demos', U.num(m.demos), 'Demostraciones realizadas en el periodo', 'flag', '#52525b')}
         ${Store.can('sales') ? kpi('Ventas', U.num(m.salesCount), 'Ventas registradas en el periodo', 'cart', '#52525b') : ''}
         ${kpi('Prospectos activos', U.num(m.openLeads), `${m.newLeads} nuevos en el periodo · ${overdue.length} seguimientos vencidos`, 'users', '#52525b')}`}
       </div>
