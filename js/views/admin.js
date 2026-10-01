@@ -37,7 +37,7 @@ Views.admin = (() => {
           const calls = Metrics.forUser(u.id, ...today).calls;
           return `<tr style="${u.active ? '' : 'opacity:.55'}">
             <td><div class="row">${UI.avatar(u, 'md')}<div><div class="cell-main">${U.esc(u.name)}${Store.isOwner(u) ? ' <span class="badge">Cuenta principal</span>' : ''}${u.id === Store.currentUser().id ? ' <span class="badge info">Tú</span>' : ''}</div><div class="cell-sub">Desde ${U.date(u.createdAt)}</div></div></div></td>
-            <td><span class="badge ${u.role === 'admin' ? 'violet' : u.role === 'supervisor' ? 'info' : ''}">${ROLES[u.role].name}</span></td>
+            <td><span class="badge ${u.role === 'admin' ? 'violet' : u.role === 'supervisor' ? 'info' : u.role === 'reclutador' ? 'warn' : ''}">${(ROLES[u.role] || ROLES.agente).name}</span><div class="cell-sub" style="max-width:220px">${permSummary(u)}</div></td>
             <td class="small">${U.esc(u.email || '')}<div class="muted">${U.esc(u.phone || '')}</div></td>
             <td class="right num">${nClients}</td>
             <td class="right num">${calls}</td>
@@ -48,13 +48,33 @@ Views.admin = (() => {
           </tr>`;
         }).join('')}</tbody>
       </table></div></div>
-      <div class="grid cols-3" style="margin-top:16px">
-        ${Object.entries(ROLES).map(([k, r]) => `<div class="card"><div class="card-body"><h3>${r.name}</h3><p class="muted small" style="margin:6px 0 0">${r.desc}</p></div></div>`).join('')}
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h2>${icon('shield', 'sm')} Qué puede ver cada rol</h2><span class="muted small">Al editar un usuario puedes ajustar sus permisos uno por uno</span></div>
+        <div class="table-wrap"><table class="table">
+          <thead><tr><th>Permiso</th>${Object.values(ROLES).map((r) => `<th style="text-align:center">${r.name}</th>`).join('')}</tr></thead>
+          <tbody>${PERMS.map((p) => `<tr><td><div class="cell-main">${p.name}</div><div class="cell-sub">${p.desc}</div></td>${Object.keys(ROLES).map((k) => `<td style="text-align:center">${effectivePerms(k)[p.id] ? `<span style="color:var(--good)">${icon('check', 'sm')}</span>` : '<span class="muted">—</span>'}</td>`).join('')}</tr>`).join('')}
+            <tr><td><div class="cell-main">Usuarios, configuración, productos y eliminar registros</div><div class="cell-sub">Siempre solo la administración</div></td>${Object.keys(ROLES).map((k) => `<td style="text-align:center">${k === 'admin' ? `<span style="color:var(--good)">${icon('check', 'sm')}</span>` : '<span class="muted">—</span>'}</td>`).join('')}</tr>
+          </tbody>
+        </table></div>
       </div>`;
     el.querySelector('#newUser').onclick = () => userForm();
     el.querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => userForm(b.dataset.edit));
     el.querySelectorAll('[data-as]').forEach((b) => b.onclick = () => { Store.setCurrentUser(b.dataset.as); App.shell(); location.hash = '#/dashboard'; App.route(); UI.toast('Viendo como ' + UI.userName(b.dataset.as)); });
   }
+
+  // Resumen corto de lo que la persona puede ver
+  function permSummary(u) {
+    if (u.role === 'admin') return 'Acceso total';
+    const p = effectivePerms(u.role, u.perms);
+    const bits = [];
+    if (p.prospects) bits.push(p.viewAll ? 'Prospectos (todo el equipo)' : 'Sus prospectos');
+    if (p.sales) bits.push('Ventas');
+    bits.push(p.finance ? 'Ve montos' : 'Sin montos');
+    if (p.reports) bits.push('Reportes');
+    if (p.recruitment) bits.push(p.recruitAll ? 'Reclutamiento (todos)' : 'Reclutamiento');
+    return bits.join(' · ');
+  }
+  const permBoxes = (perms, disabled) => PERMS.map((p) => `<label class="check full" style="align-items:flex-start"><input type="checkbox" name="perm_${p.id}" ${perms[p.id] ? 'checked' : ''} ${disabled ? 'disabled' : ''}> <span><strong>${p.name}</strong>${p.id === 'finance' ? ` <span class="badge violet">${icon('lock', 'sm')} Sensible</span>` : ''}<br><span class="small muted">${p.desc}</span></span></label>`).join('');
 
   function userForm(id) {
     const auth = Store.authMode();
@@ -71,6 +91,12 @@ Views.admin = (() => {
         <button type="button" class="btn" data-close>Cancelar</button>
         <button type="submit" class="btn primary">${id ? 'Guardar' : auth ? 'Crear usuario y dar acceso' : 'Crear usuario'}</button>`,
       body: `
+        <div class="photo-field" style="margin-bottom:12px">
+          <span id="ufAvatar">${UI.avatar(u.name ? u : { name: '?', color: u.color }, 'xl')}</span>
+          <div class="stack" style="gap:6px"><strong>Foto de perfil</strong><span class="small muted">Opcional. Cada persona también puede ponerla desde "Mi perfil".</span>
+            <div class="row"><button type="button" class="btn sm" id="ufPhoto">${icon('camera', 'sm')} ${u.photoUrl ? 'Cambiar foto' : 'Subir foto'}</button>${u.photoUrl ? '<button type="button" class="btn sm ghost" id="ufNoPhoto">Quitar</button>' : ''}</div>
+          </div>
+        </div>
         <div class="form-grid">
           <label class="field full">Nombre y apellido ${auth && !id ? '<span class="hint">(opcional: si lo dejas vacío, la persona lo escribe en su primer ingreso)</span>' : '*'}<input name="name" ${auth && !id ? '' : 'required'} value="${U.esc(u.name)}"></label>
           <label class="field">Correo ${auth ? '*' : ''} <span class="hint">${Store.isOwner(u) ? '(cuenta principal)' : auth ? '(con este correo entra al CRM)' : ''}</span><input name="email" type="email" ${auth ? 'required' : ''} value="${U.esc(u.email)}" ${emailLocked ? 'readonly' : ''}></label>
@@ -85,12 +111,25 @@ Views.admin = (() => {
           <label class="check full"><input type="radio" name="access" value="invite" checked> <span>Enviarle un correo para que cree su propia contraseña <span class="muted">(recomendado)</span></span></label>
           <label class="check full"><input type="radio" name="access" value="temp"> <span>Asignarle una contraseña temporal y dársela yo</span></label>
           <label class="field full hidden" id="tempWrap">Contraseña temporal <span class="hint">(mínimo 6 caracteres; luego la puede cambiar desde su menú)</span><input name="tempPass" type="text" autocomplete="off"></label>` : ''}
+          <div class="form-section full">Permisos <span class="hint" style="text-transform:none;letter-spacing:0">(los trae el rol; puedes ajustarlos para esta persona)</span></div>
+          <div class="full stack" id="permBox" style="gap:8px">${permBoxes(effectivePerms(u.role, u.perms), u.role === 'admin')}</div>
+          <p class="small muted full" id="permAdminNote" style="margin:0" ${u.role === 'admin' ? '' : 'hidden'}>La administración siempre tiene todos los permisos.</p>
           <label class="check full"><input type="checkbox" name="active" ${u.active ? 'checked' : ''} ${isSelf ? 'disabled' : ''}> Usuario activo (puede entrar al CRM)</label>
         </div>`,
       onOpen: (form, close) => {
         form.querySelectorAll('[data-color]').forEach((sw) => sw.addEventListener('click', () => form.querySelectorAll('[data-color]').forEach((x) => { x.style.outline = x === sw ? '3px solid var(--text)' : 'none'; })));
         const role = form.querySelector('[name=role]');
-        role.onchange = () => { form.querySelector('#roleHint').textContent = ROLES[role.value].desc; };
+        role.onchange = () => {
+          form.querySelector('#roleHint').textContent = ROLES[role.value].desc;
+          // Al cambiar de rol se cargan los permisos de ese rol
+          form.querySelector('#permBox').innerHTML = permBoxes(effectivePerms(role.value), role.value === 'admin');
+          form.querySelector('#permAdminNote').hidden = role.value !== 'admin';
+        };
+        form._photo = u.photoUrl || '';
+        const showPh = () => { form.querySelector('#ufAvatar').innerHTML = UI.avatar(Object.assign({ name: '?' }, u, { photoUrl: form._photo }), 'xl'); };
+        form.querySelector('#ufPhoto').onclick = async () => { const url = await UI.pickPhoto('perfiles').catch(() => null); if (url) { form._photo = url; showPh(); } };
+        const noPh = form.querySelector('#ufNoPhoto');
+        if (noPh) noPh.onclick = () => { form._photo = ''; showPh(); noPh.remove(); };
         form.querySelectorAll('[name=access]').forEach((r) => r.onchange = () => form.querySelector('#tempWrap').classList.toggle('hidden', form.querySelector('[name=access]:checked').value !== 'temp'));
         const sr = form.querySelector('#sendReset');
         if (sr) sr.onclick = async () => {
@@ -98,8 +137,13 @@ Views.admin = (() => {
           catch (err) { UI.toast('No se pudo enviar: ' + (err.code || err.message), 'bad'); }
         };
       },
-      onSubmit: async (d) => {
+      onSubmit: async (d, form) => {
         if (isSelf) { d.role = u.role; d.active = true; }
+        // Permisos: se guardan completos (los del rol con los ajustes marcados)
+        const perms = {};
+        PERMS.forEach((p) => { perms[p.id] = !!d['perm_' + p.id]; delete d['perm_' + p.id]; });
+        d.perms = d.role === 'admin' ? {} : perms;
+        d.photoUrl = form._photo || '';
         if (emailLocked) d.email = u.email;
         d.email = String(d.email || '').trim().toLowerCase();
         const em = d.email.toLowerCase();
@@ -221,6 +265,7 @@ Views.admin = (() => {
           <label class="field">Categorías de productos <span class="hint">una por línea</span><textarea name="categories" rows="6">${U.esc(s.categories.join('\n'))}</textarea></label>
           <label class="field">Reclutamiento · puestos <span class="hint">uno por línea</span><textarea name="positions" rows="6">${U.esc((s.positions || []).join('\n'))}</textarea></label>
           <label class="field">Reclutamiento · fuentes de candidatos <span class="hint">una por línea</span><textarea name="candidateSources" rows="6">${U.esc((s.candidateSources || []).join('\n'))}</textarea></label>
+          <label class="field">Canales de venta <span class="hint">uno por línea (Instagram, Facebook, WhatsApp…)</span><textarea name="saleChannels" rows="6">${U.esc((s.saleChannels || SALE_CHANNEL_DEFAULTS).join('\n'))}</textarea></label>
           <label class="field">Reclutamiento · idiomas <span class="hint">uno por línea</span><textarea name="languages" rows="4">${U.esc((s.languages || []).join('\n'))}</textarea></label>
           <label class="field">Guion de llamada <span class="hint">variables: {nombre} {agente} {empresa} {ciudad}</span><textarea name="callScript" rows="6">${U.esc(s.callScript)}</textarea></label>
         </div>
@@ -239,7 +284,7 @@ Views.admin = (() => {
       e.preventDefault();
       const d = UI.formData(e.target);
       const lines = (t) => t.split('\n').map((x) => x.trim()).filter(Boolean);
-      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), positions: lines(d.positions), candidateSources: lines(d.candidateSources), languages: lines(d.languages), staleDays: d.staleDays || 7, maxAttempts: d.maxAttempts || 12 }));
+      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), positions: lines(d.positions), saleChannels: lines(d.saleChannels), candidateSources: lines(d.candidateSources), languages: lines(d.languages), staleDays: d.staleDays || 7, maxAttempts: d.maxAttempts || 12 }));
       App.shell(); App.route();
       UI.toast('Configuración guardada', 'good');
     };

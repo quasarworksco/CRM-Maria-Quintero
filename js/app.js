@@ -6,22 +6,24 @@ const Views = {};
 const App = (() => {
   const NAV = [
     { section: 'Trabajo diario' },
-    { id: 'dashboard', label: 'Inicio', icon: 'dashboard' },
-    { id: 'llamadas', label: 'Modo llamadas', icon: 'phone' },
-    { id: 'agenda', label: 'Agenda y tareas', icon: 'calendar', badge: () => overdueCount() },
+    { id: 'dashboard', label: 'Inicio', icon: 'dashboard', perm: 'prospects' },
+    { id: 'llamadas', label: 'Modo llamadas', icon: 'phone', perm: 'prospects' },
+    { id: 'agenda', label: 'Agenda y tareas', icon: 'calendar', perm: 'prospects', badge: () => overdueCount() },
     { section: 'Clientes' },
-    { id: 'clientes', label: 'Clientes y prospectos', icon: 'users' },
-    { id: 'pipeline', label: 'Embudo de ventas', icon: 'kanban' },
+    { id: 'clientes', label: 'Clientes y prospectos', icon: 'users', perm: 'prospects' },
+    { id: 'pipeline', label: 'Embudo de ventas', icon: 'kanban', perm: 'prospects' },
     { section: 'Reclutamiento' },
-    { id: 'reclutamiento', label: 'Reclutamiento', icon: 'briefcase', badge: () => Views.reclutamiento.myOverdue() },
-    { section: 'Dinero' },
-    { id: 'ventas', label: 'Ventas y pedidos', icon: 'cart' },
-    { id: 'recaudo', label: 'Recaudo / Cartera', icon: 'wallet' },
-    { id: 'productos', label: 'Productos', icon: 'box' },
-    { section: 'Gestión', perm: 'viewReports' },
-    { id: 'reportes', label: 'Reportes y equipo', icon: 'chart', perm: 'viewReports' },
+    { id: 'reclutamiento', label: 'Reclutamiento', icon: 'briefcase', perm: 'recruitment', badge: () => Views.reclutamiento.myOverdue() },
+    { section: 'Ventas' },
+    { id: 'ventas', label: 'Ventas y pedidos', icon: 'cart', perm: 'sales' },
+    { id: 'recaudo', label: 'Recaudo / Cartera', icon: 'wallet', perm: 'finance' },
+    { id: 'productos', label: 'Productos', icon: 'box', perm: 'sales' },
+    { section: 'Gestión' },
+    { id: 'reportes', label: 'Reportes y equipo', icon: 'chart', perm: 'reports' },
     { id: 'admin', label: 'Panel de administración', icon: 'shield', perm: 'manageUsers' }
   ];
+  // Primera sección que la persona puede ver (para quien solo tiene Reclutamiento, por ejemplo)
+  const homeView = () => (NAV.find((n) => n.id && (!n.perm || Store.can(n.perm))) || { id: 'dashboard' }).id;
 
   let current = { view: 'dashboard', params: [] };
   let root;
@@ -59,11 +61,12 @@ const App = (() => {
             <button class="btn ghost icon menu-btn" id="menuBtn" aria-label="Menú">${icon('menu')}</button>
             <div class="global-search">
               ${icon('search', 'sm')}
-              <input id="gsearch" type="search" placeholder="Buscar cliente por nombre, teléfono, email… ( / )" autocomplete="off">
+              <input id="gsearch" type="search" placeholder="${Store.can('prospects') ? 'Buscar cliente por nombre, teléfono, email… ( / )' : 'Buscar candidato por nombre o teléfono… ( / )'}" autocomplete="off">
               <div class="search-results hidden" id="gresults"></div>
             </div>
             <div class="topbar-right">
-              <button class="btn primary sm" id="quickAdd">${icon('userPlus', 'sm')}<span class="hide-sm">Nuevo prospecto</span></button>
+              ${Store.can('prospects') ? `<button class="btn primary sm" id="quickAdd">${icon('userPlus', 'sm')}<span class="hide-sm">Nuevo prospecto</span></button>`
+                : Store.can('recruitment') ? `<button class="btn primary sm" id="quickAdd" data-cand="1">${icon('userPlus', 'sm')}<span class="hide-sm">Nuevo candidato</span></button>` : ''}
               <button class="btn ghost icon" id="themeBtn" title="Cambiar tema">${icon('moon')}</button>
               ${Store.authMode() ? `
               <div class="user-menu">
@@ -103,7 +106,8 @@ const App = (() => {
     if (ex) ex.onclick = () => { Store.setViewAs(null); shell(); route(); };
     bindUserMenu();
     document.getElementById('themeBtn').onclick = toggleTheme;
-    document.getElementById('quickAdd').onclick = () => Views.clientes.openForm();
+    const qa = document.getElementById('quickAdd');
+    if (qa) qa.onclick = () => (qa.dataset.cand ? Views.candidato.openForm() : Views.clientes.openForm());
     initSearch();
     renderNav();
   }
@@ -111,7 +115,9 @@ const App = (() => {
   function renderNav() {
     const nav = document.getElementById('nav');
     if (!nav) return;
-    nav.innerHTML = NAV.filter((n) => !n.perm || Store.can(n.perm)).map((n) => {
+    const visible = NAV.filter((n) => n.section || !n.perm || Store.can(n.perm));
+    // Se ocultan los títulos de sección que se quedan sin opciones
+    nav.innerHTML = visible.filter((n, i) => !n.section || (visible[i + 1] && !visible[i + 1].section)).map((n) => {
       if (n.section) return `<div class="nav-section">${n.section}</div>`;
       const b = n.badge ? n.badge() : 0;
       const active = current.view === n.id || (n.id === 'clientes' && current.view === 'cliente') || (n.id === 'reclutamiento' && current.view === 'candidato');
@@ -127,6 +133,14 @@ const App = (() => {
       const q = U.normalize(input.value.trim());
       if (q.length < 2) { box.classList.add('hidden'); return; }
       const qd = q.replace(/\D/g, '');
+      if (!Store.can('prospects')) {
+        // Sin acceso a clientes: la búsqueda es de candidatos (solo para quien trabaja Reclutamiento)
+        const cands = Store.can('recruitment') ? Recruit.mine().filter((c) => U.normalize(`${c.name} ${c.email} ${c.city}`).includes(q) || (qd.length >= 3 && U.cleanPhone(c.phone + ' ' + c.phone2).includes(qd))).slice(0, 8) : [];
+        idx = -1;
+        box.innerHTML = cands.length ? cands.map((c) => `<a href="#/candidato/${c.id}"><div class="row between"><strong>${U.esc(c.name)}</strong>${Recruit.stageBadge(c.stage)}</div><div class="small muted">${U.esc(c.phone || '')} · ${U.esc(c.position || '')}</div></a>`).join('') : '<div class="empty small">Sin resultados.</div>';
+        box.classList.remove('hidden');
+        return;
+      }
       const res = Store.myClients().filter((c) =>
         U.normalize(`${c.name} ${c.company} ${c.email} ${c.city}`).includes(q) || (qd.length >= 3 && U.cleanPhone(c.phone + ' ' + c.phone2).includes(qd))
       ).slice(0, 8);
@@ -270,14 +284,28 @@ const App = (() => {
         locked: first,
         body: `
           ${first ? '<p style="margin:0" class="muted">Es tu primer ingreso. Escribe el <strong>nombre y apellido con el que vas a atender</strong> a los clientes: aparecerá en el guion de llamadas, los recibos y los reportes del equipo. Solo te lo pedimos esta vez.</p>' : ''}
+          <div class="photo-field">
+            <span id="pfAvatar">${UI.avatar(me, 'xl')}</span>
+            <div class="stack" style="gap:6px">
+              <strong>Foto de perfil</strong><span class="small muted">${first ? 'Opcional. ' : ''}La verá el equipo junto a tu nombre.</span>
+              <div class="row"><button type="button" class="btn sm" id="pfPhoto">${icon('camera', 'sm')} ${me.photoUrl ? 'Cambiar foto' : 'Subir foto'}</button>${me.photoUrl ? '<button type="button" class="btn sm ghost" id="pfNoPhoto">Quitar</button>' : ''}</div>
+            </div>
+          </div>
           <div class="form-grid">
             <label class="field">Nombre *<input name="firstName" required autocomplete="given-name" value="${U.esc(parts[0])}"></label>
             <label class="field">Apellido *<input name="lastName" required autocomplete="family-name" value="${U.esc(parts[1])}"></label>
             <label class="field full">Teléfono <span class="hint">(opcional)</span><input name="phone" type="tel" autocomplete="tel" value="${U.esc(me.phone)}"></label>
           </div>`,
-        onSubmit: (d) => {
+        onOpen: (form) => {
+          form._photo = me.photoUrl || '';
+          const show = () => { form.querySelector('#pfAvatar').innerHTML = UI.avatar(Object.assign({}, me, { photoUrl: form._photo }), 'xl'); };
+          form.querySelector('#pfPhoto').onclick = async () => { const url = await UI.pickPhoto('perfiles').catch(() => null); if (url) { form._photo = url; show(); } };
+          const rm = form.querySelector('#pfNoPhoto');
+          if (rm) rm.onclick = () => { form._photo = ''; show(); rm.remove(); };
+        },
+        onSubmit: (d, form) => {
           const cap = (x) => x.trim().replace(/\s+/g, ' ').replace(/(^|\s)(\S)/g, (_, a, b) => a + b.toUpperCase());
-          const patch = { firstName: cap(d.firstName), lastName: cap(d.lastName), name: `${cap(d.firstName)} ${cap(d.lastName)}`, phone: d.phone || '' };
+          const patch = { firstName: cap(d.firstName), lastName: cap(d.lastName), name: `${cap(d.firstName)} ${cap(d.lastName)}`, phone: d.phone || '', photoUrl: form._photo || '' };
           if (first) Object.assign(patch, { profileCompleted: true, firstLoginAt: new Date().toISOString() });
           Store.update('users', me.id, patch);
           UI.toast(first ? `¡Hola, ${patch.firstName}! Tu CRM está listo.` : 'Perfil actualizado', 'good');
@@ -307,7 +335,9 @@ const App = (() => {
     current = parseHash();
     const v = Views[current.view];
     const el = document.getElementById('view');
-    if (!v) { location.hash = '#/dashboard'; return; }
+    if (!v) { location.hash = '#/' + homeView(); return; }
+    // Inicio sin permiso de prospectos (p. ej. Reclutamiento): se abre su primera sección
+    if (current.view === 'dashboard' && !Store.can('prospects') && homeView() !== 'dashboard') { location.hash = '#/' + homeView(); return; }
     if (v.perm && !Store.can(v.perm)) {
       el.innerHTML = UI.empty('No tienes permiso para ver esta sección.', 'ban');
       renderNav();

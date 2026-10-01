@@ -52,8 +52,8 @@ const isCandAttempt = (a) => !!a && !!a.outcome && CAND_ATTEMPT_TYPES.includes(a
 const Recruit = (() => {
   const all = () => Store.all('candidates');
   const get = (id) => Store.get('candidates', id);
-  const mine = () => (Store.can('viewAll') ? all() : all().filter((c) => c.ownerId === Store.currentUser().id));
-  const canSee = (c) => c && (Store.can('viewAll') || c.ownerId === Store.currentUser().id);
+  const mine = () => (Store.can('recruitAll') ? all() : all().filter((c) => c.ownerId === Store.currentUser().id));
+  const canSee = (c) => c && (Store.can('recruitAll') || c.ownerId === Store.currentUser().id);
   const activitiesOf = (id) => U.sortBy(Store.where('candidateActivities', (a) => a.candidateId === id), (a) => a.createdAt, -1);
   const attemptsOf = (id) => U.sortBy(Store.where('candidateActivities', (a) => a.candidateId === id && isCandAttempt(a)), (a) => a.createdAt);
   const log = (candidateId, data) => Store.insert('candidateActivities', Object.assign({ candidateId, userId: Store.currentUser().id }, data));

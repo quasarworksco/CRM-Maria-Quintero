@@ -82,5 +82,5 @@ Views.pipeline = (() => {
     </div>`;
   }
 
-  return { title: 'Embudo', render };
+  return { title: 'Embudo', perm: 'prospects', render };
 })();

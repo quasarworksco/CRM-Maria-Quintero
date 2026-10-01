@@ -4,10 +4,12 @@ rules_version = '2';
 // ---------------------------------------------------------------
 // - Solo entran personas con sesión iniciada y acceso activo.
 // - La cuenta principal (inventusmq@gmail.com) siempre es administradora.
-// - El rol de cada persona se guarda en access/{correo} (lo escribe la administración).
+// - El rol y los permisos de cada persona se guardan en access/{correo} (los escribe la administración).
 //     admin       → todo
-//     supervisor  → ve y trabaja todo el equipo, reasigna clientes
-//     agente      → solo sus clientes, sus ventas y sus candidatos
+//     supervisor  → todo el equipo, reclutamiento y reportes (sin montos, salvo permiso "finance")
+//     agente      → solo sus clientes, llamadas, citas y sus ventas (sin montos)
+//     reclutador  → solo sus candidatos de Reclutamiento
+// - Los pagos (montos cobrados) solo los leen quienes tienen el permiso "finance".
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -19,8 +21,18 @@ service cloud.firestore {
     function hasAccess() { return isOwner() || (signedIn() && exists(accessPath()) && acc().active == true); }
     function role() { return isOwner() ? 'admin' : acc().role; }
     function isAdmin() { return hasAccess() && role() == 'admin'; }
-    function isManager() { return hasAccess() && role() in ['admin', 'supervisor']; }
     function myId() { return acc().userId; }
+    // Permisos por persona (access/{correo}.perms). Cuentas antiguas sin "perms" usan los del rol.
+    function roleDefault(p) {
+      return (role() == 'supervisor' && p in ['prospects', 'sales', 'reports', 'viewAll', 'reassign', 'recruitment', 'recruitAll', 'exportData'])
+        || (role() == 'agente' && p in ['prospects', 'sales'])
+        || (role() == 'reclutador' && p in ['recruitment']);
+    }
+    function can(p) {
+      return isAdmin() || (hasAccess() && (
+        (acc().get('perms', null) == null && roleDefault(p)) ||
+        (acc().get('perms', null) != null && acc().perms.get(p, false) == true)));
+    }
     function onlyChanges(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
 
     // Accesos: cada persona puede leer el suyo; solo la administración los crea o cambia
@@ -41,22 +53,22 @@ service cloud.firestore {
       allow create, delete: if isAdmin();
       allow update: if isAdmin()
         || (hasAccess() && resource.data.email.lower() == myEmail()
-            && onlyChanges(['name', 'firstName', 'lastName', 'phone', 'profileCompleted', 'firstLoginAt', 'lastLoginAt', 'updatedAt']));
+            && onlyChanges(['name', 'firstName', 'lastName', 'phone', 'photoUrl', 'profileCompleted', 'firstLoginAt', 'lastLoginAt', 'updatedAt']));
     }
 
-    // Clientes: cada agente solo los suyos
+    // Clientes: cada agente solo los suyos ("viewAll" = todo el equipo)
     match /clients/{id} {
-      allow read: if isManager() || (hasAccess() && resource.data.ownerId == myId());
-      allow create: if isManager() || (hasAccess() && request.resource.data.ownerId == myId());
-      allow update: if isManager() || (hasAccess() && resource.data.ownerId == myId() && request.resource.data.ownerId == myId());
+      allow read: if can('viewAll') || (hasAccess() && resource.data.ownerId == myId());
+      allow create: if can('viewAll') || (can('prospects') && request.resource.data.ownerId == myId());
+      allow update: if can('viewAll') || (hasAccess() && resource.data.ownerId == myId() && request.resource.data.ownerId == myId());
       allow delete: if isAdmin();
     }
 
     // Ventas: cada agente solo las suyas
     match /orders/{id} {
-      allow read: if isManager() || (hasAccess() && resource.data.userId == myId());
-      allow create: if isManager() || (hasAccess() && request.resource.data.userId == myId());
-      allow update: if isManager() || (hasAccess() && resource.data.userId == myId());
+      allow read: if can('viewAll') || (hasAccess() && resource.data.userId == myId());
+      allow create: if can('viewAll') || (can('sales') && request.resource.data.userId == myId());
+      allow update: if can('viewAll') || (hasAccess() && resource.data.userId == myId());
       allow delete: if isAdmin();
     }
 
@@ -70,29 +82,31 @@ service cloud.firestore {
     // Historial y tareas
     match /activities/{id} {
       allow read, create: if hasAccess();
-      allow update, delete: if isManager() || (hasAccess() && resource.data.userId == myId());
+      allow update, delete: if can('viewAll') || (hasAccess() && resource.data.userId == myId());
     }
     match /tasks/{id} {
       allow read, create: if hasAccess();
-      allow update, delete: if isManager() || (hasAccess() && resource.data.userId == myId());
+      allow update, delete: if can('viewAll') || (hasAccess() && resource.data.userId == myId());
     }
 
-    // Pagos
+    // Pagos: los montos cobrados solo los ve quien tiene información financiera.
+    // Quien registra una venta puede anotar el abono inicial, pero no leer los pagos.
     match /payments/{id} {
-      allow read, create: if hasAccess();
+      allow read: if can('finance');
+      allow create: if can('finance') || (can('sales') && request.resource.data.userId == myId());
       allow update, delete: if isAdmin();
     }
 
-    // Reclutamiento (módulo aparte de ventas): cada agente solo ve los candidatos que tiene asignados
+    // Reclutamiento (módulo aparte de ventas): cada persona solo sus candidatos ("recruitAll" = todos)
     match /candidates/{id} {
-      allow read: if isManager() || (hasAccess() && resource.data.ownerId == myId());
-      allow create: if isManager() || (hasAccess() && request.resource.data.ownerId == myId());
-      allow update: if isManager() || (hasAccess() && resource.data.ownerId == myId() && request.resource.data.ownerId == myId());
+      allow read: if can('recruitAll') || (can('recruitment') && resource.data.ownerId == myId());
+      allow create: if can('recruitAll') || (can('recruitment') && request.resource.data.ownerId == myId());
+      allow update: if can('recruitAll') || (can('recruitment') && resource.data.ownerId == myId() && request.resource.data.ownerId == myId());
       allow delete: if isAdmin();
     }
     match /candidateActivities/{id} {
-      allow read, create: if hasAccess();
-      allow update, delete: if isManager() || (hasAccess() && resource.data.userId == myId());
+      allow read, create: if can('recruitment') || can('recruitAll');
+      allow update, delete: if can('recruitAll') || (can('recruitment') && resource.data.userId == myId());
     }
   }
 }

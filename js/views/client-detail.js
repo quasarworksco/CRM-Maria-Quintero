@@ -17,6 +17,7 @@ Views.cliente = (() => {
     const nAtt = c.callCount || 0;
     const me = Store.currentUser();
     const orders = U.sortBy(Store.clientOrders(id), (o) => o.createdAt, -1);
+    const fin = Store.can('finance');
     const revenue = Store.clientRevenue(id);
     const balance = Store.clientBalance(id);
     const tasks = U.sortBy(Store.where('tasks', (t) => t.clientId === id), (t) => (t.done ? '1' : '0') + t.due);
@@ -36,7 +37,7 @@ Views.cliente = (() => {
           <a class="btn good" href="${U.telLink(c.phone)}" id="callBtn">${icon('phone', 'sm')} Llamar</a>
           <a class="btn" href="${U.waLink(c.phone, `Hola ${c.name.split(' ')[0]}, le saluda ${Store.currentUser().name.split(' ')[0]} de ${s.companyName}.`)}" target="_blank" rel="noopener">${icon('message', 'sm')} WhatsApp</a>
           ${c.email ? `<a class="btn" href="mailto:${U.esc(c.email)}">${icon('mail', 'sm')} Email</a>` : ''}
-          <button class="btn primary" id="saleBtn">${icon('cart', 'sm')} Nueva venta</button>
+          ${Store.can('sales') ? `<button class="btn primary" id="saleBtn">${icon('cart', 'sm')} Nueva venta</button>` : ''}
         </div>
       </div>
 
@@ -56,7 +57,7 @@ Views.cliente = (() => {
         <div class="stack">
           <div class="card"><div class="card-body stack" style="gap:14px">
             <div class="profile-head">
-              <span class="avatar lg" style="background:${stageById(c.stage).color}">${U.esc(U.initials(c.name))}</span>
+              <span class="photo-wrap">${UI.personPhoto(c, stageById(c.stage).color)}<button type="button" class="photo-btn" id="photoBtn" title="${c.photoUrl ? 'Cambiar o quitar la foto' : 'Agregar foto'}" aria-label="Foto">${icon('camera', 'sm')}</button></span>
               <div style="min-width:0">
                 <div class="call-phone" style="font-size:18px">${U.esc(c.phone)}</div>
                 <div class="row wrap" style="margin-top:4px">${UI.stageBadge(c.stage)} ${c.dnc ? `<span class="badge bad">${icon('ban', 'sm')} No llamar</span>` : ''}</div>
@@ -76,9 +77,17 @@ Views.cliente = (() => {
               ${c.phone2 ? info('Tel. alterno', `<a href="${U.telLink(c.phone2)}">${U.esc(c.phone2)}</a>`) : ''}
               ${info('Email', c.email ? `<a href="mailto:${U.esc(c.email)}">${U.esc(c.email)}</a>` : '—')}
               ${info('Dirección', [c.address, c.city, c.state, c.zip].filter(Boolean).map(U.esc).join(', ') + (c.address ? ` <a target="_blank" rel="noopener" href="https://maps.google.com/?q=${encodeURIComponent([c.address, c.city, c.state, c.zip].join(' '))}">Mapa</a>` : '') || '—')}
-              ${info('Hogar', [c.acUnits ? c.acUnits + ' A/C' : '', c.householdSize ? c.householdSize + ' personas' : '', c.pets ? 'Mascotas' : '', c.allergies ? 'Alergias/asma' : ''].filter(Boolean).join(' · ') || '—')}
-              ${info('Preferencia', [c.preferredContact, c.bestTime].filter(Boolean).map(U.esc).join(' · ') || '—')}
-              ${c.birthday ? info('Cumpleaños', U.date(c.birthday + 'T12:00', { day: 'numeric', month: 'long' })) : ''}
+            </dl>
+            <div class="form-section" style="margin:0">Perfil del cliente / hogar</div>
+            <dl class="info-list" style="margin:0">
+              ${info('Vivienda', labelOf(HOUSING, c.housing))}
+              ${info('Crédito', labelOf(CREDIT, c.credit, 'No sabe / No indicado'))}
+              ${info('Personas en el hogar', c.householdSize ? (c.householdSize >= 10 ? '10 o más' : c.householdSize) : 'No sabe / No indicado')}
+              ${info('Estado civil', labelOf(MARITAL, c.maritalStatus))}
+              ${info('Mejor horario', U.esc(c.bestTime || 'No indicado'))}
+              ${info('Contacto preferido', U.esc(c.preferredContact || 'No indicado'))}
+              ${info('Mascotas', yesNoLabel(c.pets))}
+              ${info('Alergias / asma', yesNoLabel(c.allergies))}
               ${c.stage === 'perdido' && c.lostReason ? info('Motivo pérdida', `<span style="color:var(--bad)">${U.esc(c.lostReason)}</span>`) : ''}
             </dl>
             ${c.notes ? `<div class="script-box">${U.esc(c.notes)}</div>` : ''}
@@ -158,25 +167,25 @@ Views.cliente = (() => {
         <!-- Columna derecha: dinero y tareas -->
         <div class="stack detail-right">
           ${apptCard(c)}
-          <div class="card">
+          ${fin ? `<div class="card">
             <div class="card-head"><h2>Resumen financiero</h2></div>
             <div class="card-body grid cols-3" style="gap:8px;text-align:center">
               <div><div class="small muted">Comprado</div><strong class="num">${U.money(revenue)}</strong></div>
               <div><div class="small muted">Pagado</div><strong class="num" style="color:var(--good)">${U.money(revenue - balance)}</strong></div>
               <div><div class="small muted">Saldo</div><strong class="num" style="color:${balance > 0 ? 'var(--bad)' : 'inherit'}">${U.money(balance)}</strong></div>
             </div>
-          </div>
-          <div class="card">
+          </div>` : ''}
+          ${Store.can('sales') ? `<div class="card">
             <div class="card-head"><h2>Ventas</h2><button class="btn sm" id="saleBtn2">${icon('plus', 'sm')} Venta</button></div>
             <div class="card-body flush">
               ${orders.length ? orders.map((o) => `
                 <div class="list-item clickable" data-order="${o.id}">
-                  <div class="grow"><div class="title">${U.esc(o.number)} · ${U.money(o.total)}</div>
-                  <div class="small muted">${U.date(o.createdAt)} · ${o.items.length} producto(s)</div></div>
-                  <div style="text-align:right">${UI.payBadge(o)}<div class="small" style="margin-top:3px">${UI.orderStatusBadge(o.status)}</div></div>
+                  <div class="grow"><div class="title">${U.esc(o.number)}${fin ? ' · ' + U.money(o.total) : ''}</div>
+                  <div class="small muted">${U.date(o.createdAt)} · ${o.items.length} producto(s)${o.channel ? ' · ' + U.esc(o.channel) : ''}</div></div>
+                  <div style="text-align:right">${fin ? UI.payBadge(o) : ''}<div class="small" style="margin-top:3px">${UI.orderStatusBadge(o.status)}</div></div>
                 </div>`).join('') : UI.empty('Aún no ha comprado.', 'cart')}
             </div>
-          </div>
+          </div>` : ''}
           <div class="card">
             <div class="card-head"><h2>Tareas</h2><button class="btn sm" id="taskBtn">${icon('plus', 'sm')} Tarea</button></div>
             <div class="card-body flush">
@@ -222,8 +231,15 @@ Views.cliente = (() => {
           <span class="muted small">· ${U.esc(UI.userName(a.userId))} · ${U.dateTime(a.createdAt)}</span>
           ${(Store.isAdmin() || a.userId === Store.currentUser().id) && a.type === 'nota' ? `<button class="btn ghost xs icon" data-del-act="${a.id}" title="Eliminar" style="margin-left:auto">${icon('trash', 'sm')}</button>` : ''}
         </div>
-        ${a.text ? `<div class="tl-text">${U.esc(a.text)}</div>` : ''}
+        ${a.text ? `<div class="tl-text">${U.esc(a.text)}${moneyNote(a)}</div>` : ''}
       </div></div>`;
+  }
+  // El monto se muestra solo a quien tiene información financiera (no se guarda en el historial)
+  function moneyNote(a) {
+    if (!Store.can('finance')) return '';
+    if (a.type === 'venta' && a.orderId) { const o = Store.get('orders', a.orderId); return o ? ` · <strong>${U.money(o.total)}</strong>` : ''; }
+    if (a.type === 'pago' && a.paymentId) { const p = Store.get('payments', a.paymentId); return p ? ` · <strong>${U.money(p.amount)}</strong>` : ''; }
+    return '';
   }
 
   function bind(el, c, d) {
@@ -293,7 +309,12 @@ Views.cliente = (() => {
     Views.agenda.bindTaskItems(el);
 
     $('#editBtn').onclick = () => Views.clientes.openForm(id);
-    $('#saleBtn').onclick = $('#saleBtn2').onclick = () => Views.ventas.openOrderForm({ clientId: id });
+    // Foto de la persona (Cloudinary)
+    $('#photoBtn').onclick = async () => {
+      const url = await UI.editPhoto(c.photoUrl, c.name, 'clientes/' + id);
+      if (url !== null) { Store.update('clients', id, { photoUrl: url }); UI.toast(url ? 'Foto guardada' : 'Foto quitada', 'good'); }
+    };
+    el.querySelectorAll('#saleBtn, #saleBtn2').forEach((b) => b.onclick = () => Views.ventas.openOrderForm({ clientId: id }));
     $('#taskBtn').onclick = () => Views.agenda.openTaskForm({ clientId: id });
     $('#callBtn').addEventListener('click', () => { d.type = 'llamada'; setTimeout(() => notes.focus(), 300); });
     const re = $('#reassign');
@@ -449,5 +470,5 @@ Views.cliente = (() => {
     });
   }
 
-  return { title: 'Cliente', render, setStage, quickLog, openAppointment, afterOutcome };
+  return { title: 'Cliente', perm: 'prospects', render, setStage, quickLog, openAppointment, afterOutcome };
 })();

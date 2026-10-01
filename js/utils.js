@@ -232,15 +232,70 @@ const orderStatusById = (id) => ORDER_STATUS.find((s) => s.id === id) || ORDER_S
 const PAY_METHODS = ['Efectivo', 'Transferencia', 'Tarjeta', 'Zelle', 'Nequi / Daviplata', 'Cheque', 'Financiación', 'Otro'];
 
 const ROLES = {
-  admin: { name: 'Administrador', desc: 'Acceso total: usuarios, configuración, todos los datos' },
-  supervisor: { name: 'Supervisor', desc: 'Ve todo el equipo, reasigna clientes y ve reportes' },
-  agente: { name: 'Agente / Vendedor', desc: 'Solo ve y trabaja sus propios clientes' }
+  admin: { name: 'Administrador', desc: 'Acceso total: usuarios, configuración, ventas, montos, reportes y estadísticas' },
+  supervisor: { name: 'Supervisor', desc: 'Ve y reasigna todo el equipo, prospectos, reclutamiento y reportes (sin montos, salvo que se le dé el permiso)' },
+  agente: { name: 'Agente / Call center', desc: 'Solo sus prospectos, llamadas, seguimientos y citas; puede registrar ventas sin ver montos' },
+  reclutador: { name: 'Reclutamiento', desc: 'Solo el módulo de Reclutamiento: sus candidatos, entrevistas y seguimientos' }
 };
+
+/* ---------- Permisos por usuario ----------
+   Cada rol trae permisos por defecto; la administración puede ajustarlos a cada persona. */
+const PERMS = [
+  { id: 'prospects', name: 'Prospectos, llamadas, seguimientos y citas', desc: 'Clientes, Modo llamadas, Agenda y Embudo (sus propios clientes)' },
+  { id: 'sales', name: 'Registrar ventas', desc: 'Crear ventas y ver la lista de sus ventas (productos, canal y entrega)' },
+  { id: 'finance', name: 'Información financiera', desc: 'Montos de ventas, pagos, saldos, Recaudo / Cartera, metas de venta e ingresos en reportes' },
+  { id: 'reports', name: 'Reportes y estadísticas', desc: 'Rendimiento del equipo, llamadas, fuentes y canales' },
+  { id: 'viewAll', name: 'Ver todo el equipo', desc: 'Clientes, llamadas y ventas de todas las personas (no solo los suyos)' },
+  { id: 'reassign', name: 'Reasignar', desc: 'Cambiar el responsable de clientes y candidatos' },
+  { id: 'recruitment', name: 'Reclutamiento', desc: 'Módulo de candidatos: sus candidatos asignados' },
+  { id: 'recruitAll', name: 'Ver todos los candidatos', desc: 'Todos los candidatos de reclutamiento, no solo los suyos' },
+  { id: 'exportData', name: 'Exportar', desc: 'Descargar listas en Excel / CSV' }
+];
+const ROLE_PERMS = {
+  supervisor: { prospects: true, sales: true, reports: true, viewAll: true, reassign: true, recruitment: true, recruitAll: true, exportData: true },
+  agente: { prospects: true, sales: true },
+  reclutador: { recruitment: true }
+};
+// Permisos efectivos: administración = todo; el resto = los del rol + los ajustes de la persona
+function effectivePerms(role, overrides) {
+  const out = {};
+  if (role === 'admin') { PERMS.forEach((p) => { out[p.id] = true; }); return out; }
+  const base = Object.assign({}, ROLE_PERMS[role] || ROLE_PERMS.agente, overrides || {});
+  PERMS.forEach((p) => { out[p.id] = base[p.id] === true; });
+  if (out.recruitAll) out.recruitment = true;
+  return out;
+}
+
+/* ---------- Perfil del cliente / hogar ---------- */
+const HOUSING = [{ id: 'dueno', name: 'Dueño de casa' }, { id: 'renta', name: 'Renta' }];
+const CREDIT = [{ id: 'si', name: 'Tiene crédito' }, { id: 'no', name: 'No tiene crédito' }];
+const MARITAL = [{ id: 'casado', name: 'Casado(a)' }, { id: 'soltero', name: 'Soltero(a)' }, { id: 'divorciado', name: 'Divorciado(a)' }, { id: 'viudo', name: 'Viudo(a)' }];
+const BEST_TIMES = ['Mañana', 'Tarde', 'Noche', 'Cualquier horario'];
+const CONTACT_PREFS = ['Llamada', 'WhatsApp', 'SMS / Mensaje de texto', 'Email'];
+const labelOf = (list, id, none = 'No indicado') => ((list.find((x) => x.id === id) || {}).name || none);
+const yesNoLabel = (v) => (v === true ? 'Sí' : v === false ? 'No' : 'No indicado');
+
+/* ---------- Canal de la venta ---------- */
+const SALE_CHANNEL_DEFAULTS = ['Llamada / Call center', 'Instagram', 'Facebook', 'WhatsApp', 'Página web', 'Tienda', 'Referido', 'Feria / Evento', 'Otro'];
+// Canal sugerido según la fuente del cliente
+function channelFromSource(src) {
+  const s = String(src || '').toLowerCase();
+  if (/instagram/.test(s)) return 'Instagram';
+  if (/facebook/.test(s)) return 'Facebook';
+  if (/whatsapp/.test(s)) return 'WhatsApp';
+  if (/web|google/.test(s)) return 'Página web';
+  if (/tienda|mall/.test(s)) return 'Tienda';
+  if (/referid|anterior|recurrente/.test(s)) return 'Referido';
+  if (/feria|evento/.test(s)) return 'Feria / Evento';
+  return 'Llamada / Call center';
+}
 
 const USER_COLORS = ['#18181b', '#52525b', '#78716c', '#3f3f46', '#71717a', '#44403c', '#27272a', '#57534e'];
 
 /* ---------- Íconos (SVG inline, estilo lucide) ---------- */
 const ICONS = {
+  camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
   dashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
   phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>',

@@ -752,3 +752,12 @@ tr.stage-row td:first-child { box-shadow: inset 4px 0 0 var(--row-color); }
 
 /* Reclutamiento: 12 etapas, se desliza de lado si no caben */
 .stage-bar.cand button { min-width: 104px; }
+
+/* Fotos de perfil */
+.avatar.has-photo { background-color: var(--surface-3); background-size: cover; background-position: center; color: transparent; }
+.avatar.xl { width: 96px; height: 96px; font-size: 32px; }
+.photo-wrap { position: relative; display: inline-block; flex: none; }
+.photo-btn { position: absolute; right: -4px; bottom: -4px; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--surface); background: var(--text); color: var(--surface); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.photo-btn .i { width: 13px; height: 13px; }
+.photo-field { display: flex; align-items: center; gap: 14px; }
+.money-lock { display: inline-flex; align-items: center; gap: 4px; color: var(--text-3); font-size: 12px; }

@@ -2,17 +2,18 @@
    Ventas y pedidos
    ========================================================= */
 Views.ventas = (() => {
-  const state = { q: '', status: '', pay: '', seller: '', range: 'mes' };
+  const state = { q: '', status: '', pay: '', seller: '', channel: '', range: 'mes' };
 
   function render(el) {
     const manager = Store.can('viewAll');
+    const fin = Store.can('finance');
     const range = Metrics.RANGES[state.range];
     const [from, to] = range ? range.get() : [new Date(0), U.endOfDay()];
     const q = U.normalize(state.q);
     const list = U.sortBy(Store.myOrders().filter((o) => {
       const c = Store.get('clients', o.clientId);
       return (!range || Metrics.inRange(o.createdAt, from, to)) && (!state.status || o.status === state.status) &&
-        (!state.pay || Store.orderPayStatus(o).id === state.pay) && (!state.seller || o.userId === state.seller) &&
+        (!state.pay || !fin || Store.orderPayStatus(o).id === state.pay) && (!state.seller || o.userId === state.seller) && (!state.channel || (o.channel || '') === state.channel) &&
         (!q || U.normalize(`${o.number} ${c ? c.name + ' ' + c.phone : ''} ${o.items.map((i) => i.name).join(' ')}`).includes(q));
     }), (o) => o.createdAt, -1);
     const valid = list.filter((o) => o.status !== 'cancelada');
@@ -23,14 +24,19 @@ Views.ventas = (() => {
       <div class="page-head">
         <div><h1>Ventas y pedidos</h1><p>${valid.length} ventas · ${range ? range.label.toLowerCase() : 'todo el historial'}</p></div>
         <div class="page-actions">
-          <button class="btn" id="exportBtn">${icon('download', 'sm')} Exportar</button>
+          ${Store.can('exportData') ? `<button class="btn" id="exportBtn">${icon('download', 'sm')} Exportar</button>` : ''}
           <button class="btn primary" id="newBtn">${icon('plus', 'sm')} Nueva venta</button>
         </div>
       </div>
-      <div class="kpis">
+      ${fin ? '' : `<div class="script-box small" style="margin-bottom:14px">${icon('lock', 'sm')} Los montos, pagos y saldos de las ventas solo los ve la administración.</div>`}
+      <div class="kpis">${fin ? `
         <div class="card kpi"><div class="kpi-label">Total vendido</div><div class="kpi-value">${U.money(total)}</div><div class="kpi-sub">Ticket promedio ${U.money(valid.length ? total / valid.length : 0)}</div></div>
         <div class="card kpi"><div class="kpi-label">Cobrado de estas ventas</div><div class="kpi-value" style="color:var(--good)">${U.money(paid)}</div><div class="progress good"><span style="width:${total ? (paid / total) * 100 : 0}%"></span></div><div class="kpi-sub">${U.pct(total ? paid / total : 0)} recaudado</div></div>
         <div class="card kpi"><div class="kpi-label">Pendiente de cobro</div><div class="kpi-value" style="color:var(--bad)">${U.money(total - paid)}</div><div class="kpi-sub">${valid.filter((o) => Store.orderBalance(o) > 0).length} pedidos con saldo</div></div>
+        ` : `
+        <div class="card kpi"><div class="kpi-label">Ventas</div><div class="kpi-value">${valid.length}</div><div class="kpi-sub">${range ? range.label : 'Todo el historial'}</div></div>
+        <div class="card kpi"><div class="kpi-label">Entregadas</div><div class="kpi-value">${valid.filter((o) => o.status === 'entregada').length}</div><div class="kpi-sub">Ya en manos del cliente</div></div>
+        <div class="card kpi"><div class="kpi-label">Canal principal</div><div class="kpi-value" style="font-size:20px">${U.esc(topChannel(valid) || '—')}</div><div class="kpi-sub">De dónde vienen más ventas</div></div>`}
         <div class="card kpi"><div class="kpi-label">Por entregar</div><div class="kpi-value">${valid.filter((o) => ['pendiente', 'confirmada', 'enviada'].includes(o.status)).length}</div><div class="kpi-sub">Pendientes, confirmados o enviados</div></div>
       </div>
       <div class="card">
@@ -38,24 +44,26 @@ Views.ventas = (() => {
           <input class="search" id="q" type="search" placeholder="Buscar # venta, cliente, producto…" value="${U.esc(state.q)}">
           <select id="fRange">${Object.entries(Metrics.RANGES).map(([k, r]) => `<option value="${k}" ${k === state.range ? 'selected' : ''}>${r.label}</option>`).join('')}<option value="todo" ${state.range === 'todo' ? 'selected' : ''}>Todo el historial</option></select>
           <select id="fStatus"><option value="">Todo estado de entrega</option>${UI.options(ORDER_STATUS, state.status)}</select>
-          <select id="fPay"><option value="">Todo estado de pago</option>${UI.options([{ id: 'pagada', name: 'Pagada' }, { id: 'parcial', name: 'Abono parcial' }, { id: 'sin_pago', name: 'Sin pago' }], state.pay)}</select>
+          <select id="fChannel"><option value="">Todos los canales</option>${UI.options(channels(), state.channel)}</select>
+          ${fin ? `<select id="fPay"><option value="">Todo estado de pago</option>${UI.options([{ id: 'pagada', name: 'Pagada' }, { id: 'parcial', name: 'Abono parcial' }, { id: 'sin_pago', name: 'Sin pago' }], state.pay)}</select>` : ''}
           ${manager ? `<select id="fSeller"><option value="">Todos los vendedores</option>${UI.userOptions(state.seller)}</select>` : ''}
         </div>
         <div class="table-wrap"><table class="table">
-          <thead><tr><th>Venta</th><th>Cliente</th><th>Productos</th>${manager ? '<th>Vendedor</th>' : ''}<th class="right">Total</th><th class="right">Saldo</th><th>Pago</th><th>Entrega</th></tr></thead>
+          <thead><tr><th>Venta</th><th>Cliente</th><th>Productos</th><th>Canal</th>${manager ? '<th>Vendedor</th>' : ''}${fin ? '<th class="right">Total</th><th class="right">Saldo</th><th>Pago</th>' : ''}<th>Entrega</th></tr></thead>
           <tbody>${list.length ? list.slice(0, 300).map((o) => {
             const c = Store.get('clients', o.clientId);
             return `<tr class="clickable" data-order="${o.id}">
               <td><div class="cell-main">${U.esc(o.number)}</div><div class="cell-sub">${U.date(o.createdAt)}</div></td>
               <td><div class="cell-main">${U.esc(c ? c.name : '(eliminado)')}</div><div class="cell-sub">${U.esc(c ? c.phone : '')}</div></td>
               <td class="small" style="max-width:260px">${o.items.map((i) => `${i.qty}× ${U.esc(i.name)}`).join('<br>')}</td>
+              <td class="small">${U.esc(o.channel || '—')}</td>
               ${manager ? `<td class="small nowrap">${U.esc(UI.userName(o.userId))}</td>` : ''}
-              <td class="right num nowrap"><strong>${U.money(o.total)}</strong></td>
+              ${fin ? `<td class="right num nowrap"><strong>${U.money(o.total)}</strong></td>
               <td class="right num nowrap" style="color:${Store.orderBalance(o) > 0 ? 'var(--bad)' : 'var(--text-3)'}">${U.money(Store.orderBalance(o))}</td>
-              <td>${UI.payBadge(o)}</td>
+              <td>${UI.payBadge(o)}</td>` : ''}
               <td>${UI.orderStatusBadge(o.status)}</td>
             </tr>`;
-          }).join('') : `<tr><td colspan="8">${UI.empty('No hay ventas en este periodo.', 'cart')}</td></tr>`}</tbody>
+          }).join('') : `<tr><td colspan="9">${UI.empty('No hay ventas en este periodo.', 'cart')}</td></tr>`}</tbody>
         </table></div>
       </div>`;
 
@@ -64,21 +72,30 @@ Views.ventas = (() => {
     qi.oninput = U.debounce(() => { state.q = qi.value; render(el); const n = el.querySelector('#q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250);
     $('#fRange').onchange = (e) => { state.range = e.target.value; render(el); };
     $('#fStatus').onchange = (e) => { state.status = e.target.value; render(el); };
-    $('#fPay').onchange = (e) => { state.pay = e.target.value; render(el); };
+    if ($('#fPay')) $('#fPay').onchange = (e) => { state.pay = e.target.value; render(el); };
+    $('#fChannel').onchange = (e) => { state.channel = e.target.value; render(el); };
     if ($('#fSeller')) $('#fSeller').onchange = (e) => { state.seller = e.target.value; render(el); };
     $('#newBtn').onclick = () => openOrderForm({});
-    $('#exportBtn').onclick = () => exportCSV(list);
+    if ($('#exportBtn')) $('#exportBtn').onclick = () => exportCSV(list);
     el.querySelectorAll('[data-order]').forEach((tr) => tr.onclick = () => openOrderDetail(tr.dataset.order));
   }
 
+  const channels = () => { const s = Store.settings().saleChannels; return s && s.length ? s : SALE_CHANNEL_DEFAULTS; };
+  function topChannel(list) {
+    const g = U.groupBy(list.filter((o) => o.channel), (o) => o.channel);
+    return Object.keys(g).sort((a, b) => g[b].length - g[a].length)[0];
+  }
+
   function exportCSV(list) {
+    const fin = Store.can('finance');
     const csv = U.toCSV(list, [
       { label: 'Venta', value: 'number' }, { label: 'Fecha', value: (o) => U.date(o.createdAt) },
       { label: 'Cliente', value: (o) => (Store.get('clients', o.clientId) || {}).name || '' }, { label: 'Teléfono', value: (o) => (Store.get('clients', o.clientId) || {}).phone || '' },
-      { label: 'Productos', value: (o) => o.items.map((i) => `${i.qty}x ${i.name}`).join(' | ') }, { label: 'Vendedor', value: (o) => UI.userName(o.userId) },
-      { label: 'Subtotal', value: 'subtotal' }, { label: 'Descuento', value: 'discount' }, { label: 'Total', value: 'total' },
-      { label: 'Pagado', value: (o) => Store.orderPaid(o) }, { label: 'Saldo', value: (o) => Store.orderBalance(o) },
-      { label: 'Estado pago', value: (o) => Store.orderPayStatus(o).name }, { label: 'Entrega', value: (o) => orderStatusById(o.status).name }, { label: 'Condición', value: 'paymentTerms' }
+      { label: 'Productos', value: (o) => o.items.map((i) => `${i.qty}x ${i.name}`).join(' | ') }, { label: 'Canal', value: (o) => o.channel || '' }, { label: 'Vendedor', value: (o) => UI.userName(o.userId) },
+      ...(fin ? [{ label: 'Subtotal', value: 'subtotal' }, { label: 'Descuento', value: 'discount' }, { label: 'Total', value: 'total' },
+        { label: 'Pagado', value: (o) => Store.orderPaid(o) }, { label: 'Saldo', value: (o) => Store.orderBalance(o) },
+        { label: 'Estado pago', value: (o) => Store.orderPayStatus(o).name }, { label: 'Condición', value: 'paymentTerms' }] : []),
+      { label: 'Entrega', value: (o) => orderStatusById(o.status).name }
     ]);
     U.download(`ventas-${U.toDateInput(new Date())}.csv`, csv, 'text/csv;charset=utf-8');
   }
@@ -114,6 +131,7 @@ Views.ventas = (() => {
         <div class="form-grid">
           <label class="field ${Store.can('reassign') ? '' : 'full'}">Cliente *<select name="clientId" required>${UI.options(clients, o.clientId, { blank: 'Seleccionar cliente…', label: (c) => `${c.name} · ${c.phone}` })}</select></label>
           ${Store.can('reassign') ? `<label class="field">Vendedor <span class="hint">(a quién se le acredita)</span><select name="userId">${UI.userOptions(o.userId || (Store.get('clients', o.clientId) || {}).ownerId || Store.currentUser().id)}</select></label>` : ''}
+          <label class="field">Canal de la venta *<select name="channel" id="chSel" required>${UI.options(channels(), o.channel || (o.clientId ? channelFromSource((Store.get('clients', o.clientId) || {}).source) : ''), { blank: 'Seleccionar…' })}</select><span class="hint">Instagram, Facebook, WhatsApp, página web, tienda, referido…</span></label>
         </div>
         <div class="table-wrap"><table class="table items-table">
           <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th class="right">Importe</th><th></th></tr></thead>
@@ -164,13 +182,15 @@ Views.ventas = (() => {
         form.querySelector('#addItem').onclick = () => { items.push({ productId: '', name: '', qty: 1, price: 0 }); redraw(); };
         const cSel = form.querySelector('[name=clientId]'), uSel = form.querySelector('[name=userId]');
         if (cSel && uSel && !editing) cSel.addEventListener('change', () => { const c = Store.get('clients', cSel.value); if (c && Store.get('users', c.ownerId)) uSel.value = c.ownerId; });
+        const chSel = form.querySelector('#chSel');
+        if (cSel && !editing) cSel.addEventListener('change', () => { const c = Store.get('clients', cSel.value); if (c) chSel.value = channelFromSource(c.source); });
         ['discount', 'shipping', 'taxRate'].forEach((n) => form.querySelector(`[name=${n}]`).addEventListener('input', refreshTotals));
         refreshTotals();
       },
       onSubmit: (d) => {
         const clean = items.filter((i) => (i.productId || i.name) && i.qty > 0).map((i) => ({ productId: i.productId || null, name: i.name || 'Producto', qty: Number(i.qty), price: Number(i.price) }));
         if (!clean.length) { UI.toast('Agrega al menos un producto', 'bad'); return false; }
-        const data = { clientId: d.clientId, items: clean, discount: d.discount || 0, shipping: d.shipping || 0, taxRate: d.taxRate || 0, paymentTerms: d.paymentTerms, dueDate: d.dueDate ? new Date(d.dueDate + 'T12:00').toISOString() : null, deliveryDate: d.deliveryDate ? new Date(d.deliveryDate + 'T12:00').toISOString() : null, status: d.status, notes: d.notes };
+        const data = { clientId: d.clientId, items: clean, discount: d.discount || 0, shipping: d.shipping || 0, taxRate: d.taxRate || 0, channel: d.channel, paymentTerms: d.paymentTerms, dueDate: d.dueDate ? new Date(d.dueDate + 'T12:00').toISOString() : null, deliveryDate: d.deliveryDate ? new Date(d.deliveryDate + 'T12:00').toISOString() : null, status: d.status, notes: d.notes };
         if (d.userId) data.userId = d.userId;
         if (editing) {
           const t = Store.calcOrderTotal(clean, data.discount, data.shipping, data.taxRate);
@@ -194,23 +214,25 @@ Views.ventas = (() => {
     const c = Store.get('clients', o.clientId) || {};
     const pays = U.sortBy(Store.where('payments', (p) => p.orderId === id), (p) => p.date);
     const paid = Store.orderPaid(o), bal = Store.orderBalance(o);
+    const fin = Store.can('finance');
     UI.modal({
-      title: `Venta ${U.esc(o.number)} ${UI.payBadge(o)}`,
+      title: `Venta ${U.esc(o.number)} ${fin ? UI.payBadge(o) : ''}`,
       size: 'lg',
       hideFooter: false,
       footer: `
         ${Store.can('deleteRecords') ? `<button type="button" class="btn danger" id="delOrder" style="margin-right:auto">${icon('trash', 'sm')} Eliminar</button>` : ''}
-        <button type="button" class="btn" id="printOrder">${icon('printer', 'sm')} Recibo</button>
-        <button type="button" class="btn" id="editOrder">${icon('edit', 'sm')} Editar</button>
-        ${bal > 0 ? `<button type="button" class="btn good" id="payOrder">${icon('dollar', 'sm')} Registrar pago</button>` : ''}
+        ${fin ? `<button type="button" class="btn" id="printOrder">${icon('printer', 'sm')} Recibo</button>
+        <button type="button" class="btn" id="editOrder">${icon('edit', 'sm')} Editar</button>` : ''}
+        ${fin && bal > 0 ? `<button type="button" class="btn good" id="payOrder">${icon('dollar', 'sm')} Registrar pago</button>` : ''}
         <button type="button" class="btn primary" data-close>Cerrar</button>`,
       body: `
         <div class="grid cols-2" style="gap:12px">
           <div><div class="small muted">Cliente</div><a href="#/cliente/${c.id}" data-close-link><strong>${U.esc(c.name || '(eliminado)')}</strong></a><div class="small">${U.esc(c.phone || '')}</div><div class="small muted">${U.esc([c.address, c.city].filter(Boolean).join(', '))}</div></div>
-          <div><div class="small muted">Vendedor · Fecha</div><strong>${U.esc(UI.userName(o.userId))}</strong><div class="small">${U.dateTime(o.createdAt)} · ${U.esc(o.paymentTerms || '')}</div>
+          <div><div class="small muted">Vendedor · Fecha</div><strong>${U.esc(UI.userName(o.userId))}</strong><div class="small">${U.dateTime(o.createdAt)}${fin && o.paymentTerms ? ' · ' + U.esc(o.paymentTerms) : ''}</div>
+            <div class="small">Canal: <strong>${U.esc(o.channel || 'Sin indicar')}</strong></div>
             <div class="row" style="margin-top:6px"><span class="small muted">Entrega:</span><select id="statusSel" style="width:auto;height:30px">${UI.options(ORDER_STATUS, o.status)}</select></div></div>
         </div>
-        <table class="table"><thead><tr><th>Producto</th><th class="right">Cant.</th><th class="right">Precio</th><th class="right">Importe</th></tr></thead>
+        ${fin ? `        <table class="table"><thead><tr><th>Producto</th><th class="right">Cant.</th><th class="right">Precio</th><th class="right">Importe</th></tr></thead>
           <tbody>${o.items.map((i) => `<tr><td>${U.esc(i.name)}</td><td class="right num">${i.qty}</td><td class="right num">${U.money(i.price)}</td><td class="right num">${U.money(i.qty * i.price)}</td></tr>`).join('')}</tbody></table>
         <div class="totals">
           <div>Subtotal: <span class="num">${U.money(o.subtotal)}</span></div>
@@ -223,12 +245,15 @@ Views.ventas = (() => {
         ${pays.length ? `<table class="table"><thead><tr><th>Fecha</th><th>Método</th><th>Referencia</th><th>Recibió</th><th class="right">Monto</th><th></th></tr></thead><tbody>
           ${pays.map((p) => `<tr><td>${U.date(p.date)}</td><td>${U.esc(p.method)}</td><td class="small">${U.esc(p.reference || '')}</td><td class="small">${U.esc(UI.userName(p.userId))}</td><td class="right num">${U.money(p.amount)}</td><td>${Store.can('deleteRecords') ? `<button type="button" class="btn ghost xs icon" data-del-pay="${p.id}">${icon('trash', 'sm')}</button>` : ''}</td></tr>`).join('')}
         </tbody></table>` : '<div class="muted small">Aún no hay pagos registrados.</div>'}
+` : `<table class="table"><thead><tr><th>Producto</th><th class="right">Cant.</th></tr></thead>
+          <tbody>${o.items.map((i) => `<tr><td>${U.esc(i.name)}</td><td class="right num">${i.qty}</td></tr>`).join('')}</tbody></table>
+          <div class="money-lock">${icon('lock', 'sm')} Montos, pagos y saldo visibles solo para la administración.</div>`}
         ${o.notes ? `<div class="script-box">${U.esc(o.notes)}</div>` : ''}`,
       onOpen: (form, close) => {
         const $ = (s) => form.querySelector(s);
         $('#statusSel').onchange = (e) => { Store.update('orders', id, { status: e.target.value }); Store.logActivity({ clientId: o.clientId, type: 'sistema', text: `Venta ${o.number}: ${orderStatusById(e.target.value).name}` }); UI.toast('Estado actualizado', 'good'); };
-        $('#editOrder').onclick = () => { close(); openOrderForm({ id }); };
-        $('#printOrder').onclick = () => printReceipt(id);
+        if ($('#editOrder')) $('#editOrder').onclick = () => { close(); openOrderForm({ id }); };
+        if ($('#printOrder')) $('#printOrder').onclick = () => printReceipt(id);
         if ($('#payOrder')) $('#payOrder').onclick = () => { close(); Views.recaudo.openPaymentForm(id); };
         if ($('#delOrder')) $('#delOrder').onclick = async () => {
           close();
@@ -267,7 +292,7 @@ Views.ventas = (() => {
     w.document.close();
   }
 
-  return { title: 'Ventas', render, openOrderForm, openOrderDetail };
+  return { title: 'Ventas', perm: 'sales', render, openOrderForm, openOrderDetail };
 })();
 
 /* =========================================================
@@ -387,5 +412,5 @@ Views.recaudo = (() => {
     });
   }
 
-  return { title: 'Recaudo', render, openPaymentForm };
+  return { title: 'Recaudo', perm: 'finance', render, openPaymentForm };
 })();

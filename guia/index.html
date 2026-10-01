@@ -322,7 +322,7 @@
         <h3>Tu menú</h3>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/menu-usuario.jpg" width="1280" height="800" alt="Menú de usuario abierto con mi perfil, contraseña y cerrar sesión" loading="lazy"></div><figcaption>Arriba a la derecha: tu nombre, tu rol y tu menú.</figcaption></figure>
         <ul class="list">
-          <li><strong>Mi perfil</strong>: corrige tu nombre, apellido o teléfono cuando quieras.</li>
+          <li><strong>Mi perfil</strong>: corrige tu nombre, apellido o teléfono y pon tu <strong>foto de perfil</strong> (desde el celular puedes tomarla con la cámara). La foto aparece junto a tu nombre en todo el CRM.</li>
           <li><strong>Cambiar mi contraseña</strong>: te llega un correo con el enlace para crear una nueva.</li>
           <li><strong>Guía de uso</strong>: abre esta guía.</li>
           <li><strong>Cerrar sesión</strong>: úsalo siempre en computadores compartidos.</li>
@@ -335,29 +335,31 @@
           <li><strong>"Nuevo prospecto"</strong> está siempre arriba, en cualquier pantalla.</li>
         </ol>
 
-        <h3>Los tres roles</h3>
-        <div class="grid g3">
-          <div class="card"><h4>Administrador</h4><p>La dueña del negocio o quien ella elija. Tiene acceso total: usuarios, configuración, productos, respaldos y todos los datos.</p></div>
-          <div class="card"><h4>Supervisor</h4><p>Coordina al equipo. Ve y trabaja a todos los clientes, reasigna clientes entre agentes y ve los reportes.</p></div>
-          <div class="card"><h4>Agente / Vendedor</h4><p>Llama y vende. Solo ve y trabaja a <strong>sus propios clientes</strong> y sus ventas.</p></div>
+        <h3>Los cuatro roles</h3>
+        <div class="grid g2">
+          <div class="card"><h4>Administrador</h4><p>La dueña del negocio. Ve <strong>toda</strong> la información: ventas, montos, pagos, cartera, reportes y estadísticas. Crea usuarios y decide sus permisos.</p></div>
+          <div class="card"><h4>Supervisor</h4><p>Coordina al equipo: ve y reasigna a todos los clientes y candidatos y ve los reportes. <strong>No ve montos</strong>, salvo que la administración le dé el permiso.</p></div>
+          <div class="card"><h4>Agente / Call center</h4><p>Solo lo necesario para trabajar: <strong>sus prospectos, llamadas, seguimientos y citas</strong>. Puede registrar ventas (productos y canal), pero no ve montos, pagos ni saldos.</p></div>
+          <div class="card"><h4>Reclutamiento</h4><p>Solo el módulo de <strong>Reclutamiento</strong>: sus candidatos, entrevistas y seguimientos. No ve clientes ni ventas.</p></div>
         </div>
-        <h3>Qué puede hacer cada rol</h3>
+        <h3>Qué puede ver cada rol</h3>
         <div class="table-wrap"><table>
-          <thead><tr><th>Acción</th><th style="text-align:center">Agente</th><th style="text-align:center">Supervisor</th><th style="text-align:center">Administrador</th></tr></thead>
+          <thead><tr><th>Permiso</th><th style="text-align:center">Admin</th><th style="text-align:center">Supervisor</th><th style="text-align:center">Agente</th><th style="text-align:center">Reclutamiento</th></tr></thead>
           <tbody>
-            <tr><td>Ver y trabajar clientes</td><td style="text-align:center">Solo los suyos</td><td style="text-align:center">Todos</td><td style="text-align:center">Todos</td></tr>
-            <tr><td>Crear prospectos, registrar llamadas y notas</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td></tr>
-            <tr><td>Registrar ventas y cobros</td><td style="text-align:center">De sus clientes</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td></tr>
-            <tr><td>Importar clientes desde Excel</td><td style="text-align:center">Para sí</td><td style="text-align:center">Y repartir</td><td style="text-align:center">Y repartir</td></tr>
-            <tr><td>Reasignar clientes a otra persona</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td></tr>
-            <tr><td>Ver reportes del equipo</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td></tr>
-            <tr><td>Crear, editar o eliminar productos</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center">✓</td></tr>
-            <tr><td>Crear usuarios y cambiar roles</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center">✓</td></tr>
-            <tr><td>Configuración, respaldos y borrar datos</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center">✓</td></tr>
-            <tr><td>Eliminar clientes, ventas o pagos</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center">✓</td></tr>
+            <tr><td>Prospectos, llamadas, seguimientos y citas</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td><td style="text-align:center">Los suyos</td><td style="text-align:center;color:var(--text-3)">—</td></tr>
+            <tr><td>Registrar ventas (productos, canal, entrega)</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td><td style="text-align:center;color:var(--text-3)">—</td></tr>
+            <tr><td><strong>Información financiera</strong>: montos, pagos, saldos, Recaudo / Cartera, metas de venta</td><td style="text-align:center">✓</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td></tr>
+            <tr><td>Reportes y estadísticas</td><td style="text-align:center">✓</td><td style="text-align:center">Sin montos</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td></tr>
+            <tr><td>Ver todo el equipo y reasignar</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td></tr>
+            <tr><td>Reclutamiento (candidatos)</td><td style="text-align:center">Todos</td><td style="text-align:center">Todos</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center">Los suyos</td></tr>
+            <tr><td>Exportar a Excel / CSV</td><td style="text-align:center">✓</td><td style="text-align:center">✓</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td></tr>
+            <tr><td>Usuarios, configuración, productos y eliminar registros</td><td style="text-align:center">✓</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td><td style="text-align:center;color:var(--text-3)">—</td></tr>
           </tbody>
         </table></div>
-        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><strong>Los permisos están protegidos en la nube</strong>No es solo que la pantalla esconda cosas: la base de datos rechaza cualquier intento de ver o cambiar lo que no corresponde a tu rol.</div></div>
+        <h3>Permisos a la medida de cada persona</h3>
+        <p>El rol trae los permisos de la tabla, pero la administración puede <strong>ajustarlos uno por uno</strong> para cada usuario en <em>Panel de administración → Usuarios → Editar → Permisos</em>. Por ejemplo: darle a una agente también el permiso de Reclutamiento, o darle a la supervisora el permiso de Información financiera. Los cambios se aplican la próxima vez que esa persona entre (o recargue la página).</p>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/permisos.jpg" width="1280" height="800" alt="Formulario de usuario con la lista de permisos y el permiso Información financiera marcado como sensible" loading="lazy"></div><figcaption>Editar usuario → Permisos: marca o desmarca lo que esa persona puede ver.</figcaption></figure>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><strong>Los permisos están protegidos en la nube</strong>No es solo que la pantalla esconda cosas: la base de datos solo le entrega a cada persona lo que su permiso permite (sus clientes, sus ventas, sus candidatos) y los <strong>pagos y cobros solo a quien tiene Información financiera</strong>. Los montos tampoco se guardan en el historial que ve el equipo.</div></div>
         <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div><strong>Todo se guarda solo y en tiempo real</strong>No existe un botón de "guardar todo". Cada cambio se guarda en la nube al instante y le aparece al resto del equipo en segundos. Abajo a la izquierda verás <em>"En línea · tiempo real"</em>.</div></div>
       </section>
 
@@ -474,9 +476,10 @@
           <li>Llena al menos el <strong>nombre</strong> y el <strong>teléfono</strong>. Si el teléfono ya existe, el CRM te avisa para no duplicar.</li>
           <li>Elige la <strong>fuente / cómo llegó</strong>. Si eliges <strong>Referido</strong>, aparece <strong>"Referido por"</strong>: escribe el nombre de quien lo refirió (es obligatorio). Si eliges <strong>Feria / Evento</strong>, aparece <strong>"Nombre del evento"</strong>.</li>
           <li>En <strong>Seguimiento</strong>: la etapa, el responsable (la agente asignada), el <strong>próximo seguimiento con fecha y hora</strong> y, si ya lo llamaste, el <strong>resultado de la última llamada</strong> (se cuenta como un intento).</li>
-          <li>Agrega lo que sepas del hogar: productos de interés, cuántos aires acondicionados tiene, si hay mascotas o alergias, el mejor horario para llamarle.</li>
+          <li>Llena el <strong>Perfil del cliente / hogar</strong> con lo que sepas: <strong>vivienda</strong> (dueño de casa o renta), <strong>crédito</strong> (tiene / no tiene), <strong>personas en el hogar</strong>, <strong>estado civil</strong>, <strong>mejor horario para contactar</strong> (mañana, tarde, noche o cualquier horario), <strong>contacto preferido</strong> (llamada, WhatsApp, SMS o email), <strong>mascotas</strong> y <strong>alergias / asma</strong>. Si no lo sabes, déjalo en <em>No indicado</em>.</li>
           <li>Guarda: se abre su ficha para registrar la primera llamada.</li>
         </ol>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/perfil-hogar.jpg" width="1280" height="800" alt="Formulario de prospecto con el Perfil del cliente / hogar: vivienda, crédito, personas, estado civil, horario, contacto preferido, mascotas y alergias" loading="lazy"></div><figcaption>Perfil del cliente / hogar: cada dato tiene la opción "No indicado".</figcaption></figure>
         <h3>Importar una lista desde Excel</h3>
         <ol class="steps">
           <li>En Excel, usa <strong>Archivo → Guardar como → CSV</strong>. La primera fila debe tener títulos como <code>nombre</code>, <code>telefono</code>, <code>email</code>, <code>ciudad</code>, <code>fuente</code>, <code>referido por</code>, <code>evento</code> y <code>notas</code>.</li>
@@ -497,7 +500,8 @@
         <ul class="list">
           <li><strong>Barra de etapas</strong> (arriba): haz clic en una etapa para mover al cliente. Si eliges "Perdido", el CRM te pide el motivo; si eliges "Cita agendada" o "Cita confirmada" sin cita, te pide los datos de la cita; si eliges "Venta", te ofrece registrar la venta.</li>
           <li><strong>Último resultado e intentos</strong>: cómo terminó la última llamada y cuántos intentos de contacto lleva. Se actualizan solos.</li>
-          <li><strong>Datos</strong>: responsable, próximo seguimiento, último contacto (fecha y hora), fuente, <strong>referido por</strong> o evento, dirección con enlace a Google Maps y perfil del hogar.</li>
+          <li><strong>Datos</strong>: responsable, próximo seguimiento, último contacto (fecha y hora), fuente, <strong>referido por</strong> o evento, dirección con enlace a Google Maps y el <strong>perfil del cliente / hogar</strong> (vivienda, crédito, personas, estado civil, horario, contacto preferido, mascotas y alergias).</li>
+          <li><strong>Foto</strong>: el botón de la cámara junto a la inicial sube una foto de la persona (o la cambia o quita). Desde el celular se puede tomar con la cámara.</li>
           <li><strong>Botones de contacto</strong>: Llamar, WhatsApp (con un saludo ya escrito) y Email.</li>
           <li><strong>Historial de contacto</strong>: el contador <strong>Intentos de contacto: X/12</strong>, el formulario para registrar el siguiente intento y la lista de todos los intentos con su número, fecha, hora, agente, resultado y comentario.</li>
           <li><strong>Notas y actividad</strong>: notas libres, citas, cambios de etapa, ventas y pagos.</li>
@@ -606,7 +610,8 @@
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/venta-nueva.jpg" width="1280" height="800" alt="Formulario de nueva venta con productos, descuentos y pago inicial" loading="lazy"></div><figcaption>El formulario de venta calcula el total mientras agregas productos.</figcaption></figure>
         <ol class="steps">
           <li>Presiona <strong>"Nueva venta"</strong> aquí, en la ficha del cliente o moviendo al cliente a la etapa <strong>Venta</strong>.</li>
-          <li>Elige el <strong>cliente</strong> y agrega los <strong>productos</strong> con su cantidad. El precio sale del catálogo, pero lo puedes ajustar. Para algo que no está en el catálogo, usa "Otro (escribir)".</li>
+          <li>Elige el <strong>cliente</strong> y el <strong>canal de la venta</strong>: Llamada / Call center, Instagram, Facebook, WhatsApp, Página web, Tienda, Referido o Feria / Evento (se sugiere solo según la fuente del cliente). Los canales se cambian en Panel de administración → Configuración.</li>
+          <li>Agrega los <strong>productos</strong> con su cantidad. El precio sale del catálogo, pero lo puedes ajustar. Para algo que no está en el catálogo, usa "Otro (escribir)".</li>
           <li>Si aplica, agrega <strong>descuento</strong>, <strong>envío o instalación</strong> e <strong>impuesto</strong>.</li>
           <li>Elige la <strong>condición de pago</strong> (contado, cuotas, crédito), la fecha límite de pago y la fecha de entrega.</li>
           <li>Si el cliente pagó algo en ese momento, escríbelo en <strong>"Pago inicial / abono"</strong> con su método.</li>
@@ -619,6 +624,8 @@
           <li><strong>Recibo</strong>: el botón "Recibo" abre un comprobante listo para imprimir o guardar en PDF.</li>
           <li><strong>A quién se le acredita</strong>: la venta cuenta para la persona responsable del cliente. La supervisora y la dueña pueden elegir otro vendedor.</li>
         </ul>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/ventas-agente.jpg" width="1280" height="800" alt="Lista de ventas vista por una agente: productos, canal y entrega, sin montos" loading="lazy"></div><figcaption>Así ve Ventas una agente: con canal y entrega, sin montos.</figcaption></figure>
+        <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div><strong>Montos solo para la administración</strong>Las agentes pueden registrar ventas y ver sus ventas con productos, canal y estado de entrega, pero <strong>no ven montos, pagos ni saldos</strong>: en su pantalla aparece el aviso con el candado. Solo quien tiene el permiso <em>Información financiera</em> (la administración, por defecto) ve totales, cobros, Recaudo / Cartera y la tabla <strong>Ventas por canal</strong> con montos en Reportes.</div></div>
       </section>
 
       <!-- 11. Recaudo -->

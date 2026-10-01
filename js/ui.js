@@ -74,8 +74,18 @@ const UI = (() => {
   /* ---------- Fragmentos ---------- */
   const avatar = (u, size = '') => {
     if (!u) return `<span class="avatar ${size}" style="background:#9aa2ae">?</span>`;
+    if (u.photoUrl) return `<span class="avatar ${size} has-photo" style="background-image:url('${U.esc(thumb(u.photoUrl, size === 'lg' || size === 'xl' ? 240 : 96))}')" title="${U.esc(u.name)}" role="img" aria-label="${U.esc(u.name)}"></span>`;
     return `<span class="avatar ${size}" style="background:${u.color || '#7b8391'}" title="${U.esc(u.name)}">${U.esc(U.initials(u.name))}</span>`;
   };
+  // Foto grande de una persona (cliente o candidato) con color de respaldo
+  const personPhoto = (p, color) => (p.photoUrl
+    ? `<span class="avatar lg has-photo" style="background-image:url('${U.esc(thumb(p.photoUrl, 240))}')" role="img" aria-label="Foto de ${U.esc(p.name)}"></span>`
+    : `<span class="avatar lg" style="background:${color}">${U.esc(U.initials(p.name))}</span>`);
+  // Miniatura recortada a la cara (Cloudinary); otras URL se usan tal cual
+  function thumb(url, size = 96) {
+    const m = String(url || '').match(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.*)$/);
+    return m ? `${m[1]}c_fill,g_face,w_${size},h_${size},q_auto,f_auto/${m[2]}` : url;
+  }
   const userName = (id) => { const u = Store.get('users', id); return u ? u.name : 'Sin asignar'; };
   const stageBadge = (s) => { const x = stageById(s); return `<span class="badge stage-badge" style="background:${x.soft};color:${x.ink};border-color:${x.color}33"><span class="dot" style="background:${x.color}"></span>${x.name}</span>`; };
   // Contador de intentos de contacto: "3/12"
@@ -88,7 +98,8 @@ const UI = (() => {
   const options = (list, selected, { value = (x) => x.id, label = (x) => x.name, blank } = {}) =>
     (blank !== undefined ? `<option value="">${U.esc(blank)}</option>` : '') +
     list.map((x) => { const v = typeof x === 'string' ? x : value(x); const l = typeof x === 'string' ? x : label(x); return `<option value="${U.esc(v)}" ${String(v) === String(selected ?? '') ? 'selected' : ''}>${U.esc(l)}</option>`; }).join('');
-  const userOptions = (selected, { blank, all = false } = {}) => options(all ? Store.all('users') : Store.activeUsers(), selected, { blank });
+  // Por defecto: personas que trabajan prospectos (no aparece quien solo hace Reclutamiento)
+  const userOptions = (selected, { blank, all = false, any = false } = {}) => options(all ? Store.all('users') : Store.activeUsers().filter((u) => any || u.role === 'admin' || Store.permsOf(u).prospects || u.id === selected), selected, { blank });
   const followLabel = (d) => {
     if (!d) return '<span class="muted">Sin programar</span>';
     const t = new Date(d).getTime();
@@ -184,7 +195,52 @@ const UI = (() => {
     return { url: j.secure_url, publicId: j.public_id, name: file.name, type: j.resource_type, format: j.format, bytes: j.bytes };
   }
 
+  // Elegir una foto (cámara o galería), subirla a Cloudinary y devolver la URL
+  function pickPhoto(subfolder) {
+    return new Promise((resolve, reject) => {
+      if (!cloudinaryReady()) { toast('Configura Cloudinary en js/config.js para subir fotos', 'bad'); resolve(null); return; }
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
+      document.body.appendChild(inp);
+      inp.onchange = async () => {
+        const f = inp.files[0]; inp.remove();
+        if (!f) return resolve(null);
+        if (!/^image\//.test(f.type)) { toast('Elige una imagen (JPG, PNG…)', 'bad'); return resolve(null); }
+        if (f.size > 10 * 1024 * 1024) { toast('La foto pesa más de 10 MB', 'bad'); return resolve(null); }
+        toast('Subiendo foto…');
+        try { const r = await uploadToCloudinary(f, subfolder); resolve(r.url); }
+        catch (e) { toast(e.message, 'bad'); reject(e); }
+      };
+      inp.click();
+    });
+  }
+
+  // Ya hay foto: preguntar si se cambia o se quita. Devuelve 'change', 'remove' o null
+  function photoMenu(photoUrl, name) {
+    return new Promise((resolve) => {
+      let out = null;
+      const m = modal({
+        title: 'Foto de ' + U.esc(name || ''), size: 'sm',
+        body: `<div style="text-align:center"><img src="${U.esc(thumb(photoUrl, 320))}" alt="" style="width:160px;height:160px;border-radius:50%;object-fit:cover"></div>`,
+        footer: `<button type="button" class="btn danger" data-act="remove" style="margin-right:auto">${icon('trash', 'sm')} Quitar</button><button type="button" class="btn" data-close>Cancelar</button><button type="button" class="btn primary" data-act="change">${icon('camera', 'sm')} Cambiar foto</button>`,
+        onOpen: (form, close) => form.closest('.modal').querySelectorAll('[data-act]').forEach((b) => b.onclick = () => { out = b.dataset.act; close(); })
+      });
+      const obs = new MutationObserver(() => { if (!document.body.contains(m.el)) { obs.disconnect(); resolve(out); } });
+      obs.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+  // Flujo completo: cambiar / quitar / subir. Devuelve la URL nueva, '' si se quitó, o null si no cambió
+  async function editPhoto(current, name, subfolder) {
+    if (current) {
+      const act = await photoMenu(current, name);
+      if (act === 'remove') return '';
+      if (act !== 'change') return null;
+    }
+    return (await pickPhoto(subfolder).catch(() => null)) || null;
+  }
+
   return {
+    personPhoto, thumb, pickPhoto, editPhoto,
     toast, modal, confirm, formData, avatar, userName, stageBadge, attempts, outcomeBadge, orderStatusBadge, payBadge, apptBadge,
     empty, options, userOptions, followLabel, barChart, hbars, initTooltips, cloudinaryReady, uploadToCloudinary
   };

@@ -52,6 +52,7 @@ Views.llamadas = (() => {
   }
 
   function render(el) {
+    if (st.queue === 'cobro' && !Store.can('finance')) st.queue = 'smart';
     const queue = buildQueue();
     if (!st.currentId || !queue.find((c) => c.id === st.currentId)) { st.currentId = queue[0] ? queue[0].id : null; resetCall(); }
     const c = st.currentId && Store.get('clients', st.currentId);
@@ -62,7 +63,7 @@ Views.llamadas = (() => {
       <div class="page-head">
         <div><h1>Modo llamadas</h1><p>${QUEUES[st.queue].desc}</p></div>
         <div class="page-actions">
-          <select id="queueSel" style="width:auto">${Object.entries(QUEUES).map(([k, q]) => `<option value="${k}" ${k === st.queue ? 'selected' : ''}>${q.label}</option>`).join('')}</select>
+          <select id="queueSel" style="width:auto">${Object.entries(QUEUES).filter(([k]) => k !== 'cobro' || Store.can('finance')).map(([k, q]) => `<option value="${k}" ${k === st.queue ? 'selected' : ''}>${q.label}</option>`).join('')}</select>
           ${st.skipped.size ? `<button class="btn" id="unskip">Restaurar ${st.skipped.size} saltados</button>` : ''}
         </div>
       </div>
@@ -99,7 +100,7 @@ Views.llamadas = (() => {
   function callCard(c) {
     const lastActs = U.sortBy(Store.where('activities', (a) => a.clientId === c.id), (a) => a.createdAt, -1).slice(0, 4);
     const products = (c.interests || []).map((id) => Store.get('products', id)).filter(Boolean);
-    const balance = Store.clientBalance(c.id);
+    const balance = Store.can('finance') ? Store.clientBalance(c.id) : 0;
     return `
       <div class="card">
         <div class="card-body stack" style="gap:16px">
@@ -120,7 +121,7 @@ Views.llamadas = (() => {
             </div>
           </div>
           ${balance > 0 ? `<div class="badge bad" style="padding:8px 12px;font-size:13px">${icon('wallet', 'sm')} Tiene saldo pendiente de ${U.money(balance)}</div>` : ''}
-          ${c.notes || products.length || c.allergies || c.pets ? `<div class="row wrap small">${products.map((p) => `<span class="badge info">${U.esc(p.name)}</span>`).join('')}${c.allergies ? '<span class="badge warn">Alergias/asma</span>' : ''}${c.pets ? '<span class="badge">Mascotas</span>' : ''}${c.acUnits ? `<span class="badge">${c.acUnits} A/C</span>` : ''}</div>${c.notes ? `<div class="script-box">${U.esc(c.notes)}</div>` : ''}` : ''}
+          ${c.notes || products.length || c.allergies || c.pets || c.housing || c.preferredContact ? `<div class="row wrap small">${products.map((p) => `<span class="badge info">${U.esc(p.name)}</span>`).join('')}${c.allergies === true ? '<span class="badge warn">Alergias/asma</span>' : ''}${c.pets === true ? '<span class="badge">Mascotas</span>' : ''}${c.housing ? `<span class="badge">${labelOf(HOUSING, c.housing)}</span>` : ''}${c.preferredContact ? `<span class="badge">Prefiere ${U.esc(c.preferredContact)}</span>` : ''}</div>${c.notes ? `<div class="script-box">${U.esc(c.notes)}</div>` : ''}` : ''}
 
           <div>
             <div class="row between" style="margin-bottom:6px"><strong class="small">Guion de llamada</strong><button class="btn ghost xs" id="toggleScript">${st.showScript ? 'Ocultar' : 'Mostrar'}</button></div>
@@ -201,5 +202,5 @@ Views.llamadas = (() => {
     Views.cliente.afterOutcome(c.id, o.id);
   }
 
-  return { title: 'Modo llamadas', render, noAutoRefresh: true };
+  return { title: 'Modo llamadas', perm: 'prospects', render, noAutoRefresh: true };
 })();

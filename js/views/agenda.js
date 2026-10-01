@@ -136,5 +136,5 @@ Views.agenda = (() => {
     });
   }
 
-  return { title: 'Agenda', render, taskItem, bindTaskItems, openTaskForm };
+  return { title: 'Agenda', perm: 'prospects', render, taskItem, bindTaskItems, openTaskForm };
 })();

@@ -81,8 +81,8 @@ const FirestoreAdapter = {
       throw Object.assign(new Error(access ? 'Tu usuario está desactivado. Habla con la administradora.' : 'Tu correo no tiene acceso a este CRM. Pídele a la administradora que te cree un usuario.'), { code: 'no-access', email });
     }
     const role = isOwner ? 'admin' : access.role;
-    this.access = { email, role, userId: access ? access.userId : null, isOwner };
-    const manager = role === 'admin' || role === 'supervisor';
+    const perms = effectivePerms(role, access && access.perms);
+    this.access = { email, role, perms, userId: access ? access.userId : null, isOwner };
 
     // 3) La base en línea empieza vacía: solo se crea la configuración la primera vez.
     //    (Los datos de ejemplo viven únicamente en la demo sin conexión, ?local=1)
@@ -104,12 +104,14 @@ const FirestoreAdapter = {
     const cache = this.cache = { settings: Object.assign({}, ctx.defaults) };
     COLLECTIONS.forEach((c) => { cache[c] = []; });
     const mine = this.access.userId || '__sin_usuario__';
+    // Cada persona solo descarga lo que sus permisos le dejan ver (las reglas de Firestore lo exigen igual)
     const source = (col) => {
       const ref = fs.collection(this.fdb, col);
-      if (manager) return ref;
-      if (col === 'clients') return fs.query(ref, fs.where('ownerId', '==', mine));
-      if (col === 'orders') return fs.query(ref, fs.where('userId', '==', mine));
-      if (col === 'candidates') return fs.query(ref, fs.where('ownerId', '==', mine));
+      if (col === 'clients') return perms.viewAll ? ref : fs.query(ref, fs.where('ownerId', '==', mine));
+      if (col === 'orders') return perms.viewAll ? ref : fs.query(ref, fs.where('userId', '==', mine));
+      if (col === 'payments') return perms.finance ? ref : null;
+      if (col === 'candidates') return perms.recruitAll ? ref : perms.recruitment ? fs.query(ref, fs.where('ownerId', '==', mine)) : null;
+      if (col === 'candidateActivities') return perms.recruitment ? ref : null;
       return ref;
     };
     this.denied = [];
@@ -125,7 +127,7 @@ const FirestoreAdapter = {
       });
     });
     await Promise.all([
-      ...COLLECTIONS.map((col) => listen(source(col), (snap) => { cache[col] = snap.docs.map((d) => normalizeDoc(col, Object.assign({ id: d.id }, d.data()))); }, OPTIONAL_COLLECTIONS.includes(col) && col)),
+      ...COLLECTIONS.filter((col) => source(col)).map((col) => listen(source(col), (snap) => { cache[col] = snap.docs.map((d) => normalizeDoc(col, Object.assign({ id: d.id }, d.data()))); }, OPTIONAL_COLLECTIONS.includes(col) && col)),
       listen(settingsRef, (snap) => { cache.settings = Object.assign({}, ctx.defaults, snap.exists() ? snap.data() : {}); })
     ]);
 
@@ -156,7 +158,7 @@ const FirestoreAdapter = {
   putAccess(u) {
     const email = String(u.email || '').trim().toLowerCase();
     if (!email) return Promise.resolve();
-    return this.fs.setDoc(this.fs.doc(this.fdb, 'access', email), { email, userId: u.id, role: u.role, active: u.active !== false, updatedAt: new Date().toISOString() }).catch((e) => this._err(e));
+    return this.fs.setDoc(this.fs.doc(this.fdb, 'access', email), { email, userId: u.id, role: u.role, perms: effectivePerms(u.role, u.perms), active: u.active !== false, updatedAt: new Date().toISOString() }).catch((e) => this._err(e));
   },
 
   _err(e) { console.error(e); UI.toast('No se pudo guardar en la nube: ' + (e.code || e.message), 'bad'); },
@@ -196,7 +198,13 @@ const SOURCE_DEFAULTS = ['Florida Mall / Tienda', 'Feria / Evento', 'Referido', 
 
 // Ajusta documentos guardados con versiones anteriores del CRM
 function normalizeDoc(col, d) {
-  if (col === 'clients' && d && STAGE_ALIASES[d.stage]) d.stage = STAGE_ALIASES[d.stage];
+  if (col === 'clients' && d) {
+    if (STAGE_ALIASES[d.stage]) d.stage = STAGE_ALIASES[d.stage];
+    if (d.bestTime === 'Cualquiera') d.bestTime = 'Cualquier horario';
+    if (d.preferredContact === 'SMS') d.preferredContact = 'SMS / Mensaje de texto';
+    // Perfil anterior: la casilla sin marcar no significaba "No", sino "no indicado"
+    if (d.housing === undefined) { if (d.pets === false) d.pets = null; if (d.allergies === false) d.allergies = null; }
+  }
   return d;
 }
 
@@ -220,6 +228,7 @@ const Store = (() => {
     candidateSources: ['Indeed', 'Referido', 'Facebook', 'Instagram', 'Florida Mall / Tienda', 'Feria / Evento', 'Otra fuente'],
     positions: ['Agente de ventas telefónicas', 'Vendedor(a) de campo', 'Técnico(a) instalador', 'Supervisor(a)', 'Recepcionista', 'Otro'],
     languages: ['Español', 'Inglés', 'Bilingüe (Español/Inglés)', 'Otro'],
+    saleChannels: SALE_CHANNEL_DEFAULTS.slice(),
     categories: ['Filtros de aire', 'Purificadores', 'Filtros de agua', 'Deshumidificadores', 'Accesorios', 'Servicios'],
     staleDays: 7,
     callScript:
@@ -244,6 +253,11 @@ const Store = (() => {
       await wipeAll();
       db.settings.cleanedDemoAt = new Date().toISOString();
       saveSettings({ demoData: false, cleanedDemoAt: db.settings.cleanedDemoAt });
+    }
+    // Una sola vez: guardar los permisos de cada cuenta donde los leen las reglas de seguridad
+    if (authMode() && adapter.access && adapter.access.role === 'admin' && db.settings.permsVersion !== 1) {
+      await Promise.all(db.users.filter((u) => u.authAccount || isOwner(u)).map((u) => syncAccess(u)));
+      saveSettings({ permsVersion: 1 });
     }
   }
   const mode = () => adapter.name;
@@ -350,20 +364,15 @@ const Store = (() => {
   const auth = () => (authMode() ? adapter : null);
 
   /* ---------- Permisos ---------- */
-  const isManager = (u = currentUser()) => u.role === 'admin' || u.role === 'supervisor';
   const isAdmin = (u = currentUser()) => u.role === 'admin';
+  const permsOf = (u = currentUser()) => effectivePerms(u.role, u.perms);
+  const isManager = (u = currentUser()) => permsOf(u).viewAll;
+  const ADMIN_ONLY = ['manageUsers', 'manageSettings', 'manageProducts', 'deleteRecords'];
+  // can('finance'), can('prospects'), can('recruitment')… según los permisos de la persona
   function can(action, u = currentUser()) {
-    const rules = {
-      manageUsers: isAdmin(u),
-      manageSettings: isAdmin(u),
-      manageProducts: isAdmin(u),
-      deleteRecords: isAdmin(u),
-      reassign: isManager(u),
-      viewAll: isManager(u),
-      viewReports: isManager(u),
-      exportData: isManager(u)
-    };
-    return !!rules[action];
+    if (isAdmin(u)) return true;
+    if (ADMIN_ONLY.includes(action)) return false;
+    return !!permsOf(u)[action === 'viewReports' ? 'reports' : action];
   }
   // Datos visibles según el rol
   const myClients = () => (can('viewAll') ? db.clients : db.clients.filter((c) => c.ownerId === currentUser().id));
@@ -372,7 +381,8 @@ const Store = (() => {
   const myActivities = () => (can('viewAll') ? db.activities : db.activities.filter((a) => a.userId === currentUser().id));
   const canSeeClient = (c) => c && (can('viewAll') || c.ownerId === currentUser().id);
   const activeUsers = () => db.users.filter((u) => u.active);
-  const sellers = () => db.users.filter((u) => u.active && (u.role !== 'admin' || u.sells));
+  const sellers = () => db.users.filter((u) => u.active && (u.role === 'admin' ? u.sells : permsOf(u).prospects));
+  const recruiters = () => db.users.filter((u) => u.active && permsOf(u).recruitment);
 
   /* ---------- Lógica de negocio ---------- */
   const orderPaid = (o) => U.sum(db.payments.filter((p) => p.orderId === o.id), (p) => p.amount);
@@ -499,7 +509,8 @@ const Store = (() => {
   function registerPayment({ orderId, amount, method, date, reference, notes }) {
     const o = get('orders', orderId);
     const p = insert('payments', { orderId, clientId: o.clientId, userId: currentUser().id, amount: Number(amount), method, date: date || new Date().toISOString(), reference, notes });
-    logActivity({ clientId: o.clientId, type: 'pago', text: `Pago de ${U.money(amount)} (${method}) a la venta ${o.number}. Saldo: ${U.money(orderBalance(o))}` });
+    // Sin montos en el historial: lo ve todo el equipo; los montos quedan en Ventas y Recaudo
+    logActivity({ clientId: o.clientId, orderId, paymentId: p.id, type: 'pago', text: `Pago registrado (${method}) a la venta ${o.number}` });
     return p;
   }
 
@@ -512,7 +523,7 @@ const Store = (() => {
       const p = get('products', it.productId);
       if (p && p.trackStock) update('products', p.id, { stock: (p.stock || 0) - (Number(it.qty) || 0) });
     });
-    logActivity({ clientId: o.clientId, type: 'venta', text: `Venta ${o.number} por ${U.money(o.total)}: ${data.items.map((i) => i.qty + '× ' + i.name).join(', ')}` });
+    logActivity({ clientId: o.clientId, orderId: o.id, type: 'venta', text: `Venta ${o.number}${o.channel ? ' (' + o.channel + ')' : ''}: ${data.items.map((i) => i.qty + '× ' + i.name).join(', ')}` });
     const c = get('clients', o.clientId);
     if (c && c.stage !== 'ganado') changeStage(c.id, 'ganado');
     return o;
@@ -569,7 +580,7 @@ const Store = (() => {
 
   return {
     init, all, get, where, insert, update, remove, settings, saveSettings, onChange: (fn) => listeners.add(fn),
-    currentUser, setCurrentUser, isManager, isAdmin, can, myClients, myOrders, myTasks, myActivities, canSeeClient, activeUsers, sellers,
+    currentUser, setCurrentUser, isManager, isAdmin, can, permsOf, recruiters, myClients, myOrders, myTasks, myActivities, canSeeClient, activeUsers, sellers,
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
     exportJSON, importJSON, resetDemo, wipeAll, mode, deniedCollections, isOwner,
@@ -595,10 +606,11 @@ const Seed = {
       { name: 'Carlos Rivera', email: 'carlos@empresa.com', phone: '(305) 555-0102', role: 'agente', callGoal: 60, salesGoal: 6000 },
       { name: 'Andrea Torres', email: 'andrea@empresa.com', phone: '(305) 555-0103', role: 'agente', callGoal: 60, salesGoal: 6000 },
       { name: 'Jorge Martínez', email: 'jorge@empresa.com', phone: '(305) 555-0104', role: 'agente', callGoal: 50, salesGoal: 5000 },
-      { name: 'Sofía Herrera', email: 'sofia@empresa.com', phone: '(305) 555-0105', role: 'agente', callGoal: 50, salesGoal: 5000 }
+      { name: 'Sofía Herrera', email: 'sofia@empresa.com', phone: '(305) 555-0105', role: 'agente', callGoal: 50, salesGoal: 5000 },
+      { name: 'Valeria Ortiz', email: 'valeria@empresa.com', phone: '(305) 555-0106', role: 'reclutador', callGoal: 30, salesGoal: 0 }
     ].map((u, i) => Object.assign({ id: 'us_' + (i + 1), active: true, color: USER_COLORS[i % USER_COLORS.length], createdAt: iso(now - 120 * U.DAY), updatedAt: iso(now) }, u));
     db.users = users;
-    const agents = users.filter((u) => u.role !== 'admin');
+    const agents = users.filter((u) => u.role === 'supervisor' || u.role === 'agente');
 
     const products = [
       ['FA-1620', 'Filtro de aire 16x20x1 MERV 8', 'Filtros de aire', 18, 7],
@@ -656,13 +668,14 @@ const Seed = {
         interests: [...new Set(interest)],
         stage,
         ownerId: owner.id,
-        acUnits: r.int(1, 3),
-        householdSize: r.int(1, 6),
-        pets: r.chance(0.4),
-        allergies: r.chance(0.35),
-        preferredContact: r.pick(['Llamada', 'WhatsApp', 'Llamada', 'Email']),
-        bestTime: r.pick(['Mañana', 'Tarde', 'Noche', 'Cualquiera']),
-        birthday: '',
+        housing: r.pick(['dueno', 'dueno', 'renta', '']),
+        credit: r.pick(['si', 'si', 'no', '']),
+        householdSize: r.chance(0.85) ? r.int(1, 6) : null,
+        maritalStatus: r.pick(['casado', 'casado', 'soltero', 'divorciado', 'viudo', '']),
+        pets: r.pick([true, false, false, null]),
+        allergies: r.pick([true, false, false, null]),
+        preferredContact: r.pick(['Llamada', 'WhatsApp', 'Llamada', 'Email', 'SMS / Mensaje de texto']),
+        bestTime: r.pick(['Mañana', 'Tarde', 'Noche', 'Cualquier horario']),
         notes: r.pick(notesPool),
         dnc: false,
         attachments: [],
@@ -732,9 +745,9 @@ const Seed = {
           const discount = subtotal >= 150 && r.chance(0.3) ? r.pick([10, 20, 25, 50]) : 0;
           const total = Math.max(0, subtotal - discount);
           const status = r.pick(['entregada', 'entregada', 'entregada', 'enviada', 'confirmada', 'pendiente']);
-          const o = { id: U.uid('or_'), number: 'V-' + (++orderNo), clientId: c.id, userId: owner.id, items, discount, shipping: 0, taxRate: 0, subtotal, tax: 0, total, status, paymentTerms: r.pick(['Contado', 'Contado', '2 cuotas', '3 cuotas']), dueDate: iso(when + 15 * U.DAY), deliveryDate: iso(when + r.int(1, 5) * U.DAY), notes: '', createdAt: iso(when), updatedAt: iso(when) };
+          const o = { id: U.uid('or_'), number: 'V-' + (++orderNo), clientId: c.id, userId: owner.id, channel: channelFromSource(c.source), items, discount, shipping: 0, taxRate: 0, subtotal, tax: 0, total, status, paymentTerms: r.pick(['Contado', 'Contado', '2 cuotas', '3 cuotas']), dueDate: iso(when + 15 * U.DAY), deliveryDate: iso(when + r.int(1, 5) * U.DAY), notes: '', createdAt: iso(when), updatedAt: iso(when) };
           db.orders.push(o);
-          db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: owner.id, type: 'venta', text: `Venta ${o.number} por $${total}`, createdAt: iso(when + 1000), updatedAt: iso(when + 1000) });
+          db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: owner.id, orderId: o.id, type: 'venta', text: `Venta ${o.number} (${o.channel}): ${items.map((i) => i.qty + '× ' + i.name).join(', ')}`, createdAt: iso(when + 1000), updatedAt: iso(when + 1000) });
           // Pagos: la mayoría pagan completo, algunos abonan
           const pr = r();
           const pays = pr < 0.6 ? [total] : pr < 0.85 ? [Math.round(total * r.pick([0.3, 0.5]))] : [];
@@ -762,7 +775,7 @@ const Seed = {
     const cSources = settings.candidateSources || ['Indeed'];
     const positions = settings.positions || ['Agente de ventas telefónicas'];
     const languages = settings.languages || ['Español'];
-    const recruiters = users.filter((u) => u.role !== 'agente' || u.id === 'us_3');
+    const recruiters = users.filter((u) => u.role === 'reclutador' || u.role === 'supervisor' || u.id === 'us_1');
     const candStageW = [['nuevo', 14], ['intentando', 14], ['contactado', 10], ['entrevista_agendada', 9], ['entrevista_confirmada', 6], ['entrevistado', 7], ['califica', 6], ['entrenamiento_agendado', 5], ['en_entrenamiento', 5], ['contratado', 8], ['no_seleccionado', 8], ['sin_respuesta', 8]];
     const pickCand = () => { let t = rc() * 100; for (const [s, w] of candStageW) { if ((t -= w) < 0) return s; } return 'nuevo'; };
     const order = CAND_STAGES.map((s) => s.id);

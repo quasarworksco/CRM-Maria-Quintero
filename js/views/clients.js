@@ -14,7 +14,7 @@ Views.clientes = (() => {
     { id: 'referidos', label: 'Referidos', fn: (c) => isReferralSource(c.source) || !!c.referredBy },
     { id: 'olvidados', label: 'Sin actividad', fn: (c) => Store.isStale(c) },
     { id: 'clientes', label: 'Ya compraron', fn: (c) => c.stage === 'ganado' },
-    { id: 'saldo', label: 'Con saldo pendiente', fn: (c) => Store.clientBalance(c.id) > 0 },
+    { id: 'saldo', label: 'Con saldo pendiente', fn: (c) => Store.clientBalance(c.id) > 0, finance: true },
     { id: 'perdidos', label: 'Perdidos', fn: (c) => c.stage === 'perdido' }
   ];
 
@@ -62,12 +62,12 @@ Views.clientes = (() => {
         <div><h1>Clientes y prospectos</h1><p>${U.num(Store.myClients().length)} registros · ${manager ? 'todo el equipo' : 'tu cartera'}</p></div>
         <div class="page-actions">
           <button class="btn" id="importBtn">${icon('upload', 'sm')} Importar</button>
-          <button class="btn" id="exportBtn">${icon('download', 'sm')} Exportar</button>
+          ${Store.can('exportData') ? `<button class="btn" id="exportBtn">${icon('download', 'sm')} Exportar</button>` : ''}
           <button class="btn primary" id="newBtn">${icon('userPlus', 'sm')} Nuevo prospecto</button>
         </div>
       </div>
       <div class="row wrap" style="margin-bottom:12px;gap:6px">
-        ${QUICK.map((x) => { const n = Store.myClients().filter(x.fn).length; return `<button class="btn sm ${state.quick === x.id ? 'primary' : ''}" data-quick="${x.id}">${x.label} <span class="${state.quick === x.id ? '' : 'muted'}">${n}</span></button>`; }).join('')}
+        ${QUICK.filter((x) => !x.finance || Store.can('finance')).map((x) => { const n = Store.myClients().filter(x.fn).length; return `<button class="btn sm ${state.quick === x.id ? 'primary' : ''}" data-quick="${x.id}">${x.label} <span class="${state.quick === x.id ? '' : 'muted'}">${n}</span></button>`; }).join('')}
       </div>
       <div class="card">
         <div class="toolbar">
@@ -84,7 +84,7 @@ Views.clientes = (() => {
           <strong>${state.selected.size} seleccionados</strong>
           ${Store.can('reassign') ? `<select id="bOwner"><option value="">Asignar a…</option>${UI.userOptions('')}</select>` : ''}
           <select id="bStage"><option value="">Mover a etapa…</option>${UI.options(STAGES, '')}</select>
-          <button class="btn sm" id="bExport">${icon('download', 'sm')} Exportar</button>
+          ${Store.can('exportData') ? `<button class="btn sm" id="bExport">${icon('download', 'sm')} Exportar</button>` : ''}
           ${Store.can('deleteRecords') ? `<button class="btn sm danger" id="bDelete">${icon('trash', 'sm')} Eliminar</button>` : ''}
           <button class="btn ghost sm" id="bClear">Quitar selección</button>
         </div>` : ''}
@@ -150,7 +150,8 @@ Views.clientes = (() => {
     if (prev) prev.onclick = () => { state.page--; rerender(); };
     if (next) next.onclick = () => { state.page++; rerender(); };
     el.querySelector('#newBtn').onclick = () => openForm();
-    el.querySelector('#exportBtn').onclick = () => exportCSV(list);
+    const exb = el.querySelector('#exportBtn');
+    if (exb) exb.onclick = () => exportCSV(list);
     el.querySelector('#importBtn').onclick = openImport;
 
     // Acciones masivas
@@ -170,9 +171,12 @@ Views.clientes = (() => {
     if (bClear) bClear.onclick = () => { state.selected.clear(); rerender(); };
   }
 
+  // Sí / No / No indicado
+  const triOptions = (v) => `<option value="">No indicado</option><option value="si" ${v === true ? 'selected' : ''}>Sí</option><option value="no" ${v === false ? 'selected' : ''}>No</option>`;
+
   /* ---------- Formulario ---------- */
   function openForm(id, preset = {}) {
-    const c = id ? Store.get('clients', id) : Object.assign({ stage: 'nuevo', ownerId: Store.currentUser().id, interests: [], acUnits: 1 }, preset);
+    const c = id ? Store.get('clients', id) : Object.assign({ stage: 'nuevo', ownerId: Store.currentUser().id, interests: [] }, preset);
     const s = Store.settings();
     const products = Store.all('products').filter((p) => p.active);
     const sources = s.sources.includes(c.source) || !c.source ? s.sources : s.sources.concat(c.source);
@@ -207,17 +211,16 @@ Views.clientes = (() => {
           <label class="field full">Productos de interés
             <div class="row wrap" style="gap:6px 14px;font-weight:400">${products.map((p) => `<label class="check"><input type="checkbox" name="interests" data-multi value="${p.id}" ${(c.interests || []).includes(p.id) ? 'checked' : ''}>${U.esc(p.name)}</label>`).join('') || '<span class="muted small">Aún no hay productos en el catálogo.</span>'}</div>
           </label>
-          <div class="form-section full">Perfil del hogar / negocio</div>
+          <div class="form-section full">Perfil del cliente / hogar</div>
           <div class="form-grid cols-3 full">
-            <label class="field">Unidades de aire (A/C)<input name="acUnits" type="number" min="0" value="${c.acUnits ?? ''}"></label>
-            <label class="field">Personas en casa<input name="householdSize" type="number" min="0" value="${c.householdSize ?? ''}"></label>
-            <label class="field">Mejor horario<select name="bestTime">${UI.options(['Mañana', 'Tarde', 'Noche', 'Cualquiera'], c.bestTime, { blank: '—' })}</select></label>
-            <label class="field">Contacto preferido<select name="preferredContact">${UI.options(['Llamada', 'WhatsApp', 'Email', 'SMS'], c.preferredContact, { blank: '—' })}</select></label>
-            <label class="field">Cumpleaños<input name="birthday" type="date" value="${U.esc(c.birthday)}"></label>
-            <div class="field" style="justify-content:flex-end;gap:8px">
-              <label class="check"><input type="checkbox" name="pets" ${c.pets ? 'checked' : ''}> Tiene mascotas</label>
-              <label class="check"><input type="checkbox" name="allergies" ${c.allergies ? 'checked' : ''}> Alergias / asma</label>
-            </div>
+            <label class="field">Vivienda<select name="housing">${UI.options(HOUSING, c.housing, { blank: 'No indicado' })}</select></label>
+            <label class="field">Crédito<select name="credit">${UI.options(CREDIT, c.credit, { blank: 'No sabe / No indicado' })}</select></label>
+            <label class="field">Personas en el hogar<select name="householdSize">${UI.options(Array.from({ length: 10 }, (_, i) => ({ id: String(i + 1), name: i === 9 ? '10 o más' : String(i + 1) })), c.householdSize ? String(Math.min(10, c.householdSize)) : '', { blank: 'No sabe / No indicado' })}</select></label>
+            <label class="field">Estado civil<select name="maritalStatus">${UI.options(MARITAL, c.maritalStatus, { blank: 'No indicado' })}</select></label>
+            <label class="field">Mejor horario para contactar<select name="bestTime">${UI.options(BEST_TIMES, c.bestTime, { blank: 'No indicado' })}</select></label>
+            <label class="field">Contacto preferido<select name="preferredContact">${UI.options(CONTACT_PREFS, c.preferredContact, { blank: 'No indicado' })}</select></label>
+            <label class="field">Mascotas<select name="pets">${triOptions(c.pets)}</select></label>
+            <label class="field">Alergias / asma<select name="allergies">${triOptions(c.allergies)}</select></label>
           </div>
           <label class="field full">Notas generales<textarea name="notes" rows="3">${U.esc(c.notes)}</textarea></label>
           <label class="check full"><input type="checkbox" name="dnc" ${c.dnc ? 'checked' : ''}> <span>No volver a llamar (lista negra)</span></label>
@@ -237,7 +240,9 @@ Views.clientes = (() => {
         const dup = Store.all('clients').find((x) => x.id !== id && U.cleanPhone(x.phone).slice(-10) === U.cleanPhone(d.phone).slice(-10) && U.cleanPhone(d.phone).length >= 7);
         if (dup && !id && !window.confirm(`Ya existe un cliente con ese teléfono: ${dup.name} (${UI.userName(dup.ownerId)}). ¿Crear de todas formas?`)) return false;
         const outcome = d.lastOutcome;
+        const tri = (v) => (v === 'si' ? true : v === 'no' ? false : null);
         const data = Object.assign({}, d, {
+          pets: tri(d.pets), allergies: tri(d.allergies), householdSize: d.householdSize ? Number(d.householdSize) : null,
           referredBy: isReferralSource(d.source) ? d.referredBy : '',
           eventName: isEventSource(d.source) ? d.eventName : '',
           nextFollowUp: U.fromInput(d.nextFollowUp)
@@ -271,7 +276,7 @@ Views.clientes = (() => {
 
   /* ---------- Exportar / importar ---------- */
   function exportCSV(list) {
-    if (!Store.can('exportData') && !list.every((c) => c.ownerId === Store.currentUser().id)) return UI.toast('Sin permiso para exportar', 'bad');
+    if (!Store.can('exportData')) return UI.toast('Tu usuario no tiene permiso para exportar', 'bad');
     const csv = U.toCSV(list, [
       { label: 'Nombre', value: 'name' }, { label: 'Empresa', value: 'company' }, { label: 'Teléfono', value: 'phone' }, { label: 'Teléfono 2', value: 'phone2' },
       { label: 'Email', value: 'email' }, { label: 'Dirección', value: 'address' }, { label: 'Ciudad', value: 'city' }, { label: 'Estado', value: 'state' }, { label: 'CP', value: 'zip' },
@@ -279,7 +284,12 @@ Views.clientes = (() => {
       { label: 'Responsable', value: (c) => UI.userName(c.ownerId) }, { label: 'Último resultado', value: (c) => (outcomeById(c.lastOutcome) || {}).name || '' },
       { label: 'Cita', value: (c) => { const a = Store.activeAppointment(c); return a ? `${U.dateTime(a.at)} · ${a.address} · ${Store.demoByName(a)}` : ''; } },
       { label: 'Último contacto', value: (c) => c.lastContact ? U.dateTime(c.lastContact) : '' }, { label: 'Próximo seguimiento', value: (c) => c.nextFollowUp ? U.dateTime(c.nextFollowUp) : '' },
-      { label: 'Intentos de contacto', value: 'callCount' }, { label: 'Total comprado', value: (c) => Store.clientRevenue(c.id) }, { label: 'Saldo', value: (c) => Store.clientBalance(c.id) },
+      { label: 'Intentos de contacto', value: 'callCount' },
+      { label: 'Vivienda', value: (c) => labelOf(HOUSING, c.housing) }, { label: 'Crédito', value: (c) => labelOf(CREDIT, c.credit, 'No sabe / No indicado') },
+      { label: 'Personas en el hogar', value: (c) => c.householdSize || 'No indicado' }, { label: 'Estado civil', value: (c) => labelOf(MARITAL, c.maritalStatus) },
+      { label: 'Mejor horario', value: (c) => c.bestTime || '' }, { label: 'Contacto preferido', value: (c) => c.preferredContact || '' },
+      { label: 'Mascotas', value: (c) => yesNoLabel(c.pets) }, { label: 'Alergias / asma', value: (c) => yesNoLabel(c.allergies) },
+      ...(Store.can('finance') ? [{ label: 'Total comprado', value: (c) => Store.clientRevenue(c.id) }, { label: 'Saldo', value: (c) => Store.clientBalance(c.id) }] : []),
       { label: 'Notas', value: 'notes' }
     ]);
     U.download(`clientes-${U.toDateInput(new Date())}.csv`, csv, 'text/csv;charset=utf-8');
@@ -339,5 +349,5 @@ Views.clientes = (() => {
     });
   }
 
-  return { title: 'Clientes', render, openForm, exportCSV };
+  return { title: 'Clientes', perm: 'prospects', render, openForm, exportCSV };
 })();

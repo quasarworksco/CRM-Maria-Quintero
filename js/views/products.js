@@ -110,7 +110,7 @@ Views.productos = (() => {
           <td class="right num"><strong>${U.money(p.price)}</strong></td>
           ${canEdit ? `<td class="right num small">${p.cost ? U.money(p.cost) : '—'}</td><td class="right num small">${p.cost && p.price ? U.pct((p.price - p.cost) / p.price) : '—'}</td>` : ''}
           <td class="right">${stockBadge(p)}</td>
-          <td class="right num small">${sd.qty} · ${U.money(sd.amount)}</td>
+          <td class="right num small">${sd.qty}${Store.can('finance') ? ' · ' + U.money(sd.amount) : ''}</td>
           ${canEdit ? `<td class="nowrap" data-stop>${p.trackStock ? `<button class="btn xs" data-stock="${p.id}">Stock</button> ` : ''}<button class="btn xs" data-dup="${p.id}">Duplicar</button></td>` : ''}
         </tr>`;
       }).join('')}</tbody>
@@ -369,5 +369,5 @@ Views.productos = (() => {
     });
   }
 
-  return { title: 'Productos', render, openForm };
+  return { title: 'Productos', perm: 'sales', render, openForm };
 })();

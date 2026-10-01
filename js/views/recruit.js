@@ -4,6 +4,9 @@
    Lista / tablero / pendientes, ficha del candidato con
    intentos de contacto, entrevista, seguimiento e historial.
    ========================================================= */
+// Responsables posibles: personas activas con permiso de Reclutamiento (y la persona actual)
+const recOptions = (sel) => { const list = Store.recruiters(); const me = Store.currentUser(); if (!list.some((u) => u.id === me.id)) list.push(me); return UI.options(list, sel); };
+
 Views.reclutamiento = (() => {
   const state = { tab: 'lista', q: '', stage: '', source: '', position: '', owner: '', quick: 'proceso', sort: 'nextFollowUp', dir: 1, showClosed: false };
 
@@ -49,7 +52,7 @@ Views.reclutamiento = (() => {
 
   function render(el, _params, query = {}) {
     if (query.tab) { state.tab = query.tab; history.replaceState(null, '', '#/reclutamiento'); }
-    const manager = Store.can('viewAll');
+    const manager = Store.can('recruitAll');
     const s = Store.settings();
     const mine = Recruit.mine();
     const now = Date.now();
@@ -64,7 +67,7 @@ Views.reclutamiento = (() => {
         <div><h1>Reclutamiento</h1><p>${U.num(mine.length)} candidatos · ${manager ? 'todo el equipo' : 'asignados a ti'} · <span class="muted">separado de clientes y ventas</span></p></div>
         <div class="page-actions">
           <button class="btn" id="importBtn">${icon('upload', 'sm')} Importar</button>
-          <button class="btn" id="exportBtn">${icon('download', 'sm')} Exportar</button>
+          ${Store.can('exportData') ? `<button class="btn" id="exportBtn">${icon('download', 'sm')} Exportar</button>` : ''}
           <button class="btn primary" id="newBtn">${icon('userPlus', 'sm')} Nuevo candidato</button>
         </div>
       </div>
@@ -85,7 +88,8 @@ Views.reclutamiento = (() => {
 
     el.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; render(el); });
     el.querySelector('#newBtn').onclick = () => Views.candidato.openForm();
-    el.querySelector('#exportBtn').onclick = () => exportCSV(filtered());
+    const exb = el.querySelector('#exportBtn');
+    if (exb) exb.onclick = () => exportCSV(filtered());
     el.querySelector('#importBtn').onclick = openImport;
   }
 
@@ -97,7 +101,7 @@ Views.reclutamiento = (() => {
       <select id="fStage"><option value="">Todas las etapas</option>${UI.options(CAND_STAGES, state.stage)}</select>
       <select id="fSource"><option value="">Todas las fuentes</option>${UI.options(s.candidateSources || [], state.source)}</select>
       <select id="fPosition"><option value="">Todos los puestos</option>${UI.options(s.positions || [], state.position)}</select>
-      ${manager ? `<select id="fOwner"><option value="">Todo el equipo</option>${UI.userOptions(state.owner)}</select>` : ''}
+      ${manager ? `<select id="fOwner"><option value="">Todo el equipo</option>${recOptions(state.owner)}</select>` : ''}
       ${state.q || state.stage || state.source || state.position || state.owner ? `<button class="btn ghost sm" id="clearF">${icon('x', 'sm')} Limpiar</button>` : ''}
       <span class="spacer"></span><span class="muted small" id="nRes"></span>
     </div>`;
@@ -217,7 +221,7 @@ Views.reclutamiento = (() => {
       ['Próximos', follow.filter((c) => new Date(c.nextFollowUp).getTime() > eod)]
     ];
     body.innerHTML = `
-      ${manager ? `<div class="row wrap" style="margin-bottom:12px;gap:8px"><span class="small muted">Ver pendientes de:</span><select id="pOwner" style="width:auto"><option value="">Todo el equipo</option><option value="__mine" ${state.owner === '__mine' ? 'selected' : ''}>Solo los míos</option>${UI.userOptions(state.owner)}</select></div>` : ''}
+      ${manager ? `<div class="row wrap" style="margin-bottom:12px;gap:8px"><span class="small muted">Ver pendientes de:</span><select id="pOwner" style="width:auto"><option value="">Todo el equipo</option><option value="__mine" ${state.owner === '__mine' ? 'selected' : ''}>Solo los míos</option>${recOptions(state.owner)}</select></div>` : ''}
       <div class="grid cols-2" style="align-items:start">
         <div class="card">
           <div class="card-head"><h2>${icon('clock', 'sm')} Próximos seguimientos</h2><span class="badge">${follow.length}</span></div>
@@ -244,7 +248,7 @@ Views.reclutamiento = (() => {
   function pendItem(c) {
     return `<div class="list-item clickable" data-go="${c.id}">
       <span class="dot" style="width:10px;height:10px;border-radius:50%;background:${candStageById(c.stage).color};flex:none"></span>
-      <div class="grow"><div class="title">Llamar a ${U.esc(c.name)}</div><div class="small muted">${U.esc(c.followUpNote || candStageById(c.stage).name)}${Store.can('viewAll') ? ' · ' + U.esc(UI.userName(c.ownerId)) : ''}</div></div>
+      <div class="grow"><div class="title">Llamar a ${U.esc(c.name)}</div><div class="small muted">${U.esc(c.followUpNote || candStageById(c.stage).name)}${Store.can('recruitAll') ? ' · ' + U.esc(UI.userName(c.ownerId)) : ''}</div></div>
       <div class="small nowrap" style="text-align:right">${UI.followLabel(c.nextFollowUp)}<div class="cell-sub">${U.dateTime(c.nextFollowUp)}</div></div>
     </div>`;
   }
@@ -278,7 +282,7 @@ Views.reclutamiento = (() => {
         <p style="margin:0" class="muted">Descarga los candidatos desde Indeed (o guarda tu Excel) como <strong>CSV</strong> y súbelo aquí. La primera fila debe tener los títulos. Se reconocen: <code>nombre / name, telefono / phone, telefono alternativo, email, ciudad / location, estado, idioma, puesto / job title, fuente, notas</code>.</p>
         <input type="file" id="csvFile" accept=".csv,text/csv">
         <div class="form-grid">
-          <label class="field">Asignar a<select name="ownerId">${Store.can('reassign') ? '<option value="__rr">Repartir entre todo el equipo (equitativo)</option>' : ''}${UI.userOptions(Store.currentUser().id)}</select></label>
+          <label class="field">Asignar a<select name="ownerId">${Store.can('reassign') ? '<option value="__rr">Repartir entre el equipo de reclutamiento (equitativo)</option>' : ''}${recOptions(Store.currentUser().id)}</select></label>
           <label class="field">Fuente por defecto<select name="source">${UI.options(s.candidateSources || [], 'Indeed')}</select></label>
           <label class="field">Puesto por defecto<select name="position">${UI.options(s.positions || [], '', { blank: '—' })}</select></label>
           <label class="check"><input type="checkbox" name="skipDup" checked> Omitir teléfonos o emails que ya existen</label>
@@ -296,7 +300,7 @@ Views.reclutamiento = (() => {
         const rows = form._rows || [];
         if (!rows.length) { UI.toast('Selecciona un archivo CSV', 'bad'); return false; }
         const pick = (r, ...keys) => { for (const k of keys) if (r[k]) return r[k]; return ''; };
-        const team = Store.activeUsers();
+        const team = Store.recruiters().length ? Store.recruiters() : Store.activeUsers();
         const phones = new Set(Recruit.all().map((c) => U.cleanPhone(c.phone).slice(-10)).filter(Boolean));
         const emails = new Set(Recruit.all().map((c) => String(c.email || '').toLowerCase()).filter(Boolean));
         let n = 0, skipped = 0;
@@ -328,7 +332,7 @@ Views.reclutamiento = (() => {
     });
   }
 
-  return { title: 'Reclutamiento', render, myOverdue };
+  return { title: 'Reclutamiento', perm: 'recruitment', render, myOverdue };
 })();
 
 /* =========================================================
@@ -384,7 +388,7 @@ Views.candidato = (() => {
         <div class="stack">
           <div class="card"><div class="card-body stack" style="gap:14px">
             <div class="profile-head">
-              <span class="avatar lg" style="background:${st.color}">${U.esc(U.initials(c.name))}</span>
+              <span class="photo-wrap">${UI.personPhoto(c, st.color)}<button type="button" class="photo-btn" id="photoBtn" title="${c.photoUrl ? 'Cambiar o quitar la foto' : 'Agregar foto'}" aria-label="Foto">${icon('camera', 'sm')}</button></span>
               <div style="min-width:0">
                 <div class="call-phone" style="font-size:18px">${U.esc(c.phone || 'Sin teléfono')}</div>
                 <div class="row wrap" style="margin-top:4px">${Recruit.stageBadge(c.stage)}</div>
@@ -415,7 +419,7 @@ Views.candidato = (() => {
             ${c.notes ? `<div class="script-box">${U.esc(c.notes)}</div>` : ''}
             <div class="row wrap">
               <button class="btn sm" id="editBtn">${icon('edit', 'sm')} Editar</button>
-              ${Store.can('reassign') ? `<select id="reassign" style="width:auto;height:30px;flex:1"><option value="">Reasignar a…</option>${UI.userOptions('')}</select>` : ''}
+              ${Store.can('reassign') ? `<select id="reassign" style="width:auto;height:30px;flex:1"><option value="">Reasignar a…</option>${recOptions('')}</select>` : ''}
               ${Store.can('deleteRecords') ? `<button class="btn sm danger icon" id="delBtn" title="Eliminar">${icon('trash', 'sm')}</button>` : ''}
             </div>
           </div></div>
@@ -631,6 +635,11 @@ Views.candidato = (() => {
     const sfClear = $('#sfClear');
     if (sfClear) sfClear.onclick = () => { Recruit.setFollowUp(id, null, ''); UI.toast('Seguimiento quitado'); };
     $('#editBtn').onclick = () => openForm(id);
+    // Foto de la persona (Cloudinary)
+    $('#photoBtn').onclick = async () => {
+      const url = await UI.editPhoto(c.photoUrl, c.name, 'candidatos/' + id);
+      if (url !== null) { Store.update('candidates', id, { photoUrl: url }); UI.toast(url ? 'Foto guardada' : 'Foto quitada', 'good'); }
+    };
     const re = $('#reassign');
     if (re) re.onchange = () => { if (re.value) { Recruit.reassign([id], re.value); UI.toast('Candidato asignado a ' + UI.userName(re.value), 'good'); } };
     const del = $('#delBtn');
@@ -676,7 +685,7 @@ Views.candidato = (() => {
           <label class="field">Fecha *<input name="date" type="date" required value="${U.toDateInput(def)}"></label>
           <label class="field">Hora *<input name="time" type="time" required value="${U.toLocalInput(def).slice(11, 16)}"></label>
           <label class="field full">Lugar *<input name="place" required value="${U.esc(iv ? iv.place : '')}" placeholder="Dirección de la oficina, tienda o enlace de videollamada"></label>
-          <label class="field">Entrevistador *<select name="who" id="ivWho" required>${UI.userOptions(who, { blank: 'Seleccionar…' })}<option value="__otro" ${who === '__otro' ? 'selected' : ''}>Otra persona…</option></select></label>
+          <label class="field">Entrevistador *<select name="who" id="ivWho" required>${UI.userOptions(who, { blank: 'Seleccionar…', any: true })}<option value="__otro" ${who === '__otro' ? 'selected' : ''}>Otra persona…</option></select></label>
           <label class="field ${who === '__otro' ? '' : 'hidden'}" id="ivOtherWrap">Nombre del entrevistador<input name="whoName" value="${U.esc(iv ? iv.interviewerName : '')}"></label>
           <label class="field full">Notas de la entrevista <span class="hint">(opcional)</span><textarea name="notes" rows="2" placeholder="Qué documentos traer, a quién preguntar al llegar…">${U.esc(iv ? iv.notes : '')}</textarea></label>
         </div>
@@ -749,7 +758,7 @@ Views.candidato = (() => {
           <datalist id="refList">${refOpts.map((o) => `<option value="${U.esc(o.label)}"></option>`).join('')}</datalist>
           <div class="form-section full">Proceso</div>
           <label class="field">Etapa<select name="stage">${UI.options(CAND_STAGES, candStageById(c.stage).id)}</select></label>
-          <label class="field">Responsable <span class="hint">(reclutador/agente asignado)</span><select name="ownerId" ${Store.can('reassign') ? '' : 'disabled'}>${UI.userOptions(c.ownerId)}</select></label>
+          <label class="field">Responsable <span class="hint">(reclutador/agente asignado)</span><select name="ownerId" ${Store.can('reassign') ? '' : 'disabled'}>${recOptions(c.ownerId)}</select></label>
           ${id ? '' : `<label class="field">Próximo seguimiento · fecha<input name="fDate" type="date" value="${fv.slice(0, 10)}"></label>
           <label class="field">Hora<input name="fTime" type="time" value="${fv.slice(11, 16)}"></label>
           <label class="field full">Comentario del seguimiento<input name="fNote" value="${U.esc(c.followUpNote || '')}" placeholder="Ej.: Llamar en la tarde"></label>`}
@@ -800,5 +809,5 @@ Views.candidato = (() => {
     });
   }
 
-  return { title: 'Candidato', render, setStage, openForm, openInterview };
+  return { title: 'Candidato', perm: 'recruitment', render, setStage, openForm, openInterview };
 })();

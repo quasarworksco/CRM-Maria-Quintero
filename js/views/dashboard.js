@@ -17,6 +17,7 @@ Views.dashboard = (() => {
   function render(el) {
     const me = Store.currentUser();
     const manager = Store.can('viewAll');
+    const fin = Store.can('finance');
     const [from, to] = Metrics.RANGES[range].get();
     const uid = manager ? null : me.id;
     const m = Metrics.forUser(uid, from, to);
@@ -44,7 +45,7 @@ Views.dashboard = (() => {
         </div>
       </div>
 
-      ${manager ? onboarding() : ''}
+      ${Store.isAdmin() ? onboarding() : ''}
 
       ${!manager || me.callGoal ? `
       <div class="card" style="margin-bottom:16px">
@@ -55,25 +56,34 @@ Views.dashboard = (() => {
           </div>
           <div><div class="muted small">Contactos efectivos</div><strong class="num" style="font-size:18px">${today.contacts}</strong></div>
           <div><div class="muted small">Tiempo al teléfono</div><strong class="num" style="font-size:18px">${U.duration(today.talkTime)}</strong></div>
-          <div><div class="muted small">Ventas hoy</div><strong class="num" style="font-size:18px">${U.money(today.salesAmount)}</strong></div>
+          <div><div class="muted small">Ventas hoy</div><strong class="num" style="font-size:18px">${fin ? U.money(today.salesAmount) : today.salesCount}</strong></div>
           <div><div class="muted small">Seguimientos vencidos</div><strong class="num" style="font-size:18px;color:${overdue.length ? 'var(--bad)' : 'inherit'}">${overdue.length}</strong></div>
         </div>
       </div>` : ''}
 
-      <div class="kpis">
+      <div class="kpis">${fin ? `
         ${kpi('Ventas', U.money(m.salesAmount), `${m.salesCount} pedidos · ticket prom. ${U.money(m.avgTicket)}`, 'cart', '#52525b')}
         ${kpi('Recaudado', U.money(m.collected), `Pagos recibidos · ${Metrics.RANGES[range].label.toLowerCase()}`, 'wallet', '#52525b')}
         ${kpi('Por cobrar', U.money(rec.total), `${rec.count} pedidos · ${U.money(rec.overdue)} vencido`, 'alert', '#52525b')}
         ${kpi('Llamadas', U.num(m.calls), `${U.pct(m.contactRate)} contestaron · ${m.appts} ${m.appts === 1 ? 'cita agendada' : 'citas agendadas'}`, 'phone', '#52525b')}
         ${kpi('Meta del mes', salesGoal ? U.pct(monthMine.salesAmount / salesGoal) : '—', salesGoal ? `${U.money(monthMine.salesAmount)} de ${U.money(salesGoal)}` : 'Define metas en el panel admin', 'target', '#52525b', salesGoal ? monthMine.salesAmount / salesGoal : undefined)}
-        ${kpi('Prospectos activos', U.num(m.openLeads), `${m.upcomingAppts} ${m.upcomingAppts === 1 ? 'cita próxima' : 'citas próximas'} · ${m.newLeads} nuevos en el periodo`, 'users', '#52525b')}
+        ${kpi('Prospectos activos', U.num(m.openLeads), `${m.upcomingAppts} ${m.upcomingAppts === 1 ? 'cita próxima' : 'citas próximas'} · ${m.newLeads} nuevos en el periodo`, 'users', '#52525b')}` : `
+        ${kpi('Llamadas', U.num(m.calls), `${U.duration(m.talkTime)} al teléfono`, 'phone', '#52525b')}
+        ${kpi('Contactos efectivos', U.num(m.contacts), `${U.pct(m.contactRate)} de las llamadas`, 'thumbUp', '#52525b')}
+        ${kpi('Citas agendadas', U.num(m.appts), `${m.upcomingAppts} ${m.upcomingAppts === 1 ? 'cita próxima' : 'citas próximas'}`, 'calendar', '#52525b')}
+        ${kpi('Demostraciones', U.num(m.demos), 'Realizadas en el periodo', 'flag', '#52525b')}
+        ${Store.can('sales') ? kpi('Ventas', U.num(m.salesCount), 'Ventas registradas en el periodo', 'cart', '#52525b') : ''}
+        ${kpi('Prospectos activos', U.num(m.openLeads), `${m.newLeads} nuevos en el periodo · ${overdue.length} seguimientos vencidos`, 'users', '#52525b')}`}
       </div>
 
       <div class="grid span-2-1" style="margin-bottom:16px">
-        <div class="card">
+        ${fin ? `<div class="card">
           <div class="card-head"><h2>Ventas por día · últimos 30 días</h2><span class="muted small">${U.money(Metrics.forUser(uid, U.startOfDay(U.addDays(new Date(), -29)), U.endOfDay()).salesAmount)} total</span></div>
           <div class="card-body">${UI.barChart(Metrics.dailySeries(30, (f, t) => U.sum(Store.all('orders').filter((o) => (!uid || o.userId === uid) && o.status !== 'cancelada' && Metrics.inRange(o.createdAt, f, t)), (o) => o.total)), { labelEvery: 3 })}</div>
-        </div>
+        </div>` : `<div class="card">
+          <div class="card-head"><h2>Llamadas por día · últimos 30 días</h2><span class="muted small">${Metrics.forUser(uid, U.startOfDay(U.addDays(new Date(), -29)), U.endOfDay()).calls} llamadas</span></div>
+          <div class="card-body">${UI.barChart(Metrics.dailySeries(30, (f, t) => Store.all('activities').filter((a) => (!uid || a.userId === uid) && ['llamada', 'whatsapp'].includes(a.type) && Metrics.inRange(a.createdAt, f, t)).length), { format: U.num, labelEvery: 3 })}</div>
+        </div>`}
         <div class="card">
           <div class="card-head"><h2>Embudo de ventas</h2><a href="#/pipeline" class="small">Ver tablero →</a></div>
           <div class="card-body">
@@ -164,16 +174,17 @@ Views.dashboard = (() => {
 
   function leaderboard() {
     const [from, to] = Metrics.RANGES[range].get();
-    const rows = U.sortBy(Store.sellers().map((u) => ({ u, m: Metrics.forUser(u.id, from, to) })), (r) => r.m.salesAmount, -1);
+    const fin = Store.can('finance');
+    const rows = U.sortBy(Store.sellers().map((u) => ({ u, m: Metrics.forUser(u.id, from, to) })), (r) => (fin ? r.m.salesAmount : r.m.appts * 1000 + r.m.calls), -1);
     return `<div class="card">
-      <div class="card-head"><h2>${icon('trophy', 'sm')} Ranking del equipo</h2><a href="#/reportes" class="small">Reportes →</a></div>
+      <div class="card-head"><h2>${icon('trophy', 'sm')} Ranking del equipo</h2>${Store.can('reports') ? '<a href="#/reportes" class="small">Reportes →</a>' : ''}</div>
       <div class="card-body flush">
         ${rows.map((r, i) => `
           <div class="list-item">
             <span class="rank ${i < 3 ? 'r' + (i + 1) : ''}">${i + 1}</span>
             ${UI.avatar(r.u)}
             <div class="grow"><div class="title">${U.esc(r.u.name)}</div><div class="small muted">${r.m.calls} llamadas · ${r.m.salesCount} ventas · ${U.pct(r.m.contactRate)} contacto</div></div>
-            <strong class="num">${U.money(r.m.salesAmount)}</strong>
+            <strong class="num">${fin ? U.money(r.m.salesAmount) : `${r.m.appts} ${r.m.appts === 1 ? 'cita' : 'citas'}`}</strong>
           </div>`).join('')}
       </div></div>`;
   }
@@ -191,5 +202,5 @@ Views.dashboard = (() => {
     }).join('');
   }
 
-  return { title: 'Inicio', render };
+  return { title: 'Inicio', perm: 'prospects', render };
 })();
