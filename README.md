@@ -20,7 +20,7 @@ Se publica con GitHub Pages desde la rama `main` (carpeta raíz). El archivo `CN
 
 ## Revisión de cambios
 
-`revision/index.html` (`/revision`) resume todos los cambios por paso, cómo comprobar cada uno y un checklist que se guarda en el navegador, más los pendientes de configuración (reglas de Firestore, usuarios, productos).
+`revision/index.html` (`/revision`) resume todos los cambios por paso, cómo comprobar cada uno y un checklist que se guarda en el navegador.
 
 ## Guía de uso
 
