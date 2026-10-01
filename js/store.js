@@ -89,7 +89,7 @@ const FirestoreAdapter = {
       try {
         await fs.runTransaction(this.fdb, async (tx) => {
           const snap = await tx.get(settingsRef);
-          if (!snap.exists()) tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { createdAt: new Date().toISOString(), demoData: false, schemaVersion: 2 })));
+          if (!snap.exists()) tx.set(settingsRef, cleanDoc(Object.assign({}, ctx.defaults, { createdAt: new Date().toISOString(), demoData: false, schemaVersion: 3 })));
         });
       } catch (e) {
         // Sin internet la transacción falla: se sigue con lo guardado en la caché local
@@ -180,6 +180,9 @@ const FirestoreAdapter = {
   }
 };
 
+// Motivos de pérdida (los de los resultados de llamada van primero)
+const LOST_REASON_DEFAULTS = ['Sin respuesta (12 intentos)', 'No interesado', 'Número incorrecto', 'Pidió no volver a llamar', 'Precio alto', 'Compró con la competencia', 'No lo necesita', 'Sin presupuesto', 'Otro'];
+
 // Fuentes / cómo llegó (las nuevas van primero; se conservan las anteriores)
 const SOURCE_DEFAULTS = ['Florida Mall / Tienda', 'Feria / Evento', 'Referido', 'Cliente anterior', 'Leads', 'Facebook', 'Instagram', 'Indeed', 'Base de datos', 'Llamada entrante', 'Llamada en frío', 'Google', 'WhatsApp', 'Volante', 'Sitio web', 'Cliente recurrente'];
 
@@ -203,7 +206,8 @@ const Store = (() => {
     locale: 'es-US',
     phoneCountryCode: '1',
     sources: SOURCE_DEFAULTS.slice(),
-    lostReasons: ['Precio alto', 'Compró con la competencia', 'No lo necesita', 'No contesta nunca', 'Sin presupuesto', 'Número equivocado', 'Otro'],
+    lostReasons: LOST_REASON_DEFAULTS.slice(),
+    maxAttempts: 12,
     categories: ['Filtros de aire', 'Purificadores', 'Filtros de agua', 'Deshumidificadores', 'Accesorios', 'Servicios'],
     staleDays: 7,
     callScript:
@@ -234,12 +238,16 @@ const Store = (() => {
 
   // Agrega las fuentes nuevas a la configuración guardada (una sola vez)
   function migrateSettings() {
-    if ((db.settings.schemaVersion || 1) >= 2) return;
+    const v = db.settings.schemaVersion || 1;
+    if (v >= 3) return;
     if (authMode() && (!adapter.access || adapter.access.role !== 'admin')) return;
-    const have = db.settings.sources || [];
     const norm = (x) => U.normalize(x).trim();
-    const merged = SOURCE_DEFAULTS.concat(have.filter((x) => !SOURCE_DEFAULTS.some((d) => norm(d) === norm(x))));
-    saveSettings({ sources: merged, schemaVersion: 2 });
+    const mergeFirst = (defaults, have) => defaults.concat((have || []).filter((x) => !defaults.some((d) => norm(d) === norm(x))));
+    const patch = { schemaVersion: 3 };
+    if (v < 2) patch.sources = mergeFirst(SOURCE_DEFAULTS, db.settings.sources);
+    patch.lostReasons = mergeFirst(LOST_REASON_DEFAULTS.slice(0, 4), db.settings.lostReasons);
+    if (!db.settings.maxAttempts) patch.maxAttempts = 12;
+    saveSettings(patch);
   }
 
   // Garantiza que la cuenta principal exista, sea administradora y esté activa
@@ -406,26 +414,45 @@ const Store = (() => {
     logActivity({ clientId, type: 'etapa', text: `${stageById(from).name} → ${stageById(stage).name}${extra.lostReason ? ' · Motivo: ' + extra.lostReason : ''}` });
   }
 
-  // Registrar un intento de contacto. Actualiza solo: último resultado, fecha y hora del último
-  // contacto, número de intentos, próximo seguimiento y etapa (solo avanza, nunca retrocede).
+  // Registrar un intento de contacto. Guarda solo el número de intento, la fecha, la hora y la agente;
+  // actualiza el último resultado, el contador de intentos y el próximo seguimiento, y mueve la etapa.
+  const maxAttempts = () => Number(settings().maxAttempts) || 12;
+  const attemptsOf = (clientId) => U.sortBy(db.activities.filter((a) => a.clientId === clientId && isAttempt(a)), (a) => a.createdAt);
   function logCall(clientId, { outcome, duration = 0, notes = '', nextFollowUp, type = 'llamada' }) {
     const c = get('clients', clientId);
     const o = outcomeById(outcome);
     const now = new Date().toISOString();
-    logActivity({ clientId, type, outcome, duration, text: notes });
-    const patch = { lastOutcome: outcome || '', lastContact: now, lastCallAt: now, callCount: (c.callCount || 0) + 1 };
+    const attempt = (c.callCount || 0) + 1;
+    logActivity({ clientId, type, outcome, duration, text: notes, attempt });
+    const patch = { lastOutcome: outcome || '', lastContact: now, lastCallAt: now, callCount: attempt };
     if (o && !o.contact) patch.noAnswerCount = (c.noAnswerCount || 0) + 1; else patch.noAnswerCount = 0;
+    if (o && o.contact && !c.reachedAt) patch.reachedAt = now;
+    if (o && o.dnc) patch.dnc = true;
     if (nextFollowUp !== undefined) patch.nextFollowUp = nextFollowUp;
     else if (o && o.followDays) patch.nextFollowUp = new Date(Date.now() + o.followDays * U.DAY).toISOString();
     else if (o && o.followDays === null) patch.nextFollowUp = null;
     update('clients', clientId, patch);
     const order = STAGES.map((x) => x.id);
     const cur = get('clients', clientId).stage;
-    if (o && o.stage && OPEN_STAGES.includes(cur) && order.indexOf(o.stage) > order.indexOf(cur)) changeStage(clientId, o.stage);
-    if (o && o.id === 'no_interesado') {
-      if (OPEN_STAGES.includes(c.stage) && (c.noInterestCount || 0) >= 1) changeStage(clientId, 'perdido', { lostReason: 'No lo necesita' });
-      update('clients', clientId, { noInterestCount: (c.noInterestCount || 0) + 1 });
+    // El resultado manda: no interesado, número incorrecto o no volver a llamar cierran el prospecto
+    if (o && o.lose) {
+      if (OPEN_STAGES.includes(cur)) changeStage(clientId, 'perdido', { lostReason: o.lose, nextFollowUp: null });
+      return;
     }
+    if (o && o.stage && OPEN_STAGES.includes(cur) && order.indexOf(o.stage) > order.indexOf(cur)) changeStage(clientId, o.stage);
+    // Regla de los intentos: si se completan sin lograr contacto, se archiva como Perdido / Sin respuesta
+    const after = get('clients', clientId);
+    if (attempt >= maxAttempts() && ['nuevo', 'intentando'].includes(after.stage)) {
+      changeStage(clientId, 'perdido', { lostReason: `Sin respuesta (${maxAttempts()} intentos)`, nextFollowUp: null, archivedNoAnswer: true });
+      logActivity({ clientId, type: 'sistema', text: `Se completaron ${maxAttempts()} intentos sin lograr contacto. El prospecto quedó archivado como Perdido / Sin respuesta, con todo su historial.` });
+    }
+  }
+  // Al borrar un intento (solo la administración) el contador se recalcula
+  function removeAttempt(activityId) {
+    const a = get('activities', activityId);
+    if (!a) return;
+    remove('activities', activityId);
+    if (isAttempt(a)) update('clients', a.clientId, { callCount: attemptsOf(a.clientId).length });
   }
 
   /* ---------- Citas (demostraciones) ---------- */
@@ -532,7 +559,7 @@ const Store = (() => {
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
     exportJSON, importJSON, resetDemo, wipeAll, mode, isOwner,
-    saveAppointment, setAppointmentStatus, activeAppointment, demoByName, APPT_STATUS,
+    saveAppointment, setAppointmentStatus, maxAttempts, attemptsOf, removeAttempt, activeAppointment, demoByName, APPT_STATUS,
     realUser, isViewingAs, setViewAs, authMode, syncAccess, auth
   };
 })();
@@ -631,31 +658,35 @@ const Seed = {
         lastCallAt: null,
         lastOutcome: '',
         nextFollowUp: null,
-        lostReason: stage === 'perdido' ? r.pick(settings.lostReasons) : '',
+        lostReason: '',
         createdAt: iso(created),
         updatedAt: iso(created)
       };
       if (isReferralSource(c.source)) c.referredBy = r.pick(referrers);
       if (isEventSource(c.source)) c.eventName = r.pick(events);
       // Historial de llamadas
-      const nCalls = stage === 'nuevo' ? 0 : stage === 'intentando' ? r.int(1, 4) : r.int(2, 7);
+      const noAnswer12 = stage === 'perdido' && r.chance(0.4); // ejemplo de la regla de los 12 intentos
+      const nCalls = noAnswer12 ? 12 : stage === 'nuevo' ? 0 : stage === 'intentando' ? r.int(1, 9) : r.int(2, 7);
       let t = created;
       for (let k = 0; k < nCalls; k++) {
         t = Math.min(now - r.int(0, 8) * 3600000, t + r.int(1, 6) * U.DAY + r.int(0, 30000) * 1000);
         let outcome;
         const lastOne = k === nCalls - 1;
-        if (stage === 'intentando') outcome = r.pick(['no_contesto', 'dejo_mensaje', 'whatsapp']);
+        if (stage === 'intentando' || noAnswer12) outcome = r.pick(['no_contesto', 'no_contesto', 'buzon', 'whatsapp']);
         else if (lastOne && (APPT_STAGES.includes(stage) || stage === 'demo_realizada' || stage === 'ganado')) outcome = 'cita_agendada';
-        else if (lastOne && stage === 'contactado') outcome = r.pick(['contesto', 'interesado', 'reagendar']);
-        else if (lastOne && stage === 'perdido') outcome = r.pick(['no_interesado', 'no_contesto']);
-        else outcome = r.pick(['no_contesto', 'no_contesto', 'dejo_mensaje', 'whatsapp', 'contesto', 'interesado']);
+        else if (lastOne && stage === 'contactado') outcome = r.pick(['contactado', 'llamar_despues']);
+        else if (lastOne && stage === 'perdido') outcome = r.pick(['no_interesado', 'numero_incorrecto', 'no_volver']);
+        else outcome = r.pick(['no_contesto', 'no_contesto', 'buzon', 'whatsapp']);
         const o = outcomeById(outcome);
-        db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: owner.id, type: outcome === 'whatsapp' ? 'whatsapp' : 'llamada', outcome, duration: o.contact ? r.int(60, 900) : r.int(10, 40), text: o.contact ? r.pick(['Conversó sobre los filtros', 'Pidió precios del kit', 'Quedó en revisar con su esposo(a)', 'Le envié catálogo por WhatsApp', 'Muy amable, interesada', '']) : '', createdAt: iso(t), updatedAt: iso(t) });
+        db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: owner.id, attempt: k + 1, type: outcome === 'whatsapp' ? 'whatsapp' : 'llamada', outcome, duration: o.contact ? r.int(60, 900) : r.int(10, 40), text: o.contact ? r.pick(['Conversó sobre los filtros', 'Pidió precios del kit', 'Quedó en revisar con su esposo(a)', 'Le envié catálogo por WhatsApp', 'Muy amable, interesada', '']) : '', createdAt: iso(t), updatedAt: iso(t) });
         c.callCount++;
         c.lastCallAt = iso(t);
         c.lastContact = iso(t);
         c.lastOutcome = outcome;
+        if (o.contact && !c.reachedAt) c.reachedAt = iso(t);
+        if (o.dnc) c.dnc = true;
       }
+      if (stage === 'perdido') { c.lostReason = noAnswer12 ? 'Sin respuesta (12 intentos)' : (outcomeById(c.lastOutcome) || {}).lose || 'Otro'; if (noAnswer12) c.archivedNoAnswer = true; }
       // Citas para las etapas de cita y demostración
       if (APPT_STAGES.includes(stage) || stage === 'demo_realizada') {
         const at = stage === 'demo_realizada' ? now - r.int(1, 5) * U.DAY : now + r.int(0, 7) * U.DAY;

@@ -77,8 +77,7 @@ Views.dashboard = (() => {
         <div class="card">
           <div class="card-head"><h2>Embudo de ventas</h2><a href="#/pipeline" class="small">Ver tablero →</a></div>
           <div class="card-body">
-            ${UI.hbars(OPEN_STAGES.concat('ganado').map((s) => ({ label: stageById(s).name, value: clients.filter((c) => c.stage === s).length })), { ramp: true })}
-            <div class="small muted" style="margin-top:14px">${clients.filter((c) => c.stage === 'perdido').length} perdidos / sin respuesta</div>
+            ${UI.hbars(OPEN_STAGES.concat('ganado', 'perdido').map((s) => ({ label: stageById(s).name, value: clients.filter((c) => c.stage === s).length, color: stageById(s).color })))}
           </div>
         </div>
       </div>

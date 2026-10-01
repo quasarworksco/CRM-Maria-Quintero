@@ -77,7 +77,9 @@ const UI = (() => {
     return `<span class="avatar ${size}" style="background:${u.color || '#7b8391'}" title="${U.esc(u.name)}">${U.esc(U.initials(u.name))}</span>`;
   };
   const userName = (id) => { const u = Store.get('users', id); return u ? u.name : 'Sin asignar'; };
-  const stageBadge = (s) => { const x = stageById(s); return `<span class="badge" style="background:${x.color}1f;color:${x.color}"><span class="dot"></span>${x.name}</span>`; };
+  const stageBadge = (s) => { const x = stageById(s); return `<span class="badge stage-badge" style="background:${x.soft};color:${x.ink};border-color:${x.color}33"><span class="dot" style="background:${x.color}"></span>${x.name}</span>`; };
+  // Contador de intentos de contacto: "3/12"
+  const attempts = (c) => { const n = c.callCount || 0, max = Store.maxAttempts(); const cls = n >= max ? 'bad' : n >= max * 0.75 ? 'warn' : ''; return `<span class="badge attempts ${cls}" title="Intentos de contacto">${icon('phone', 'sm')}${n}/${max}</span>`; };
   const outcomeBadge = (id) => { const o = outcomeById(id); return o ? `<span class="badge" style="background:${o.color}1f;color:${o.color}">${o.name}</span>` : ''; };
   const orderStatusBadge = (s) => { const x = orderStatusById(s); return `<span class="badge ${x.cls}">${x.name}</span>`; };
   const payBadge = (o) => { const x = Store.orderPayStatus(o); return `<span class="badge ${x.cls}">${x.name}</span>`; };
@@ -183,7 +185,7 @@ const UI = (() => {
   }
 
   return {
-    toast, modal, confirm, formData, avatar, userName, stageBadge, outcomeBadge, orderStatusBadge, payBadge, apptBadge,
+    toast, modal, confirm, formData, avatar, userName, stageBadge, attempts, outcomeBadge, orderStatusBadge, payBadge, apptBadge,
     empty, options, userOptions, followLabel, barChart, hbars, initTooltips, cloudinaryReady, uploadToCloudinary
   };
 })();

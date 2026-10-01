@@ -78,10 +78,10 @@ Views.agenda = (() => {
   function followItem(c, bucket) {
     const showOwner = state.owner !== 'me';
     return `<div class="list-item clickable" data-go="#/cliente/${c.id}">
-      <span class="tl-icon" style="width:28px;height:28px">${icon('phone', 'sm')}</span>
+      <span class="tl-icon" style="width:28px;height:28px;color:${stageById(c.stage).color}">${icon('phone', 'sm')}</span>
       <div class="grow">
         <div class="title">Llamar a ${U.esc(c.name)}</div>
-        <div class="small muted">${stageById(c.stage).name}${c.lastOutcome ? ' · ' + U.esc((outcomeById(c.lastOutcome) || {}).name || '') : ''} · ${c.callCount || 0} intento${c.callCount === 1 ? '' : 's'}${showOwner ? ' · ' + U.esc(UI.userName(c.ownerId)) : ''}</div>
+        <div class="row wrap" style="gap:6px;margin-top:3px">${UI.stageBadge(c.stage)} ${UI.attempts(c)} ${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : ''}${showOwner ? `<span class="small muted">${U.esc(UI.userName(c.ownerId))}</span>` : ''}</div>
       </div>
       <div style="text-align:right">
         <div class="small ${bucket === 'vencido' ? 'overdue' : ''}">${bucket === 'hoy' ? U.time(c.nextFollowUp) : U.dateTime(c.nextFollowUp)}</div>

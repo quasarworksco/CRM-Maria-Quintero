@@ -112,13 +112,13 @@ Views.clientes = (() => {
 
   function row(c, manager) {
     const owner = Store.get('users', c.ownerId);
-    return `<tr class="clickable" data-id="${c.id}">
+    return `<tr class="clickable stage-row" data-id="${c.id}" style="--row-color:${stageById(c.stage).color}">
       <td data-stop><input type="checkbox" data-sel="${c.id}" ${state.selected.has(c.id) ? 'checked' : ''}></td>
       <td><div class="cell-main">${U.esc(c.name)} ${c.dnc ? `<span class="badge bad" title="No llamar">${icon('ban', 'sm')}</span>` : ''}</div>
         <div class="cell-sub">${U.esc(c.phone)}${c.company ? ' · ' + U.esc(c.company) : ''}${c.city ? ' · ' + U.esc(c.city) : ''}</div></td>
       <td>${UI.stageBadge(c.stage)}</td>
       <td>${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : '<span class="muted small">—</span>'}</td>
-      <td class="num">${c.callCount || 0}</td>
+      <td>${UI.attempts(c)}</td>
       ${manager ? `<td><div class="row">${UI.avatar(owner)}<span class="small">${U.esc(owner ? owner.name.split(' ')[0] : 'Sin asignar')}</span></div></td>` : ''}
       <td class="small nowrap">${c.lastContact ? `${U.dateTime(c.lastContact)}<div class="cell-sub">${U.ago(c.lastContact)}</div>` : '<span class="muted">Nunca</span>'}</td>
       <td class="small nowrap">${OPEN_STAGES.includes(c.stage) ? UI.followLabel(c.nextFollowUp) : '<span class="muted">—</span>'}${Store.activeAppointment(c) ? `<div class="cell-sub">${icon('calendar', 'sm')} Cita ${U.dateTime(Store.activeAppointment(c).at)}</div>` : ''}</td>

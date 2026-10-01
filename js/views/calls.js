@@ -86,7 +86,7 @@ Views.llamadas = (() => {
               <div class="queue-item ${x.id === st.currentId ? 'current' : ''}" data-pick="${x.id}">
                 <div class="grow" style="min-width:0;flex:1">
                   <div class="title" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.esc(x.name)}</div>
-                  <div class="small muted">${stageById(x.stage).name} · ${x.nextFollowUp ? UI.followLabel(x.nextFollowUp) : x.callCount ? x.callCount + ' intentos' : 'Nunca llamado'}</div>
+                  <div class="small muted">${x.callCount || 0}/${Store.maxAttempts()} intentos · ${x.nextFollowUp ? UI.followLabel(x.nextFollowUp) : x.callCount ? stageById(x.stage).name : 'Nunca llamado'}</div>
                 </div>
                 ${Store.activeAppointment(x) ? UI.apptBadge(x) : UI.stageBadge(x.stage)}
               </div>`).join('') || UI.empty('Cola vacía')}
@@ -106,9 +106,9 @@ Views.llamadas = (() => {
           <div class="call-card-head">
             <span class="avatar lg" style="background:${stageById(c.stage).color}">${U.esc(U.initials(c.name))}</span>
             <div style="flex:1;min-width:200px">
-              <div class="row wrap"><h2 style="font-size:20px">${U.esc(c.name)}</h2>${UI.stageBadge(c.stage)}${UI.apptBadge(c)}${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : ''}</div>
+              <div class="row wrap"><h2 style="font-size:20px">${U.esc(c.name)}</h2>${UI.stageBadge(c.stage)}${UI.attempts(c)}${UI.apptBadge(c)}${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : ''}</div>
               <div class="call-phone">${U.esc(c.phone)}</div>
-              <div class="small muted">${[c.city, c.source, c.callCount ? c.callCount + ' intentos previos' : 'Primer intento', c.lastContact ? 'Último contacto: ' + U.dateTime(c.lastContact) : '', c.referredBy ? 'Referido por ' + c.referredBy : '', c.bestTime ? 'Prefiere: ' + c.bestTime : ''].filter(Boolean).map(U.esc).join(' · ')}</div>
+              <div class="small muted">${[c.city, c.source, `Este será el intento #${(c.callCount || 0) + 1} de ${Store.maxAttempts()}`, c.lastContact ? 'Último contacto: ' + U.dateTime(c.lastContact) : '', c.referredBy ? 'Referido por ' + c.referredBy : '', c.bestTime ? 'Prefiere: ' + c.bestTime : ''].filter(Boolean).map(U.esc).join(' · ')}</div>
             </div>
             <div class="stack" style="gap:8px;align-items:flex-end">
               <div class="timer ${st.timerStart ? 'running' : ''}" id="timer">${U.duration(currentElapsed())}</div>
@@ -128,10 +128,10 @@ Views.llamadas = (() => {
           </div>
 
           <div>
-            <strong class="small">Resultado de la llamada</strong>
+            <strong class="small">Resultado del intento #${(c.callCount || 0) + 1}</strong>
             <div class="outcomes" style="margin-top:8px">${OUTCOMES.map((o, i) => `<button type="button" class="outcome-btn ${st.outcome === o.id ? 'selected' : ''}" data-outcome="${o.id}" title="Atajo: tecla ${i + 1}"><span class="dot" style="background:${o.color}"></span>${o.name}<span class="muted small" style="margin-left:auto">${i + 1}</span></button>`).join('')}</div>
           </div>
-          <textarea id="cNotes" rows="3" placeholder="Notas de la llamada…">${U.esc(st.notes)}</textarea>
+          <textarea id="cNotes" rows="3" placeholder="Comentario del intento…">${U.esc(st.notes)}</textarea>
           <div class="row wrap">
             <span class="small muted">Seguimiento:</span>
             <input type="datetime-local" id="cFollow" style="width:auto;height:32px" value="${U.esc(st.follow)}">

@@ -215,6 +215,7 @@ Views.admin = (() => {
           <label class="field">Formato regional<select name="locale">${UI.options([{ id: 'es-US', name: 'Español (EE. UU.)' }, { id: 'es-CO', name: 'Español (Colombia)' }, { id: 'es-MX', name: 'Español (México)' }, { id: 'es-ES', name: 'Español (España)' }, { id: 'es-PE', name: 'Español (Perú)' }, { id: 'es-CL', name: 'Español (Chile)' }], s.locale)}</select></label>
           <label class="field">Código de país para WhatsApp<input name="phoneCountryCode" value="${U.esc(s.phoneCountryCode)}" placeholder="1 = EE. UU., 57 = Colombia"></label>
           <label class="field">Días sin contacto para marcar “olvidado”<input name="staleDays" type="number" min="1" value="${s.staleDays}"></label>
+          <label class="field">Intentos de contacto antes de archivar <span class="hint">(sin respuesta → Perdido / Sin respuesta)</span><input name="maxAttempts" type="number" min="1" max="50" value="${s.maxAttempts || 12}"></label>
           <label class="field">Fuentes de prospectos <span class="hint">una por línea</span><textarea name="sources" rows="6">${U.esc(s.sources.join('\n'))}</textarea></label>
           <label class="field">Motivos de pérdida <span class="hint">una por línea</span><textarea name="lostReasons" rows="6">${U.esc(s.lostReasons.join('\n'))}</textarea></label>
           <label class="field">Categorías de productos <span class="hint">una por línea</span><textarea name="categories" rows="6">${U.esc(s.categories.join('\n'))}</textarea></label>
@@ -235,7 +236,7 @@ Views.admin = (() => {
       e.preventDefault();
       const d = UI.formData(e.target);
       const lines = (t) => t.split('\n').map((x) => x.trim()).filter(Boolean);
-      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), staleDays: d.staleDays || 7 }));
+      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), staleDays: d.staleDays || 7, maxAttempts: d.maxAttempts || 12 }));
       App.shell(); App.route();
       UI.toast('Configuración guardada', 'good');
     };

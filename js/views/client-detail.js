@@ -10,13 +10,18 @@ Views.cliente = (() => {
     if (!c) { el.innerHTML = UI.empty('Cliente no encontrado. <a href="#/clientes">Volver</a>', 'users'); return; }
     if (!Store.canSeeClient(c)) { el.innerHTML = UI.empty('Este cliente está asignado a otro agente.', 'ban'); return; }
     const owner = Store.get('users', c.ownerId);
-    const d = draft[id] || (draft[id] = { type: 'llamada', outcome: '', notes: '', follow: '' });
+    const d = draft[id] || (draft[id] = { type: 'llamada', outcome: '', notes: '', follow: '', note: '' });
+    if (d.type === 'nota') d.type = 'llamada';
+    const attempts = Store.attemptsOf(id).reverse();
+    const max = Store.maxAttempts();
+    const nAtt = c.callCount || 0;
+    const me = Store.currentUser();
     const orders = U.sortBy(Store.clientOrders(id), (o) => o.createdAt, -1);
     const revenue = Store.clientRevenue(id);
     const balance = Store.clientBalance(id);
     const tasks = U.sortBy(Store.where('tasks', (t) => t.clientId === id), (t) => (t.done ? '1' : '0') + t.due);
-    const acts = U.sortBy(Store.where('activities', (a) => a.clientId === id), (a) => a.createdAt, -1)
-      .filter((a) => tlFilter === 'todo' || (tlFilter === 'llamadas' ? ['llamada', 'whatsapp', 'email', 'visita'].includes(a.type) : tlFilter === 'notas' ? a.type === 'nota' : ['venta', 'pago'].includes(a.type)));
+    const acts = U.sortBy(Store.where('activities', (a) => a.clientId === id && !isAttempt(a)), (a) => a.createdAt, -1)
+      .filter((a) => tlFilter === 'todo' || (tlFilter === 'notas' ? a.type === 'nota' : tlFilter === 'citas' ? ['cita', 'etapa', 'asignacion', 'sistema'].includes(a.type) : ['venta', 'pago'].includes(a.type)));
     const products = Store.all('products');
     const s = Store.settings();
     const stageIdx = STAGES.findIndex((x) => x.id === c.stage);
@@ -25,7 +30,7 @@ Views.cliente = (() => {
       <div class="page-head">
         <div class="row" style="gap:12px">
           <a class="btn ghost icon" href="#/clientes" title="Volver">${icon('arrowLeft')}</a>
-          <div><h1>${U.esc(c.name)}</h1><p>${c.company ? U.esc(c.company) + ' · ' : ''}Cliente desde ${U.date(c.createdAt)} · ${c.callCount || 0} intento${c.callCount === 1 ? '' : 's'} de contacto</p></div>
+          <div><h1>${U.esc(c.name)}</h1><p>${c.company ? U.esc(c.company) + ' · ' : ''}Cliente desde ${U.date(c.createdAt)} · ${UI.stageBadge(c.stage)} · Intentos de contacto: <strong>${nAtt}/${max}</strong></p></div>
         </div>
         <div class="page-actions">
           <a class="btn good" href="${U.telLink(c.phone)}" id="callBtn">${icon('phone', 'sm')} Llamar</a>
@@ -38,11 +43,10 @@ Views.cliente = (() => {
       <div class="card" style="margin-bottom:16px"><div class="card-body" style="padding:10px">
         <div class="stage-bar">
           ${STAGES.map((st, i) => {
-            let cls = '';
-            if (c.stage === 'perdido') cls = st.id === 'perdido' ? 'lost' : '';
-            else if (st.id === c.stage) cls = c.stage === 'ganado' ? 'won' : 'current';
-            else if (i < stageIdx && st.id !== 'perdido') cls = 'done';
-            return `<button data-stage="${st.id}" class="${cls}" title="${st.desc}">${st.name}</button>`;
+            const cur = st.id === c.stage;
+            const done = c.stage !== 'perdido' && i < stageIdx && st.id !== 'perdido';
+            const style = cur ? `background:${st.color};color:${st.id === 'demo_realizada' ? '#422006' : '#fff'}` : done ? `background:${st.soft};color:${st.ink}` : '';
+            return `<button data-stage="${st.id}" class="${cur ? 'current' : done ? 'done' : ''}" style="${style}" title="${st.desc}">${st.name}</button>`;
           }).join('')}
         </div>
       </div></div>
@@ -60,7 +64,7 @@ Views.cliente = (() => {
             </div>
             <div class="mini-stats">
               <div><span>Último resultado</span><strong>${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : '—'}</strong></div>
-              <div><span>Intentos</span><strong class="num">${c.callCount || 0}</strong></div>
+              <div><span>Intentos</span><strong class="num">${nAtt}/${max}</strong></div>
             </div>
             <dl class="info-list" style="margin:0">
               ${info('Responsable', `<span class="row">${UI.avatar(owner)} ${U.esc(owner ? owner.name : 'Sin asignar')}</span>`)}
@@ -105,34 +109,48 @@ Views.cliente = (() => {
           </div>
         </div>
 
-        <!-- Columna central: registrar + historial -->
+        <!-- Columna central: historial de contacto + actividad -->
         <div class="stack">
-          <div class="card">
-            <div class="card-head"><h2>Registrar interacción</h2>
-              <div class="seg" id="typeSeg">${['llamada', 'whatsapp', 'email', 'visita', 'nota'].map((t) => `<button type="button" data-type="${t}" class="${d.type === t ? 'active' : ''}">${ACTIVITY_TYPES[t].name}</button>`).join('')}</div>
+          <div class="card contact-history">
+            <div class="card-head">
+              <h2>${icon('phone', 'sm')} Historial de contacto</h2>
+              <div class="attempt-counter ${nAtt >= max ? 'full' : ''}"><span>Intentos de contacto:</span> <strong>${nAtt}/${max}</strong></div>
             </div>
-            <div class="card-body stack" style="gap:12px">
-              ${d.type !== 'nota' ? `
-                <div class="small muted">¿Cómo fue el contacto?</div>
-                <div class="outcomes">${OUTCOMES.map((o) => `<button type="button" class="outcome-btn ${d.outcome === o.id ? 'selected' : ''}" data-outcome="${o.id}"><span class="dot" style="background:${o.color}"></span>${o.name}</button>`).join('')}</div>` : ''}
-              <textarea id="actNotes" rows="3" placeholder="${d.type === 'nota' ? 'Escribe una nota…' : '¿Qué se habló? Objeciones, productos, acuerdos…'}">${U.esc(d.notes)}</textarea>
-              <div class="row wrap">
-                <span class="small muted">Próximo seguimiento:</span>
-                <input type="datetime-local" id="actFollow" style="width:auto;height:32px" value="${U.esc(d.follow)}">
-                ${[['Mañana', 1], ['3 días', 3], ['1 semana', 7], ['2 semanas', 14], ['1 mes', 30]].map(([l, n]) => `<button type="button" class="btn xs" data-follow="${n}">${l}</button>`).join('')}
-                <span class="spacer"></span>
-                <button class="btn primary" id="saveAct">${icon('check', 'sm')} Guardar</button>
+            <div class="card-body stack" style="gap:14px">
+              <div class="attempt-meter"><span style="width:${Math.min(100, (nAtt / max) * 100)}%;background:${stageById(c.stage).color}"></span></div>
+              ${c.stage === 'perdido' ? `<div class="archived-note">${icon('ban', 'sm')} <div><strong>Prospecto archivado · ${U.esc(c.lostReason || 'Perdido / Sin respuesta')}</strong><div class="small">No se borra: todo su historial queda guardado. Para reactivarlo, cámbialo de etapa arriba.</div></div></div>` : ''}
+              <div class="attempt-form">
+                <div class="row between wrap" style="gap:8px">
+                  <strong>Registrar intento #${nAtt + 1}${nAtt + 1 <= max ? ` de ${max}` : ''}</strong>
+                  <div class="seg" id="typeSeg">${['llamada', 'whatsapp', 'email', 'visita'].map((t) => `<button type="button" data-type="${t}" class="${d.type === t ? 'active' : ''}">${ACTIVITY_TYPES[t].name}</button>`).join('')}</div>
+                </div>
+                <div class="small muted">Se guarda solo: <strong>fecha y hora</strong> del momento en que guardes · <strong>Agente:</strong> ${U.esc(me.name)}</div>
+                <div class="small muted" style="margin-top:4px">Resultado del intento</div>
+                <div class="outcomes">${OUTCOMES.map((o, i) => `<button type="button" class="outcome-btn ${d.outcome === o.id ? 'selected' : ''}" data-outcome="${o.id}"><span class="dot" style="background:${o.color}"></span>${o.name}</button>`).join('')}</div>
+                <label class="field" style="margin-top:4px">Comentario<textarea id="actNotes" rows="2" placeholder="Ej.: La cliente pidió que la llamemos mañana después de las 5:00 PM.">${U.esc(d.notes)}</textarea></label>
+                <div class="row wrap">
+                  <span class="small muted">Próximo seguimiento:</span>
+                  <input type="datetime-local" id="actFollow" style="width:auto;height:32px" value="${U.esc(d.follow)}">
+                  ${[['Mañana', 1], ['3 días', 3], ['1 semana', 7], ['2 semanas', 14]].map(([l, n]) => `<button type="button" class="btn xs" data-follow="${n}">${l}</button>`).join('')}
+                  <span class="spacer"></span>
+                  <button class="btn primary" id="saveAct">${icon('check', 'sm')} Guardar intento</button>
+                </div>
+                <div class="small muted" id="outcomeHint"></div>
               </div>
-              <div class="small muted" id="outcomeHint"></div>
+              ${attempts.length ? `<div class="attempt-list">${attempts.map((a, i) => attemptItem(a, attempts.length - i)).join('')}</div>` : '<div class="empty small" style="padding:18px">Todavía no hay intentos de contacto registrados.</div>'}
             </div>
           </div>
 
           <div class="card">
-            <div class="card-head"><h2>Historial</h2>
-              <div class="seg" id="tlSeg">${[['todo', 'Todo'], ['llamadas', 'Contactos'], ['notas', 'Notas'], ['dinero', 'Ventas y pagos']].map(([k, l]) => `<button data-tl="${k}" class="${tlFilter === k ? 'active' : ''}">${l}</button>`).join('')}</div>
+            <div class="card-head"><h2>Notas y actividad</h2>
+              <div class="seg" id="tlSeg">${[['todo', 'Todo'], ['notas', 'Notas'], ['citas', 'Citas y etapas'], ['dinero', 'Ventas y pagos']].map(([k, l]) => `<button data-tl="${k}" class="${tlFilter === k ? 'active' : ''}">${l}</button>`).join('')}</div>
             </div>
-            <div class="card-body" style="padding-top:4px;padding-bottom:4px">
-              ${acts.length ? `<div class="timeline">${acts.map(tlItem).join('')}</div>` : UI.empty('Sin actividad registrada todavía.')}
+            <div class="card-body" style="padding-top:12px;padding-bottom:4px">
+              <div class="row" style="gap:8px;align-items:flex-start">
+                <textarea id="noteText" rows="1" placeholder="Escribe una nota sobre este cliente…" style="min-height:38px">${U.esc(d.note)}</textarea>
+                <button class="btn" id="saveNote">${icon('note', 'sm')} Agregar nota</button>
+              </div>
+              ${acts.length ? `<div class="timeline">${acts.map(tlItem).join('')}</div>` : UI.empty('Sin otras actividades todavía.')}
             </div>
           </div>
         </div>
@@ -173,6 +191,26 @@ Views.cliente = (() => {
 
   const info = (k, v) => `<div class="info-row"><dt>${k}</dt><dd>${v}</dd></div>`;
 
+  // Cada intento: número, fecha, hora, agente, resultado y comentario
+  function attemptItem(a, fallbackNumber) {
+    const o = outcomeById(a.outcome) || {};
+    const t = ACTIVITY_TYPES[a.type] || ACTIVITY_TYPES.llamada;
+    return `<div class="attempt-item" style="--att-color:${o.color || 'var(--border-strong)'}">
+      <div class="attempt-num">#${a.attempt || fallbackNumber}</div>
+      <div class="attempt-body">
+        <div class="attempt-meta">
+          <span><span class="lbl">Fecha</span>${U.date(a.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+          <span><span class="lbl">Hora</span>${U.time(a.createdAt)}</span>
+          <span><span class="lbl">Agente</span>${U.esc(UI.userName(a.userId))}</span>
+          <span><span class="lbl">Medio</span>${t.name}</span>
+          <span><span class="lbl">Resultado</span>${UI.outcomeBadge(a.outcome)}</span>
+          ${Store.isAdmin() ? `<button class="btn ghost xs icon" data-del-att="${a.id}" title="Eliminar intento (solo administración)" style="margin-left:auto">${icon('trash', 'sm')}</button>` : ''}
+        </div>
+        <div class="attempt-comment">${a.text ? U.esc(a.text) : '<span class="muted">Sin comentario</span>'}</div>
+      </div>
+    </div>`;
+  }
+
   function tlItem(a) {
     const t = ACTIVITY_TYPES[a.type] || ACTIVITY_TYPES.sistema;
     const o = outcomeById(a.outcome);
@@ -182,7 +220,7 @@ Views.cliente = (() => {
       <div>
         <div class="tl-head"><strong>${t.name}</strong>${o ? UI.outcomeBadge(a.outcome) : ''}${a.duration && o && o.contact ? `<span class="muted small">${U.duration(a.duration)}</span>` : ''}
           <span class="muted small">· ${U.esc(UI.userName(a.userId))} · ${U.dateTime(a.createdAt)}</span>
-          ${(Store.isAdmin() || a.userId === Store.currentUser().id) && ['llamada', 'whatsapp', 'email', 'visita', 'nota'].includes(a.type) ? `<button class="btn ghost xs icon" data-del-act="${a.id}" title="Eliminar" style="margin-left:auto">${icon('trash', 'sm')}</button>` : ''}
+          ${(Store.isAdmin() || a.userId === Store.currentUser().id) && a.type === 'nota' ? `<button class="btn ghost xs icon" data-del-act="${a.id}" title="Eliminar" style="margin-left:auto">${icon('trash', 'sm')}</button>` : ''}
         </div>
         ${a.text ? `<div class="tl-text">${U.esc(a.text)}</div>` : ''}
       </div></div>`;
@@ -205,12 +243,13 @@ Views.cliente = (() => {
       if (o.followDays && !d.follow) bits.push(`programar seguimiento en <strong>${o.followDays} día(s)</strong>`);
       if (o.appointment) bits.push('abrir el formulario para agendar la <strong>cita</strong>');
       if (o.reschedule) bits.push(Store.activeAppointment(c) ? 'abrir la <strong>cita</strong> para cambiarle la fecha' : 'dejar el seguimiento en la fecha que elijas');
-      bits.push('sumar un intento y guardar la fecha y hora del contacto');
+      if (o.lose) bits.push(`marcarlo como <strong>Perdido / Sin respuesta</strong> (${o.lose})${o.dnc ? ' y en la lista de no llamar' : ''}`);
+      bits.push('guardar el intento con fecha, hora y agente, y sumar 1 al contador');
       h.innerHTML = bits.length ? 'Al guardar se va a: ' + bits.join(', ') + '.' : '';
     };
     showHint();
 
-    el.querySelectorAll('[data-type]').forEach((b) => b.onclick = () => { d.type = b.dataset.type; if (d.type === 'nota') d.outcome = ''; render(el, [id]); });
+    el.querySelectorAll('[data-type]').forEach((b) => b.onclick = () => { d.type = b.dataset.type; el.querySelectorAll('[data-type]').forEach((x) => x.classList.toggle('active', x === b)); });
     el.querySelectorAll('[data-outcome]').forEach((b) => b.onclick = () => {
       d.outcome = d.outcome === b.dataset.outcome ? '' : b.dataset.outcome;
       el.querySelectorAll('[data-outcome]').forEach((x) => x.classList.toggle('selected', x.dataset.outcome === d.outcome));
@@ -221,19 +260,24 @@ Views.cliente = (() => {
       d.follow = U.toLocalInput(t); follow.value = d.follow; showHint();
     });
     $('#saveAct').onclick = () => {
-      if (d.type === 'nota') {
-        if (!d.notes.trim()) return UI.toast('Escribe la nota', 'bad');
-        Store.logActivity({ clientId: id, type: 'nota', text: d.notes.trim() });
-        if (d.follow) Store.update('clients', id, { nextFollowUp: U.fromInput(d.follow) });
-      } else {
-        if (!d.outcome) return UI.toast('Selecciona el resultado del contacto', 'bad');
-        const o = outcomeById(d.outcome);
-        Store.logCall(id, { outcome: d.outcome, type: d.type, notes: d.notes.trim(), nextFollowUp: d.follow ? U.fromInput(d.follow) : undefined, duration: 0 });
-        afterOutcome(id, o.id);
-      }
-      draft[id] = { type: d.type, outcome: '', notes: '', follow: '' };
-      UI.toast('Interacción registrada', 'good');
+      if (!d.outcome) return UI.toast('Selecciona el resultado del intento', 'bad');
+      const o = outcomeById(d.outcome);
+      const n = (Store.get('clients', id).callCount || 0) + 1;
+      Store.logCall(id, { outcome: d.outcome, type: d.type, notes: d.notes.trim(), nextFollowUp: d.follow ? U.fromInput(d.follow) : undefined, duration: 0 });
+      draft[id] = { type: d.type, outcome: '', notes: '', follow: '', note: d.note };
+      const after = Store.get('clients', id);
+      UI.toast(after.stage === 'perdido' && after.archivedNoAnswer && n >= Store.maxAttempts() ? `Intento #${n} guardado · se completaron ${Store.maxAttempts()} intentos: prospecto archivado` : `Intento #${n} guardado`, 'good');
+      afterOutcome(id, o.id);
     };
+    const noteText = $('#noteText');
+    noteText.oninput = () => { d.note = noteText.value; };
+    $('#saveNote').onclick = () => {
+      if (!d.note.trim()) return UI.toast('Escribe la nota', 'bad');
+      Store.logActivity({ clientId: id, type: 'nota', text: d.note.trim() });
+      d.note = '';
+      UI.toast('Nota agregada', 'good');
+    };
+    el.querySelectorAll('[data-del-att]').forEach((b) => b.onclick = async () => { if (await UI.confirm('¿Eliminar este intento del historial? El contador de intentos se recalcula.')) Store.removeAttempt(b.dataset.delAtt); });
 
     el.querySelectorAll('[data-tl]').forEach((b) => b.onclick = () => { tlFilter = b.dataset.tl; render(el, [id]); });
     el.querySelectorAll('[data-stage]').forEach((b) => b.onclick = () => setStage(id, b.dataset.stage));
@@ -390,15 +434,16 @@ Views.cliente = (() => {
     const c = Store.get('clients', id);
     if (!c) return;
     UI.modal({
-      title: `Resultado de la llamada · ${U.esc(c.name)}`,
+      title: `Intento #${(c.callCount || 0) + 1} de ${Store.maxAttempts()} · ${U.esc(c.name)}`,
       body: `<div class="outcomes">${OUTCOMES.map((o) => `<label class="outcome-btn"><input type="radio" name="outcome" value="${o.id}" hidden><span class="dot" style="background:${o.color}"></span>${o.name}</label>`).join('')}</div>
-             <label class="field">Notas<textarea name="notes" rows="3"></textarea></label>
+             <p class="small muted" style="margin:0">Fecha, hora y agente (${U.esc(Store.currentUser().name)}) se guardan solos.</p>
+             <label class="field">Comentario<textarea name="notes" rows="3" placeholder="¿Qué pasó en este intento?"></textarea></label>
              <label class="field">Próximo seguimiento <span class="hint">(fecha y hora · si lo dejas vacío se programa solo según el resultado)</span><input type="datetime-local" name="follow"></label>`,
       onOpen: (form) => form.querySelectorAll('.outcome-btn').forEach((l) => l.addEventListener('click', () => { form.querySelectorAll('.outcome-btn').forEach((x) => x.classList.remove('selected')); l.classList.add('selected'); })),
       onSubmit: (f) => {
         if (!f.outcome) { UI.toast('Selecciona un resultado', 'bad'); return false; }
         Store.logCall(id, { outcome: f.outcome, notes: f.notes, nextFollowUp: f.follow ? U.fromInput(f.follow) : undefined });
-        UI.toast('Llamada registrada', 'good');
+        UI.toast('Intento registrado', 'good');
         afterOutcome(id, f.outcome);
       }
     });

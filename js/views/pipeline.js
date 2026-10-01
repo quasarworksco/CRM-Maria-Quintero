@@ -75,7 +75,7 @@ Views.pipeline = (() => {
     return `<div class="kcard" draggable="true" data-id="${c.id}" style="--temp-color:${stageById(c.stage).color}">
       <div class="row between"><span class="kcard-title">${U.esc(c.name)}</span>${UI.avatar(owner)}</div>
       <div class="kcard-meta">${U.esc(c.phone)}${c.source ? ' · ' + U.esc(c.source) : ''}</div>
-      ${c.lastOutcome || c.callCount ? `<div class="kcard-meta">${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : ''} <span>${c.callCount || 0} intento${c.callCount === 1 ? '' : 's'}</span></div>` : ''}
+      <div class="kcard-meta">${UI.attempts(c)} ${c.lastOutcome ? UI.outcomeBadge(c.lastOutcome) : ''}</div>
       ${appt ? `<div class="kcard-meta">${UI.apptBadge(c)} <span>${U.esc(Store.demoByName(appt))}</span></div>` : ''}
       <div class="kcard-meta">${OPEN_STAGES.includes(c.stage) ? UI.followLabel(c.nextFollowUp) : c.stage === 'ganado' ? 'Venta ' + U.ago(c.wonAt) : U.esc(c.lostReason || '')}</div>
       ${stale ? `<div class="kcard-meta" style="color:var(--warn)">${icon('alert', 'sm')} Sin contacto ${c.lastContact ? U.ago(c.lastContact) : 'nunca'}</div>` : ''}

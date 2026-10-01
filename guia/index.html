@@ -154,7 +154,12 @@
     .funnel { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; margin: 18px 0; }
     .funnel div { padding: 12px 8px; text-align: center; font-size: 12.5px; font-weight: 600; border-radius: 8px; background: var(--surface-3); color: var(--text-2); border: 1px solid var(--border); }
     .funnel div small { display: block; font-weight: 500; color: var(--text-3); font-size: 11.5px; margin-top: 2px; }
-    .funnel .w { background: var(--good-soft); color: var(--good); border-color: transparent; }
+    .funnel .w { background: #fae8ff; color: #a21caf; border-color: transparent; }
+    .color-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
+    .color-legend span { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+    .color-legend i { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+    .color-legend b { min-width: 64px; }
+    @media (max-width: 640px) { .color-legend { grid-template-columns: minmax(0, 1fr); } }
     .funnel .l { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
     .temps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
     .temps .card h4 .t { width: 10px; height: 10px; border-radius: 50%; }
@@ -266,8 +271,8 @@
           <div class="card"><h4>Etapa</h4><p>En qué punto del proceso está la persona: nuevo, intentando contactar, contactado, cita agendada, cita confirmada, demo realizada, venta o perdido.</p><div class="ex">Ej.: "Ana tiene la cita confirmada".</div></div>
           <div class="card"><h4>Fuente y referido</h4><p>Cómo llegó la persona (Florida Mall, evento, referido, Facebook…). Si es <strong>referido</strong>, se anota <strong>quién la refirió</strong>; si es de un <strong>evento</strong>, el nombre del evento.</p><div class="ex">Ej.: "Referido por Gloria Pérez".</div></div>
           <div class="card"><h4>Seguimiento</h4><p>La <strong>fecha y hora</strong> en que hay que volver a contactar a alguien. Aparece como <strong>tarea pendiente</strong> de la agente. Es la clave para no perder ventas.</p><div class="ex">Ej.: "Llamar a Ana el jueves a las 10 a.m.".</div></div>
-          <div class="card"><h4>Resultado de la última llamada</h4><p>Cómo terminó el último intento: no contestó, contestó, dejó mensaje, WhatsApp enviado, interesado, no interesado, cita agendada o reagendar.</p><div class="ex">Ej.: "Último resultado: Dejó mensaje".</div></div>
-          <div class="card"><h4>Intentos y último contacto</h4><p>Cada vez que registras una llamada o un WhatsApp, el CRM <strong>suma un intento</strong> y guarda la <strong>fecha y hora</strong>. No hay que escribirlo a mano.</p><div class="ex">Ej.: "4 intentos · último: 30 sept 3:15 p.m.".</div></div>
+          <div class="card"><h4>Resultado del intento</h4><p>Cómo terminó cada intento: no contestó, buzón de voz, WhatsApp enviado, llamar después, contactado, cita agendada, no interesado, número incorrecto o no volver a llamar.</p><div class="ex">Ej.: "Intento #3: Buzón de voz".</div></div>
+          <div class="card"><h4>Intentos de contacto (X/12)</h4><p>Cada intento registrado suma uno al contador y guarda <strong>número, fecha, hora y agente</strong> solos. Si se llega a <strong>12 intentos sin lograr contacto</strong>, el prospecto se archiva como <em>Perdido / Sin respuesta</em> (no se borra).</p><div class="ex">Ej.: "Intentos de contacto: 4/12".</div></div>
           <div class="card"><h4>Cita</h4><p>La demostración en casa del cliente: <strong>fecha, hora, dirección y quién la realiza</strong>. Se confirma, se marca como realizada o se reagenda.</p><div class="ex">Ej.: "Cita jueves 4 p.m., demo con Juan".</div></div>
           <div class="card"><h4>Cartera</h4><p>El dinero que <strong>te deben</strong>: ventas hechas que todavía tienen saldo pendiente.</p><div class="ex">Ej.: Ana pagó $100 de $300 → debe $200.</div></div>
           <div class="card"><h4>Recaudo</h4><p>El dinero que <strong>ya entró</strong>: cada pago o abono que registra el equipo.</p><div class="ex">Ej.: "Esta semana recaudamos $4,500".</div></div>
@@ -276,7 +281,17 @@
         <h3>Las etapas: del primer contacto a la venta</h3>
         <p>Cada prospecto avanza por estas etapas. La mayoría de los cambios los hace el CRM solo según el resultado de cada llamada o cita:</p>
         <div class="funnel funnel-8">
-          <div>Nuevo<small>Sin llamar</small></div><div>Intentando contactar<small>No contesta aún</small></div><div>Contactado<small>Ya se habló</small></div><div>Cita agendada<small>Tiene fecha</small></div><div>Cita confirmada<small>Confirmó</small></div><div>Demo realizada<small>Falta cerrar</small></div><div class="w">Venta<small>Compró</small></div><div class="l">Perdido / Sin respuesta<small>No compró</small></div>
+          <div style="background:#eff6ff;color:#1d4ed8">Nuevo<small>Sin llamar</small></div><div style="background:#dbeafe;color:#1e40af">Intentando contactar<small>No contesta aún</small></div><div style="background:#dcfce7;color:#15803d">Contactado<small>Ya se habló</small></div><div style="background:#f3e8ff;color:#7e22ce">Cita agendada<small>Tiene fecha</small></div><div style="background:#ede9fe;color:#6b21a8">Cita confirmada<small>Confirmó</small></div><div style="background:#fef9c3;color:#854d0e">Demo realizada<small>Falta cerrar</small></div><div class="w">Venta<small>Compró</small></div><div class="l">Perdido / Sin respuesta<small>No compró</small></div>
+        </div>
+        <h3>Los colores de cada etapa</h3>
+        <p>Cada etapa tiene su color y se aplica solo. Lo verás en la ficha, en la lista de clientes (franja a la izquierda de cada fila), en el embudo, en la agenda y en el Inicio, para saber el estado de cada persona sin abrir su ficha:</p>
+        <div class="color-legend">
+          <span><i style="background:#3b82f6"></i><b>Azul</b> Nuevo / Intentando contactar</span>
+          <span><i style="background:#16a34a"></i><b>Verde</b> Contactado / En seguimiento</span>
+          <span><i style="background:#9333ea"></i><b>Morado</b> Cita agendada / Cita confirmada</span>
+          <span><i style="background:#eab308"></i><b>Amarillo</b> Demo realizada</span>
+          <span><i style="background:#c026d3"></i><b>Fucsia</b> Venta</span>
+          <span><i style="background:#dc2626"></i><b>Rojo</b> Perdido / No interesado / Sin respuesta</span>
         </div>
         <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>No tienes que mover todo a mano</strong>Cuando registras el resultado de una llamada, el CRM actualiza solo la etapa, el último resultado, los intentos, la fecha y hora del último contacto y el próximo seguimiento. Lo verás en la sección 4.</div></div>
       </section>
@@ -378,8 +393,8 @@
           <li><strong>Mira quién sigue.</strong> Arriba aparece el nombre, el teléfono, la etapa, el último resultado, los intentos, quién lo refirió y los productos que le interesan. Si tiene cita o saldo pendiente, también lo verás.</li>
           <li><strong>Presiona "Llamar".</strong> En el celular marca directo; en el computador abre tu aplicación de llamadas. El cronómetro arranca solo.</li>
           <li><strong>Apóyate en el guion.</strong> Ya trae el nombre del cliente, el tuyo y su ciudad. La administración lo puede cambiar.</li>
-          <li><strong>Elige el resultado</strong> de la llamada con un clic (o con las teclas <kbd>1</kbd> a <kbd>8</kbd>).</li>
-          <li><strong>Escribe una nota corta</strong>: qué se habló, objeciones, qué producto le interesa.</li>
+          <li><strong>Elige el resultado</strong> del intento con un clic (o con las teclas <kbd>1</kbd> a <kbd>9</kbd>).</li>
+          <li><strong>Escribe un comentario</strong>: qué se habló, objeciones, a qué hora pidió que la llamen. La fecha, la hora y tu nombre se guardan solos.</li>
           <li><strong>Revisa el seguimiento</strong> (opcional). El CRM lo programa solo según el resultado, pero puedes elegir otra fecha o usar "Mañana", "3 días" o "1 semana".</li>
           <li><strong>Presiona "Guardar y siguiente".</strong> Todo queda en el historial del cliente y pasa la siguiente persona de la cola.</li>
         </ol>
@@ -387,16 +402,18 @@
         <div class="table-wrap"><table>
           <thead><tr><th>Tecla</th><th>Resultado</th><th>Lo que el CRM hace solo (además de sumar un intento y guardar la fecha y hora)</th></tr></thead>
           <tbody>
-            <tr><td><kbd>1</kbd></td><td><span class="dot" style="background:#a1a1aa"></span>No contestó</td><td>Lo pasa a <strong>Intentando contactar</strong> y programa volver a llamar mañana.</td></tr>
-            <tr><td><kbd>2</kbd></td><td><span class="dot" style="background:#71717a"></span>Contestó</td><td>Lo pasa a <strong>Contactado</strong> y programa seguimiento en 2 días.</td></tr>
-            <tr><td><kbd>3</kbd></td><td><span class="dot" style="background:#8e8e96"></span>Dejó mensaje</td><td><strong>Intentando contactar</strong>, reintento mañana.</td></tr>
-            <tr><td><kbd>4</kbd></td><td><span class="dot" style="background:#6b6b74"></span>WhatsApp enviado</td><td><strong>Intentando contactar</strong>, seguimiento mañana.</td></tr>
-            <tr><td><kbd>5</kbd></td><td><span class="dot" style="background:#52525b"></span>Interesado</td><td>Lo pasa a <strong>Contactado</strong> y programa seguimiento en 2 días.</td></tr>
-            <tr><td><kbd>6</kbd></td><td><span class="dot" style="background:#ef4444"></span>No interesado</td><td>Lo deja para dentro de 3 meses. Si pasa dos veces, lo marca <strong>Perdido / Sin respuesta</strong>.</td></tr>
-            <tr><td><kbd>7</kbd></td><td><span class="dot" style="background:#16a34a"></span>Cita agendada</td><td>Abre el formulario de la <strong>cita</strong> (fecha, hora, dirección y quién hace la demostración) y lo pasa a <strong>Cita agendada</strong>.</td></tr>
-            <tr><td><kbd>8</kbd></td><td><span class="dot" style="background:#27272a"></span>Reagendar</td><td>Deja el seguimiento en la fecha y hora que elijas. Si ya tenía cita, abre la cita para cambiarle la fecha.</td></tr>
+            <tr><td><kbd>1</kbd></td><td><span class="dot" style="background:#2563eb"></span>No contestó</td><td>Lo pasa a <strong>Intentando contactar</strong> y programa volver a llamar mañana.</td></tr>
+            <tr><td><kbd>2</kbd></td><td><span class="dot" style="background:#3b82f6"></span>Buzón de voz</td><td><strong>Intentando contactar</strong>, reintento mañana.</td></tr>
+            <tr><td><kbd>3</kbd></td><td><span class="dot" style="background:#60a5fa"></span>WhatsApp enviado</td><td><strong>Intentando contactar</strong>, seguimiento mañana.</td></tr>
+            <tr><td><kbd>4</kbd></td><td><span class="dot" style="background:#22c55e"></span>Llamar después</td><td>Contestó y pidió que la llamen luego: <strong>Contactado</strong>, con seguimiento en la fecha y hora que elijas (o mañana).</td></tr>
+            <tr><td><kbd>5</kbd></td><td><span class="dot" style="background:#16a34a"></span>Contactado</td><td>Lo pasa a <strong>Contactado</strong> y programa seguimiento en 2 días.</td></tr>
+            <tr><td><kbd>6</kbd></td><td><span class="dot" style="background:#9333ea"></span>Cita agendada</td><td>Abre el formulario de la <strong>cita</strong> (fecha, hora, dirección y quién hace la demostración) y lo pasa a <strong>Cita agendada</strong>.</td></tr>
+            <tr><td><kbd>7</kbd></td><td><span class="dot" style="background:#dc2626"></span>No interesado</td><td>Lo pasa de inmediato a <strong>Perdido / Sin respuesta</strong> (motivo: No interesado).</td></tr>
+            <tr><td><kbd>8</kbd></td><td><span class="dot" style="background:#b91c1c"></span>Número incorrecto</td><td><strong>Perdido / Sin respuesta</strong> (motivo: Número incorrecto).</td></tr>
+            <tr><td><kbd>9</kbd></td><td><span class="dot" style="background:#7f1d1d"></span>No volver a llamar</td><td><strong>Perdido / Sin respuesta</strong> y lo agrega a la lista de <strong>no llamar</strong>: ya no sale en ninguna cola.</td></tr>
           </tbody>
         </table></div>
+        <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div><strong>La regla de los 12 intentos</strong>Si una persona llega a <strong>12 intentos sin que se logre hablar con ella</strong>, el CRM la pasa sola a <em>Perdido / Sin respuesta</em> y la archiva: <strong>no se borra</strong> y conserva todo su historial. Si antes contesta, agenda cita, dice que no le interesa o pide que no la llamen, se respeta ese resultado y no hace falta completar los 12. El número de intentos se puede cambiar en Panel admin → Configuración.</div></div>
         <h3>Las colas disponibles</h3>
         <ul class="list">
           <li><strong>Prioridad inteligente</strong>: la recomendada para el día a día.</li>
@@ -480,18 +497,20 @@
           <li><strong>Último resultado e intentos</strong>: cómo terminó la última llamada y cuántos intentos de contacto lleva. Se actualizan solos.</li>
           <li><strong>Datos</strong>: responsable, próximo seguimiento, último contacto (fecha y hora), fuente, <strong>referido por</strong> o evento, dirección con enlace a Google Maps y perfil del hogar.</li>
           <li><strong>Botones de contacto</strong>: Llamar, WhatsApp (con un saludo ya escrito) y Email.</li>
-          <li><strong>Registrar interacción</strong>: llamada, WhatsApp, email, visita o nota.</li>
-          <li><strong>Historial</strong>: todo lo que ha pasado con esa persona, de lo más reciente a lo más antiguo. Se puede filtrar por contactos, notas o ventas y pagos.</li>
+          <li><strong>Historial de contacto</strong>: el contador <strong>Intentos de contacto: X/12</strong>, el formulario para registrar el siguiente intento y la lista de todos los intentos con su número, fecha, hora, agente, resultado y comentario.</li>
+          <li><strong>Notas y actividad</strong>: notas libres, citas, cambios de etapa, ventas y pagos.</li>
+          
           <li><strong>Cita</strong>: fecha, hora, dirección y quién hace la demostración, con botones para <strong>Confirmar</strong>, <strong>Demo realizada</strong>, <strong>Reagendar</strong> o <strong>Cancelar</strong>.</li>
           <li><strong>Resumen financiero</strong>: cuánto ha comprado, cuánto pagó y cuánto debe.</li>
           <li><strong>Ventas, tareas y archivos</strong>: sus pedidos, sus pendientes y las fotos o documentos (facturas, fotos de la instalación).</li>
         </ul>
-        <h3>Registrar lo que pasó en una llamada o visita</h3>
+        <h3>Historial de contacto: registrar un intento</h3>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/historial-contacto.jpg" width="1280" height="800" alt="Sección Historial de contacto con el contador 8/12, el formulario del intento y la lista de intentos" loading="lazy"></div><figcaption>Historial de contacto: contador, formulario del intento #9 y la lista de intentos anteriores.</figcaption></figure>
         <ol class="steps">
-          <li>Elige el tipo: <strong>Llamada, WhatsApp, Email, Visita o Nota</strong>.</li>
+          <li>Arriba verás <strong>"Registrar intento #N de 12"</strong>. Elige el medio: <strong>Llamada, WhatsApp, Email o Visita</strong>.</li>
           <li>Elige el resultado. Debajo verás un aviso de lo que el CRM hará solo, por ejemplo "mover a Contactado, programar seguimiento en 2 días".</li>
-          <li>Escribe qué se habló y, si quieres, elige la fecha del próximo seguimiento.</li>
-          <li>Presiona <strong>Guardar</strong>.</li>
+          <li>Escribe el <strong>comentario</strong> (por ejemplo, "pidió que la llamemos mañana después de las 5:00 PM") y, si quieres, la fecha y hora del próximo seguimiento.</li>
+          <li>Presiona <strong>Guardar intento</strong>. El CRM guarda solo la fecha, la hora y tu nombre, y el contador sube (por ejemplo, de 8/12 a 9/12).</li>
         </ol>
         <h3>Agendar y manejar una cita</h3>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/cita.jpg" width="1280" height="800" alt="Formulario de cita con fecha, hora, dirección y quién realiza la demostración" loading="lazy"></div><figcaption>La cita guarda fecha, hora, dirección y quién realizará la demostración.</figcaption></figure>
@@ -699,7 +718,7 @@
           <tbody>
             <tr><td><kbd>/</kbd></td><td>Va al buscador de clientes desde cualquier pantalla.</td></tr>
             <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></td><td>Recorre los resultados del buscador y abre el elegido.</td></tr>
-            <tr><td><kbd>1</kbd> … <kbd>8</kbd></td><td>En Modo llamadas, elige el resultado de la llamada.</td></tr>
+            <tr><td><kbd>1</kbd> … <kbd>9</kbd></td><td>En Modo llamadas, elige el resultado de la llamada.</td></tr>
             <tr><td><kbd>Esc</kbd></td><td>Cierra cualquier ventana.</td></tr>
             <tr><td>Botón 🌙</td><td>Cambia entre tema claro y oscuro.</td></tr>
           </tbody>
@@ -719,10 +738,12 @@
         <details class="faq"><summary>Dice "Tu correo no tiene acceso a este CRM"</summary><p>Ese correo no tiene un usuario creado, o está escrito diferente. Pide a la administración que te cree el usuario con ese mismo correo.</p></details>
         <details class="faq"><summary>Dice "Tu usuario está desactivado"</summary><p>La administración desactivó tu acceso. Si es un error, pídele que te vuelva a activar en Panel admin → Usuarios → Editar.</p></details>
         <details class="faq"><summary>Me equivoqué al escribir mi nombre en el primer ingreso</summary><p>Abre tu menú (arriba a la derecha) → "Mi perfil" y corrígelo. El cambio se ve en todo el CRM.</p></details>
+        <details class="faq"><summary>Un prospecto pasó solo a "Perdido / Sin respuesta"</summary><p>Llegó a 12 intentos sin que se lograra hablar con la persona. Quedó archivado con todo su historial. Si la persona aparece después, abre su ficha y cámbiala de etapa: vuelve a estar activa.</p></details>
+        <details class="faq"><summary>Me equivoqué al registrar un intento</summary><p>Solo la administración puede borrar intentos (ícono de papelera en la lista de intentos). Al borrarlo, el contador se recalcula. Así el historial de quién llamó y cuándo queda confiable.</p></details>
         <details class="faq"><summary>¿Dónde anoto quién me refirió a un cliente?</summary><p>En el formulario del prospecto, elige la fuente <strong>Referido</strong> y aparecerá el campo <strong>"Referido por"</strong>. En Reportes, la tabla "¿Quién trae referidos?" muestra cuántos refirió cada persona.</p></details>
         <details class="faq"><summary>El cliente quiere cambiar la fecha de la cita</summary><p>En la ficha, tarjeta <em>Cita</em> → <strong>Reagendar</strong>, o registra la llamada con el resultado <strong>Reagendar</strong>. Cambias la fecha y hora y la cita vuelve a quedar "agendada" para confirmarla.</p></details>
         <details class="faq"><summary>No veo a un cliente que sé que existe</summary><p>Si eres agente, solo ves los clientes asignados a ti. Pídele a la supervisora que te lo asigne. Si eres supervisora o dueña, revisa que no haya filtros activos en la lista (botón "Limpiar").</p></details>
-        <details class="faq"><summary>Me equivoqué al registrar una llamada</summary><p>En el historial del cliente, junto a cada llamada o nota que tú registraste, hay un ícono de papelera para eliminarla. Luego regístrala de nuevo bien.</p></details>
+        
         <details class="faq"><summary>¿Cómo cambio a un cliente de agente?</summary><p>Desde su ficha, con "Reasignar a…", o en la lista de clientes marcando varios y usando "Asignar a…". Solo la supervisora y la administración pueden hacerlo.</p></details>
         <details class="faq"><summary>El cliente pagó en dos partes, ¿cómo lo anoto?</summary><p>Registra cada pago por separado con "Abonar" en Recaudo o en el detalle de la venta. El CRM suma los pagos y muestra el saldo que queda.</p></details>
         <details class="faq"><summary>Un producto ya no se vende, ¿lo borro?</summary><p>Mejor desactívalo (desmarca "Activo" en el producto). Deja de aparecer al vender, pero las ventas pasadas lo conservan.</p></details>
