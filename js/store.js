@@ -7,7 +7,9 @@
    - FirestoreAdapter: guarda en Firebase Firestore y escucha
      cambios en tiempo real, así todo el equipo ve lo mismo.
    ========================================================= */
-const COLLECTIONS = ['users', 'clients', 'activities', 'tasks', 'products', 'orders', 'payments'];
+const COLLECTIONS = ['users', 'clients', 'activities', 'tasks', 'products', 'orders', 'payments', 'candidates', 'candidateActivities'];
+// Colecciones de Reclutamiento: si las reglas aún no las permiten, el resto del CRM sigue funcionando
+const OPTIONAL_COLLECTIONS = ['candidates', 'candidateActivities'];
 
 // Firestore no acepta campos undefined: el viaje por JSON los elimina
 const cleanDoc = (d) => JSON.parse(JSON.stringify(d));
@@ -107,17 +109,23 @@ const FirestoreAdapter = {
       if (manager) return ref;
       if (col === 'clients') return fs.query(ref, fs.where('ownerId', '==', mine));
       if (col === 'orders') return fs.query(ref, fs.where('userId', '==', mine));
+      if (col === 'candidates') return fs.query(ref, fs.where('ownerId', '==', mine));
       return ref;
     };
-    const listen = (ref, apply) => new Promise((resolve, reject) => {
+    this.denied = [];
+    const listen = (ref, apply, optional) => new Promise((resolve, reject) => {
       let first = true;
       fs.onSnapshot(ref, (snap) => {
         apply(snap);
         if (first) { first = false; resolve(); } else ctx.onRemote();
-      }, (err) => { console.error(err); if (first) { first = false; reject(err); } else UI.toast('Se perdió la conexión con la base de datos', 'bad'); });
+      }, (err) => {
+        console.error(err);
+        if (first) { first = false; if (optional) { this.denied.push(optional); resolve(); } else reject(err); }
+        else UI.toast('Se perdió la conexión con la base de datos', 'bad');
+      });
     });
     await Promise.all([
-      ...COLLECTIONS.map((col) => listen(source(col), (snap) => { cache[col] = snap.docs.map((d) => normalizeDoc(col, Object.assign({ id: d.id }, d.data()))); })),
+      ...COLLECTIONS.map((col) => listen(source(col), (snap) => { cache[col] = snap.docs.map((d) => normalizeDoc(col, Object.assign({ id: d.id }, d.data()))); }, OPTIONAL_COLLECTIONS.includes(col) && col)),
       listen(settingsRef, (snap) => { cache.settings = Object.assign({}, ctx.defaults, snap.exists() ? snap.data() : {}); })
     ]);
 
@@ -208,6 +216,10 @@ const Store = (() => {
     sources: SOURCE_DEFAULTS.slice(),
     lostReasons: LOST_REASON_DEFAULTS.slice(),
     maxAttempts: 12,
+    // Reclutamiento (módulo aparte de ventas)
+    candidateSources: ['Indeed', 'Referido', 'Facebook', 'Instagram', 'Florida Mall / Tienda', 'Feria / Evento', 'Otra fuente'],
+    positions: ['Agente de ventas telefónicas', 'Vendedor(a) de campo', 'Técnico(a) instalador', 'Supervisor(a)', 'Recepcionista', 'Otro'],
+    languages: ['Español', 'Inglés', 'Bilingüe (Español/Inglés)', 'Otro'],
     categories: ['Filtros de aire', 'Purificadores', 'Filtros de agua', 'Deshumidificadores', 'Accesorios', 'Servicios'],
     staleDays: 7,
     callScript:
@@ -235,6 +247,8 @@ const Store = (() => {
     }
   }
   const mode = () => adapter.name;
+  // Colecciones que las reglas de Firestore todavía no permiten leer (p. ej. Reclutamiento sin publicar las reglas nuevas)
+  const deniedCollections = () => (adapter.denied || []).slice();
 
   // Agrega las fuentes nuevas a la configuración guardada (una sola vez)
   function migrateSettings() {
@@ -558,7 +572,7 @@ const Store = (() => {
     currentUser, setCurrentUser, isManager, isAdmin, can, myClients, myOrders, myTasks, myActivities, canSeeClient, activeUsers, sellers,
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
-    exportJSON, importJSON, resetDemo, wipeAll, mode, isOwner,
+    exportJSON, importJSON, resetDemo, wipeAll, mode, deniedCollections, isOwner,
     saveAppointment, setAppointmentStatus, maxAttempts, attemptsOf, removeAttempt, activeAppointment, demoByName, APPT_STATUS,
     realUser, isViewingAs, setViewAs, authMode, syncAccess, auth
   };
@@ -742,6 +756,74 @@ const Seed = {
       const due = now + r.int(-2, 5) * U.DAY + r.int(-3, 3) * 3600000;
       db.tasks.push({ id: U.uid('ta_'), clientId: c.id, userId: c.ownerId, title: r.pick(taskTitles), due: iso(due), done: due < now - U.DAY && r.chance(0.6), priority: r.pick(['normal', 'normal', 'alta']), createdAt: iso(now - 5 * U.DAY), updatedAt: iso(now) });
     });
+
+    // Reclutamiento (demo): candidatos separados de los prospectos de ventas
+    const rc = U.rng(20261001);
+    const cSources = settings.candidateSources || ['Indeed'];
+    const positions = settings.positions || ['Agente de ventas telefónicas'];
+    const languages = settings.languages || ['Español'];
+    const recruiters = users.filter((u) => u.role !== 'agente' || u.id === 'us_3');
+    const candStageW = [['nuevo', 14], ['intentando', 14], ['contactado', 10], ['entrevista_agendada', 9], ['entrevista_confirmada', 6], ['entrevistado', 7], ['califica', 6], ['entrenamiento_agendado', 5], ['en_entrenamiento', 5], ['contratado', 8], ['no_seleccionado', 8], ['sin_respuesta', 8]];
+    const pickCand = () => { let t = rc() * 100; for (const [s, w] of candStageW) { if ((t -= w) < 0) return s; } return 'nuevo'; };
+    const order = CAND_STAGES.map((s) => s.id);
+    const places = ['Oficina principal · 8200 NW 41st St, Doral', 'Florida Mall · Kiosko central', 'Llamada por Zoom'];
+    for (let i = 0; i < 30; i++) {
+      const fn = rc.pick(first), ln = rc.pick(last);
+      const stage = pickCand();
+      const owner = rc.pick(recruiters);
+      const created = now - rc.int(1, 40) * U.DAY - rc.int(0, 36000) * 1000;
+      const source = i < 12 ? 'Indeed' : rc.pick(cSources);
+      const start = new Date(now + rc.int(3, 30) * U.DAY);
+      const c = {
+        id: 'ca_' + (i + 1), name: `${fn} ${ln}`,
+        phone: `(${rc.pick(['305', '786', '954'])}) ${rc.int(200, 999)}-${String(rc.int(0, 9999)).padStart(4, '0')}`,
+        phone2: rc.chance(0.2) ? `(786) ${rc.int(200, 999)}-${String(rc.int(0, 9999)).padStart(4, '0')}` : '',
+        email: rc.chance(0.8) ? `${U.normalize(fn)}.${U.normalize(ln)}${rc.int(1, 99)}@gmail.com` : '',
+        city: rc.pick(cities), state: 'FL', language: rc.pick(languages.slice(0, 3)), position: rc.pick(positions.slice(0, 4)),
+        hasVehicle: rc.chance(0.7), salesExperience: rc.chance(0.55), weekends: rc.chance(0.6),
+        startDate: start.toISOString().slice(0, 10), notes: rc.pick(['Disponible de inmediato', 'Trabaja medio tiempo, puede en las tardes', 'Vio el anuncio en Indeed', 'Tiene experiencia en call center', '']),
+        source, referredBy: '', referredByRef: null, stage, ownerId: owner.id,
+        callCount: 0, lastOutcome: '', lastContact: null, nextFollowUp: null, followUpNote: '', interview: null,
+        createdAt: iso(created), updatedAt: iso(created)
+      };
+      if (isReferralSource(source)) {
+        const u = rc.pick(users.slice(2));
+        const prev = db.candidates.filter((x) => x.stage === 'contratado');
+        if (prev.length && rc.chance(0.5)) { const p = rc.pick(prev); c.referredBy = p.name; c.referredByRef = { type: 'candidate', id: p.id }; }
+        else { c.referredBy = u.name; c.referredByRef = { type: 'user', id: u.id }; }
+      }
+      const act = (t, data) => db.candidateActivities.push(Object.assign({ id: U.uid('ca_'), candidateId: c.id, userId: owner.id, createdAt: iso(t), updatedAt: iso(t) }, data));
+      act(created, { type: 'sistema', text: `Candidato registrado · Fuente: ${source}` });
+      const idx = order.indexOf(stage);
+      const nCalls = stage === 'nuevo' ? 0 : stage === 'sin_respuesta' ? 12 : stage === 'intentando' ? rc.int(1, 6) : rc.int(1, 3);
+      let t = created;
+      for (let k = 0; k < nCalls; k++) {
+        t = Math.min(now - rc.int(1, 8) * 3600000, t + rc.int(0, 2) * U.DAY + rc.int(1800, 30000) * 1000);
+        const lastOne = k === nCalls - 1;
+        let outcome = rc.pick(['no_contesto', 'no_contesto', 'buzon', 'mensaje']);
+        if (lastOne && stage !== 'intentando' && stage !== 'sin_respuesta') outcome = idx >= 3 ? 'entrevista' : stage === 'no_seleccionado' ? 'no_interesado' : 'contactado';
+        const o = candOutcomeById(outcome);
+        act(t, { type: outcome === 'mensaje' ? 'mensaje' : 'llamada', outcome, attempt: k + 1, text: o.contact ? rc.pick(['Le interesa el puesto', 'Preguntó por el horario y el pago', 'Muy buena actitud al teléfono', '']) : '' });
+        c.callCount++; c.lastOutcome = outcome; c.lastContact = iso(t);
+        if (o.contact && !c.reachedAt) c.reachedAt = iso(t);
+      }
+      if (stage !== 'nuevo' && stage !== 'intentando') act(t + 60000, { type: 'etapa', text: `Nuevo candidato → ${candStageById(stage).name}` });
+      if (idx >= 3 && stage !== 'sin_respuesta') {
+        const done = idx >= 5;
+        const at = done ? now - rc.int(1, 6) * U.DAY : now + rc.int(0, 6) * U.DAY;
+        const d = new Date(at); d.setHours(rc.pick([9, 10, 11, 14, 15, 16]), rc.pick([0, 30]), 0, 0);
+        const status = stage === 'entrevista_confirmada' ? 'confirmada' : stage === 'entrevista_agendada' ? 'agendada' : 'realizada';
+        c.interview = { at: d.toISOString(), place: rc.pick(places), interviewerId: rc.pick(['us_1', 'us_2']), interviewerName: '', notes: '', status, resultNotes: done ? rc.pick(['Buena comunicación, con experiencia en ventas', 'Puntual, muy motivado(a)', 'Le falta experiencia pero aprende rápido']) : '', updatedAt: iso(t), by: owner.id };
+        act(t + 120000, { type: 'entrevista', kind: 'agendada', text: `Entrevista agendada para el ${U.dateTime(c.interview.at)} · ${c.interview.place}` });
+        if (done) act(d.getTime() + 3600000, { type: 'entrevista', kind: 'realizada', text: 'Entrevista realizada\nNotas de la entrevista: ' + c.interview.resultNotes });
+      }
+      if (stage === 'contratado') c.hiredAt = iso(now - rc.int(1, 15) * U.DAY);
+      if (CAND_OPEN.includes(stage)) {
+        if (c.interview && c.interview.status !== 'realizada') { c.nextFollowUp = iso(Math.max(now - 3600000, new Date(c.interview.at).getTime() - U.DAY)); c.followUpNote = 'Confirmar la entrevista'; }
+        else { c.nextFollowUp = iso(now + rc.int(-2, 5) * U.DAY + rc.int(-4, 4) * 3600000); c.followUpNote = rc.pick(['Volver a llamar', 'Enviar dirección de la oficina', 'Confirmar disponibilidad', '']); }
+      }
+      db.candidates.push(c);
+    }
 
     return db;
   }

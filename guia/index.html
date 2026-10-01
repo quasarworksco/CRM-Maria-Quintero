@@ -235,22 +235,24 @@
       <a href="#clientes"><span class="n">6</span>Clientes y prospectos</a>
       <a href="#ficha"><span class="n">7</span>Ficha del cliente</a>
       <a href="#embudo"><span class="n">8</span>Embudo de ventas</a>
+      <div class="k">Reclutamiento</div>
+      <a href="#reclutamiento"><span class="n">9</span>Reclutamiento</a>
       <div class="k">Dinero</div>
-      <a href="#ventas"><span class="n">9</span>Ventas y pedidos</a>
-      <a href="#recaudo"><span class="n">10</span>Recaudo y cartera</a>
-      <a href="#productos"><span class="n">11</span>Productos</a>
+      <a href="#ventas"><span class="n">10</span>Ventas y pedidos</a>
+      <a href="#recaudo"><span class="n">11</span>Recaudo y cartera</a>
+      <a href="#productos"><span class="n">12</span>Productos</a>
       <div class="k">Gestión</div>
-      <a href="#reportes"><span class="n">12</span>Reportes y equipo</a>
-      <a href="#admin"><span class="n">13</span>Administración</a>
+      <a href="#reportes"><span class="n">13</span>Reportes y equipo</a>
+      <a href="#admin"><span class="n">14</span>Administración</a>
       <div class="k">Extra</div>
-      <a href="#rutinas"><span class="n">14</span>Rutinas recomendadas</a>
-      <a href="#atajos"><span class="n">15</span>Atajos y trucos</a>
-      <a href="#faq"><span class="n">16</span>Preguntas frecuentes</a>
+      <a href="#rutinas"><span class="n">15</span>Rutinas recomendadas</a>
+      <a href="#atajos"><span class="n">16</span>Atajos y trucos</a>
+      <a href="#faq"><span class="n">17</span>Preguntas frecuentes</a>
     </nav>
 
     <main>
       <div class="hero" id="inicio">
-        <span class="eyebrow">Guía paso a paso · 16 secciones</span>
+        <span class="eyebrow">Guía paso a paso · 17 secciones</span>
         <h1>Aprende a usar tu CRM <span>en 15 minutos.</span></h1>
         <p>Esta guía explica qué hace cada pantalla, cuándo usarla y cómo sacarle el máximo provecho. No necesitas saber nada de CRM: empezamos por lo básico.</p>
         <p style="font-size:14px;color:var(--text-3);margin-top:10px">Las capturas usan datos de ejemplo para que se entienda cada pantalla. Tu CRM en línea empieza vacío, listo para tus datos reales. Para practicar sin tocar nada real, usa la <a href="../?local=1">demo sin conexión</a>.</p>
@@ -538,9 +540,66 @@
         <p>Las tarjetas con el aviso "Sin contacto hace…" son oportunidades olvidadas: vale la pena llamarlas pronto.</p>
       </section>
 
-      <!-- 9. Ventas -->
+      <!-- 9. Reclutamiento -->
+      <section class="s" id="reclutamiento">
+        <div class="s-head"><div class="s-num">9</div><div><h2>Reclutamiento</h2><div class="sub">Candidatos para trabajar en el equipo (Indeed, referidos, ferias…), separados de los clientes.</div></div></div>
+        <div class="who"><span class="pill">Todos</span></div>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Es un módulo aparte</strong>Los candidatos <strong>no</strong> aparecen en Clientes, en el Embudo, en Modo llamadas, en la búsqueda de arriba ni en los reportes de ventas. Todo lo de reclutamiento vive en el menú <strong>Reclutamiento</strong>.</div></div>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/reclutamiento.jpg" width="1280" height="800" alt="Lista de candidatos con indicadores, filtros rápidos y la tabla con etapa, intentos y responsable" loading="lazy"></div><figcaption>Arriba los indicadores; luego las pestañas Candidatos, Tablero por etapas y Pendientes y entrevistas.</figcaption></figure>
+        <h3>La pantalla de Reclutamiento</h3>
+        <ul class="list">
+          <li><strong>Indicadores</strong>: candidatos en proceso, entrevistas de los próximos 7 días, contratados del mes y seguimientos vencidos.</li>
+          <li><strong>Candidatos</strong>: la lista con filtros rápidos (En proceso, Sin contactar, Seguimiento vencido, Con entrevista, Referidos, Contratados…) y filtros por etapa, fuente, puesto y responsable. La raya de color a la izquierda muestra la etapa.</li>
+          <li><strong>Tablero por etapas</strong>: una columna por etapa; arrastra las tarjetas para cambiarlas de etapa.</li>
+          <li><strong>Pendientes y entrevistas</strong>: los próximos seguimientos (vencidos, hoy y próximos) y las entrevistas agendadas con fecha, hora, lugar y entrevistador.</li>
+          <li><strong>Importar</strong>: sube el archivo CSV que descargas de Indeed (o un Excel guardado como CSV). Se pueden repartir entre todo el equipo y se omiten los repetidos.</li>
+        </ul>
+        <h3>Registrar un candidato</h3>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/candidato-nuevo.jpg" width="1280" height="800" alt="Formulario de nuevo candidato con la fuente Referido y el campo Referido por conectado a una persona" loading="lazy"></div><figcaption>Con la fuente "Referido" aparece "Referido por": elige a la persona de la lista para dejarla conectada.</figcaption></figure>
+        <ol class="steps">
+          <li>Presiona <strong>Nuevo candidato</strong>.</li>
+          <li>Llena los datos: <strong>nombre y apellido, teléfono, teléfono alternativo, email, ciudad, estado, idioma y puesto solicitado</strong>.</li>
+          <li>Responde <strong>Sí / No</strong>: vehículo propio, experiencia en ventas y disponibilidad los fines de semana. Escribe la <strong>fecha disponible para comenzar</strong> y las notas.</li>
+          <li>Elige la <strong>fuente</strong>: Indeed, Referido, Facebook, Instagram, Florida Mall / Tienda, Feria / Evento u Otra fuente.</li>
+          <li>Si es <strong>Referido</strong>, escribe en <strong>"Referido por"</strong> y elige a la persona de la lista (alguien del equipo, otro candidato o un cliente). Así queda conectada: en la ficha de esa persona verás <em>Candidatos que refirió</em>.</li>
+          <li>Elige el <strong>responsable</strong> (quien lo va a reclutar) y, si quieres, el próximo seguimiento con fecha, hora y comentario.</li>
+        </ol>
+        <h3>Las etapas del candidato</h3>
+        <div class="color-legend">
+          <span><i style="background:#3b82f6"></i><b>Azul</b> Nuevo candidato / Intentando contactar</span>
+          <span><i style="background:#16a34a"></i><b>Verde</b> Contactado</span>
+          <span><i style="background:#9333ea"></i><b>Morado</b> Entrevista agendada / Entrevista confirmada</span>
+          <span><i style="background:#eab308"></i><b>Amarillo</b> Entrevistado (falta decidir)</span>
+          <span><i style="background:#0d9488"></i><b>Turquesa</b> Califica</span>
+          <span><i style="background:#ea580c"></i><b>Naranja</b> Entrenamiento agendado / En entrenamiento</span>
+          <span><i style="background:#c026d3"></i><b>Fucsia</b> Contratado</span>
+          <span><i style="background:#dc2626"></i><b>Rojo</b> No seleccionado / Sin respuesta (se guarda su historial)</span>
+        </div>
+        <h3>La ficha del candidato</h3>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/candidato.jpg" width="1280" height="800" alt="Ficha del candidato con la barra de etapas, los datos y el formulario de intento de contacto" loading="lazy"></div><figcaption>Barra de etapas arriba; datos a la izquierda; intento de contacto e historial al centro; entrevista y seguimiento a la derecha.</figcaption></figure>
+        <ol class="steps">
+          <li><strong>Intento de contacto</strong>: elige el medio (Llamada, Mensaje o Email) y el resultado (No contestó, Buzón de voz, Mensaje enviado, Llamar después, Contactado, Entrevista agendada, No le interesa o Número incorrecto). Escribe un comentario y, si quieres, el próximo seguimiento con <strong>fecha, hora y comentario</strong>.</li>
+          <li>Presiona <strong>Guardar intento</strong>: la fecha, la hora y tu nombre se guardan solos y el contador sube (por ejemplo, 3/12). Igual que en ventas, a los <strong>12 intentos sin respuesta</strong> el candidato pasa solo a <strong>Sin respuesta</strong>.</li>
+          <li><strong>Historial</strong>: todas las llamadas, mensajes, intentos, entrevistas, cambios de etapa y comentarios, cada uno con <strong>quién lo hizo, fecha y hora</strong>. Usa <strong>Agregar comentario</strong> para dejar notas; los filtros de arriba muestran solo un tipo.</li>
+          <li><strong>Seguimiento</strong> (a la derecha): cambia la fecha, la hora y el comentario del próximo seguimiento en cualquier momento.</li>
+        </ol>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/candidato-intento.jpg" width="1280" height="800" alt="Formulario del intento de contacto con el resultado Contactado seleccionado y un comentario" loading="lazy"></div><figcaption>Debajo del botón, el CRM avisa qué va a hacer al guardar.</figcaption></figure>
+        <h3>Agendar y manejar la entrevista</h3>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/entrevista.jpg" width="1280" height="800" alt="Formulario de entrevista con fecha, hora, lugar, entrevistador y notas" loading="lazy"></div><figcaption>La entrevista guarda fecha, hora, lugar, entrevistador y notas.</figcaption></figure>
+        <ol class="steps">
+          <li>Guarda un intento con el resultado <strong>"Entrevista agendada"</strong>, o presiona <strong>Agendar entrevista</strong> en la tarjeta <em>Entrevista</em>.</li>
+          <li>Escribe la <strong>fecha</strong>, la <strong>hora</strong>, el <strong>lugar</strong>, elige al <strong>entrevistador</strong> y agrega notas (por ejemplo, "traer identificación"). Queda un seguimiento para confirmarla el día anterior.</li>
+          <li>Cuando la persona confirme, presiona <strong>Confirmar</strong>. Si cambia la fecha, <strong>Reagendar</strong>; si no va, <strong>Cancelar</strong>.</li>
+          <li>Después de la entrevista, presiona <strong>Entrevista realizada</strong>, escribe las <strong>notas de la entrevista</strong> y elige el resultado: Califica, No seleccionado o Pendiente de decidir.</li>
+          <li>Sigue moviendo la etapa con la barra de arriba: Entrenamiento agendado, En entrenamiento y <strong>Contratado</strong>.</li>
+        </ol>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/reclutamiento-tablero.jpg" width="1280" height="800" alt="Tablero de reclutamiento con columnas por etapa" loading="lazy"></div><figcaption>En el tablero arrastras las tarjetas de una etapa a otra.</figcaption></figure>
+        <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Quién ve qué</strong>Cada agente ve solo los candidatos que tiene asignados. La administración y supervisión ven a todos, los reasignan y exportan. Solo la administración puede eliminar un candidato. Los puestos, fuentes e idiomas se cambian en Panel de administración → Configuración.</div></div>
+      </section>
+
+      <!-- 10. Ventas -->
       <section class="s" id="ventas">
-        <div class="s-head"><div class="s-num">9</div><div><h2>Ventas y pedidos</h2><div class="sub">Registrar lo que se vendió, entregarlo y cobrarlo.</div></div></div>
+        <div class="s-head"><div class="s-num">10</div><div><h2>Ventas y pedidos</h2><div class="sub">Registrar lo que se vendió, entregarlo y cobrarlo.</div></div></div>
         <div class="who"><span class="pill">Todos</span></div>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/ventas.jpg" width="1280" height="800" alt="Lista de ventas con totales, saldo, estado de pago y de entrega" loading="lazy"></div><figcaption>Cada venta muestra su total, su saldo, si está pagada y si ya se entregó.</figcaption></figure>
         <h3>Registrar una venta</h3>
@@ -562,9 +621,9 @@
         </ul>
       </section>
 
-      <!-- 10. Recaudo -->
+      <!-- 11. Recaudo -->
       <section class="s" id="recaudo">
-        <div class="s-head"><div class="s-num">10</div><div><h2>Recaudo y cartera</h2><div class="sub">Qué te deben, desde cuándo, y qué ya entró.</div></div></div>
+        <div class="s-head"><div class="s-num">11</div><div><h2>Recaudo y cartera</h2><div class="sub">Qué te deben, desde cuándo, y qué ya entró.</div></div></div>
         <div class="who"><span class="pill">Todos</span><span class="pill">Clave para la dueña</span></div>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/recaudo.jpg" width="1280" height="800" alt="Cartera pendiente con antigüedad de deudas y botones de abono" loading="lazy"></div><figcaption>La antigüedad de la cartera muestra qué deudas llevan más tiempo sin pagarse.</figcaption></figure>
         <p>Tiene dos pestañas: <strong>Cartera pendiente</strong> (lo que te deben) y <strong>Pagos recibidos</strong> (lo que ya entró, por fecha y por método de pago).</p>
@@ -580,9 +639,9 @@
         <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Recordatorio de cobro en un clic</strong>El botón de WhatsApp junto a cada deuda abre un mensaje amable ya escrito con el saldo y el número de la venta. Solo hay que presionar enviar.</div></div>
       </section>
 
-      <!-- 11. Productos -->
+      <!-- 12. Productos -->
       <section class="s" id="productos">
-        <div class="s-head"><div class="s-num">11</div><div><h2>Productos</h2><div class="sub">El catálogo: fotos, precios, costos e inventario.</div></div></div>
+        <div class="s-head"><div class="s-num">12</div><div><h2>Productos</h2><div class="sub">El catálogo: fotos, precios, costos e inventario.</div></div></div>
         <div class="who"><span class="pill">Todos lo ven</span><span class="pill">La administración lo edita</span></div>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/productos.jpg" width="1280" height="800" alt="Catálogo de productos en tarjetas con precio y stock" loading="lazy"></div><figcaption>Vista de tarjetas. Con el botón de la derecha cambias a vista de tabla.</figcaption></figure>
         <h3>Agregar un producto</h3>
@@ -605,9 +664,9 @@
         </ul>
       </section>
 
-      <!-- 12. Reportes -->
+      <!-- 13. Reportes -->
       <section class="s" id="reportes">
-        <div class="s-head"><div class="s-num">12</div><div><h2>Reportes y equipo</h2><div class="sub">Quién está rindiendo, qué se vende y por qué se pierden ventas.</div></div></div>
+        <div class="s-head"><div class="s-num">13</div><div><h2>Reportes y equipo</h2><div class="sub">Quién está rindiendo, qué se vende y por qué se pierden ventas.</div></div></div>
         <div class="who"><span class="pill">Supervisora</span><span class="pill">Dueña</span></div>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/reportes.jpg" width="1280" height="800" alt="Reporte de rendimiento por vendedor con llamadas, ventas y metas" loading="lazy"></div><figcaption>Rendimiento por vendedor con el avance de su meta del mes.</figcaption></figure>
         <h3>Cómo leer los números del equipo</h3>
@@ -625,9 +684,9 @@
         <p>Más abajo: <strong>llamadas por día</strong>, <strong>resultados de las llamadas</strong>, <strong>de dónde vienen los clientes</strong> (qué fuente vende más), <strong>¿quién trae referidos?</strong> (cuántos refirió cada persona y cuántos compraron), <strong>productos más vendidos</strong> y <strong>por qué se pierden ventas</strong>. Todo se puede exportar a Excel o imprimir.</p>
       </section>
 
-      <!-- 13. Admin -->
+      <!-- 14. Admin -->
       <section class="s" id="admin">
-        <div class="s-head"><div class="s-num">13</div><div><h2>Panel de administración</h2><div class="sub">Usuarios, reparto de clientes, configuración y respaldos.</div></div></div>
+        <div class="s-head"><div class="s-num">14</div><div><h2>Panel de administración</h2><div class="sub">Usuarios, reparto de clientes, configuración y respaldos.</div></div></div>
         <div class="who"><span class="pill">Solo administración</span></div>
                 <h3>Crear un usuario y darle acceso</h3>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/usuario-nuevo.jpg" width="1280" height="800" alt="Formulario de nuevo usuario con correo, rol y forma de acceso" loading="lazy"></div><figcaption>Nuevo usuario: correo, rol, metas y cómo recibirá su contraseña.</figcaption></figure>
@@ -673,9 +732,9 @@
         <div class="warn"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div><strong>Borrar y restaurar afectan a todo el equipo</strong>Como los datos están en la nube, estas acciones cambian la información de todas las personas al mismo tiempo. Descarga un respaldo antes de hacerlas.</div></div>
       </section>
 
-      <!-- 14. Rutinas -->
+      <!-- 15. Rutinas -->
       <section class="s" id="rutinas">
-        <div class="s-head"><div class="s-num">14</div><div><h2>Rutinas recomendadas</h2><div class="sub">Cómo se ve un buen día (y una buena semana) usando el CRM.</div></div></div>
+        <div class="s-head"><div class="s-num">15</div><div><h2>Rutinas recomendadas</h2><div class="sub">Cómo se ve un buen día (y una buena semana) usando el CRM.</div></div></div>
         <div class="grid g3">
           <div class="card">
             <h4>Día de una agente</h4>
@@ -710,9 +769,9 @@
         <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>La regla de oro</strong>Nadie cuelga sin dejar programado un seguimiento. Si cada llamada termina con una fecha, ningún cliente se enfría por olvido.</div></div>
       </section>
 
-      <!-- 15. Atajos -->
+      <!-- 16. Atajos -->
       <section class="s" id="atajos">
-        <div class="s-head"><div class="s-num">15</div><div><h2>Atajos y trucos</h2><div class="sub">Para trabajar más rápido.</div></div></div>
+        <div class="s-head"><div class="s-num">16</div><div><h2>Atajos y trucos</h2><div class="sub">Para trabajar más rápido.</div></div></div>
         <div class="table-wrap"><table>
           <thead><tr><th>Atajo</th><th>Qué hace</th></tr></thead>
           <tbody>
@@ -731,9 +790,9 @@
         </ul>
       </section>
 
-      <!-- 16. FAQ -->
+      <!-- 17. FAQ -->
       <section class="s" id="faq">
-        <div class="s-head"><div class="s-num">16</div><div><h2>Preguntas frecuentes</h2><div class="sub">Y qué hacer si algo no sale como esperas.</div></div></div>
+        <div class="s-head"><div class="s-num">17</div><div><h2>Preguntas frecuentes</h2><div class="sub">Y qué hacer si algo no sale como esperas.</div></div></div>
         <details class="faq" open><summary>No me llegó el correo para crear mi contraseña</summary><p>Revisa la carpeta de spam o promociones; el remitente es Firebase (noreply@…firebaseapp.com). Si no está, en la pantalla de ingreso usa "¿Olvidaste tu contraseña?" con tu correo, o pide a la administración que te lo reenvíe desde Editar usuario → "Enviar enlace de contraseña".</p></details>
         <details class="faq"><summary>Dice "Tu correo no tiene acceso a este CRM"</summary><p>Ese correo no tiene un usuario creado, o está escrito diferente. Pide a la administración que te cree el usuario con ese mismo correo.</p></details>
         <details class="faq"><summary>Dice "Tu usuario está desactivado"</summary><p>La administración desactivó tu acceso. Si es un error, pídele que te vuelva a activar en Panel admin → Usuarios → Editar.</p></details>
@@ -750,6 +809,8 @@
         <details class="faq"><summary>La foto del producto no se sube</summary><p>Verifica que sea una imagen (JPG, PNG o WEBP) de menos de 10 MB. Si el CRM muestra un error de Cloudinary, la administración debe revisar que el "upload preset" esté en modo <em>Unsigned</em>.</p></details>
         <details class="faq"><summary>Aparece "No se pudo conectar con la base de datos"</summary><p>Revisa tu internet y presiona "Reintentar". Si el mensaje habla de permisos, la administración debe revisar las reglas de Firestore en la consola de Firebase.</p></details>
         <details class="faq"><summary>¿Qué pasa si dos personas editan al mismo cliente?</summary><p>Cada cambio se guarda al instante y se ve en tiempo real. Si dos personas cambian el mismo dato a la vez, queda el último que se guardó. Por eso cada cliente tiene un responsable.</p></details>
+        <details class="faq"><summary>¿Por qué los candidatos no aparecen en Clientes?</summary><p>Porque Reclutamiento es un módulo aparte: los candidatos de Indeed, referidos o ferias nunca se mezclan con los prospectos y clientes de ventas. Los encuentras en el menú <strong>Reclutamiento</strong>.</p></details>
+        <details class="faq"><summary>Reclutamiento dice "Falta activar Reclutamiento en la base de datos"</summary><p>La administración debe copiar las reglas nuevas del archivo <code>firestore.rules</code> en Firebase → Firestore Database → Reglas y presionar <strong>Publicar</strong>. El resto del CRM sigue funcionando mientras tanto.</p></details>
         <details class="faq"><summary>¿Cómo empiezo a usarlo con mis datos reales?</summary><p>El CRM en línea ya empieza vacío. Sigue la lista de <strong>primeros pasos</strong> que aparece en Inicio: agrega a tu equipo, carga tus productos, importa tus clientes, registra la primera llamada y la primera venta.</p></details>
       </section>
 

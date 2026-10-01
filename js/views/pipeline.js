@@ -45,7 +45,7 @@ Views.pipeline = (() => {
 
     const $ = (s) => el.querySelector(s);
     const qi = $('#q');
-    qi.oninput = U.debounce(() => { state.q = qi.value; render(el); const n = el.querySelector('#q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250);
+    qi.oninput = U.debounce(() => { if (!/^#\/pipeline/.test(location.hash)) return; state.q = qi.value; render(el); const n = el.querySelector('#q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250);
     if ($('#fOwner')) $('#fOwner').onchange = (e) => { state.owner = e.target.value; render(el); };
     $('#fSource').onchange = (e) => { state.source = e.target.value; render(el); };
     $('#closed').onchange = (e) => { state.showClosed = e.target.checked; render(el); };

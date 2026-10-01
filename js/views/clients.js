@@ -133,7 +133,7 @@ Views.clientes = (() => {
   function bind(el, list, rows) {
     const rerender = () => render(el);
     const q = el.querySelector('#q');
-    q.addEventListener('input', U.debounce(() => { state.q = q.value; state.page = 0; rerender(); el.querySelector('#q').focus(); const v = el.querySelector('#q'); v.setSelectionRange(v.value.length, v.value.length); }, 250));
+    q.addEventListener('input', U.debounce(() => { if (!/^#\/clientes/.test(location.hash)) return; state.q = q.value; state.page = 0; rerender(); el.querySelector('#q').focus(); const v = el.querySelector('#q'); v.setSelectionRange(v.value.length, v.value.length); }, 250));
     [['#fStage', 'stage'], ['#fOutcome', 'outcome'], ['#fOwner', 'owner'], ['#fSource', 'source']].forEach(([sel, k]) => {
       const x = el.querySelector(sel); if (x) x.onchange = () => { state[k] = x.value; state.page = 0; rerender(); };
     });

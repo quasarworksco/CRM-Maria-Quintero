@@ -7,7 +7,7 @@ rules_version = '2';
 // - El rol de cada persona se guarda en access/{correo} (lo escribe la administración).
 //     admin       → todo
 //     supervisor  → ve y trabaja todo el equipo, reasigna clientes
-//     agente      → solo sus clientes y sus ventas
+//     agente      → solo sus clientes, sus ventas y sus candidatos
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -81,6 +81,18 @@ service cloud.firestore {
     match /payments/{id} {
       allow read, create: if hasAccess();
       allow update, delete: if isAdmin();
+    }
+
+    // Reclutamiento (módulo aparte de ventas): cada agente solo ve los candidatos que tiene asignados
+    match /candidates/{id} {
+      allow read: if isManager() || (hasAccess() && resource.data.ownerId == myId());
+      allow create: if isManager() || (hasAccess() && request.resource.data.ownerId == myId());
+      allow update: if isManager() || (hasAccess() && resource.data.ownerId == myId() && request.resource.data.ownerId == myId());
+      allow delete: if isAdmin();
+    }
+    match /candidateActivities/{id} {
+      allow read, create: if hasAccess();
+      allow update, delete: if isManager() || (hasAccess() && resource.data.userId == myId());
     }
   }
 }

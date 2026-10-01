@@ -12,6 +12,8 @@ const App = (() => {
     { section: 'Clientes' },
     { id: 'clientes', label: 'Clientes y prospectos', icon: 'users' },
     { id: 'pipeline', label: 'Embudo de ventas', icon: 'kanban' },
+    { section: 'Reclutamiento' },
+    { id: 'reclutamiento', label: 'Reclutamiento', icon: 'briefcase', badge: () => Views.reclutamiento.myOverdue() },
     { section: 'Dinero' },
     { id: 'ventas', label: 'Ventas y pedidos', icon: 'cart' },
     { id: 'recaudo', label: 'Recaudo / Cartera', icon: 'wallet' },
@@ -112,7 +114,7 @@ const App = (() => {
     nav.innerHTML = NAV.filter((n) => !n.perm || Store.can(n.perm)).map((n) => {
       if (n.section) return `<div class="nav-section">${n.section}</div>`;
       const b = n.badge ? n.badge() : 0;
-      const active = current.view === n.id || (n.id === 'clientes' && current.view === 'cliente');
+      const active = current.view === n.id || (n.id === 'clientes' && current.view === 'cliente') || (n.id === 'reclutamiento' && current.view === 'candidato');
       return `<a href="#/${n.id}" class="${active ? 'active' : ''}">${icon(n.icon)}<span>${n.label}</span>${b ? `<span class="badge-count">${b}</span>` : ''}</a>`;
     }).join('');
   }

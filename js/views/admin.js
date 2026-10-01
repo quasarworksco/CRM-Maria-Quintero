@@ -219,6 +219,9 @@ Views.admin = (() => {
           <label class="field">Fuentes de prospectos <span class="hint">una por línea</span><textarea name="sources" rows="6">${U.esc(s.sources.join('\n'))}</textarea></label>
           <label class="field">Motivos de pérdida <span class="hint">una por línea</span><textarea name="lostReasons" rows="6">${U.esc(s.lostReasons.join('\n'))}</textarea></label>
           <label class="field">Categorías de productos <span class="hint">una por línea</span><textarea name="categories" rows="6">${U.esc(s.categories.join('\n'))}</textarea></label>
+          <label class="field">Reclutamiento · puestos <span class="hint">uno por línea</span><textarea name="positions" rows="6">${U.esc((s.positions || []).join('\n'))}</textarea></label>
+          <label class="field">Reclutamiento · fuentes de candidatos <span class="hint">una por línea</span><textarea name="candidateSources" rows="6">${U.esc((s.candidateSources || []).join('\n'))}</textarea></label>
+          <label class="field">Reclutamiento · idiomas <span class="hint">uno por línea</span><textarea name="languages" rows="4">${U.esc((s.languages || []).join('\n'))}</textarea></label>
           <label class="field">Guion de llamada <span class="hint">variables: {nombre} {agente} {empresa} {ciudad}</span><textarea name="callScript" rows="6">${U.esc(s.callScript)}</textarea></label>
         </div>
         <div class="row"><span class="spacer"></span><button class="btn primary" type="submit">${icon('check', 'sm')} Guardar configuración</button></div>
@@ -236,7 +239,7 @@ Views.admin = (() => {
       e.preventDefault();
       const d = UI.formData(e.target);
       const lines = (t) => t.split('\n').map((x) => x.trim()).filter(Boolean);
-      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), staleDays: d.staleDays || 7, maxAttempts: d.maxAttempts || 12 }));
+      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), positions: lines(d.positions), candidateSources: lines(d.candidateSources), languages: lines(d.languages), staleDays: d.staleDays || 7, maxAttempts: d.maxAttempts || 12 }));
       App.shell(); App.route();
       UI.toast('Configuración guardada', 'good');
     };
@@ -257,7 +260,7 @@ Views.admin = (() => {
         </div></div>
         <div class="card"><div class="card-head"><h2>${Store.mode() === 'firestore' ? 'Empezar de cero' : 'Datos de demostración'}</h2></div><div class="card-body stack" style="gap:10px">
           ${Store.mode() === 'firestore'
-            ? '<p class="small" style="margin:0">Borra clientes, ventas, pagos, tareas y productos para todo el equipo. Se conservan la configuración y todas las cuentas con acceso. Úsalo solo si de verdad quieres reiniciar el CRM.</p><p class="small muted" style="margin:0">La demo con datos de ejemplo está aparte, en <a href="?local=1" target="_blank" rel="noopener">la demo sin conexión</a>, y no toca estos datos.</p>'
+            ? '<p class="small" style="margin:0">Borra clientes, ventas, pagos, tareas, productos y candidatos de reclutamiento para todo el equipo. Se conservan la configuración y todas las cuentas con acceso. Úsalo solo si de verdad quieres reiniciar el CRM.</p><p class="small muted" style="margin:0">La demo con datos de ejemplo está aparte, en <a href="?local=1" target="_blank" rel="noopener">la demo sin conexión</a>, y no toca estos datos.</p>'
             : '<p class="small" style="margin:0">Esta demo trae datos de ejemplo para explorar el CRM. Lo que hagas aquí se guarda solo en este navegador.</p>'}
           <div class="row wrap">
             ${Store.mode() === 'firestore' ? '' : `<button class="btn" id="demo">${icon('refresh', 'sm')} Recargar datos demo</button>`}
@@ -273,7 +276,7 @@ Views.admin = (() => {
     };
     if (el.querySelector('#demo')) el.querySelector('#demo').onclick = async () => { if (await UI.confirm(`Esto reemplaza todo por los datos de demostración${Store.mode() === 'firestore' ? ' <strong>para todo el equipo</strong>' : ''}. ¿Continuar?`)) { UI.toast('Cargando datos demo…'); try { await Store.resetDemo(); App.shell(); App.route(); UI.toast('Datos demo cargados', 'good'); } catch (err) { UI.toast('Error: ' + (err.code || err.message), 'bad'); } } };
     el.querySelector('#wipe').onclick = async () => {
-      if (!(await UI.confirm('Se borrarán TODOS los clientes, ventas, pagos, tareas, productos y usuarios (excepto tú). ¿Seguro? Descarga un respaldo antes si lo necesitas.', { okLabel: 'Sí, borrar todo' }))) return;
+      if (!(await UI.confirm('Se borrarán TODOS los clientes, ventas, pagos, tareas, productos, candidatos de reclutamiento y usuarios (excepto las cuentas con acceso). ¿Seguro? Descarga un respaldo antes si lo necesitas.', { okLabel: 'Sí, borrar todo' }))) return;
       UI.toast('Borrando…');
       try { await Store.wipeAll(); App.shell(); App.route(); UI.toast('Listo: CRM vacío y listo para usar', 'good'); } catch (err) { UI.toast('Error: ' + (err.code || err.message), 'bad'); }
     };

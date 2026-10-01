@@ -31,6 +31,7 @@ Se publica con GitHub Pages desde la rama `main` (carpeta raíz). El archivo `CN
 | **Clientes y prospectos** | Lista con búsqueda, filtros rápidos (sin contactar, vencidos, olvidados, con saldo…), acciones masivas (asignar, cambiar etapa, exportar, eliminar), importación desde Excel/CSV con reparto automático entre agentes y detección de duplicados. |
 | **Ficha del cliente** | Etapas con color (azul Nuevo/Intentando · verde Contactado · morado Citas · amarillo Demo · fucsia Venta · rojo Perdido), **Historial de contacto** con el contador **Intentos de contacto: X/12** y cada intento con número, fecha, hora, agente, resultado y comentario (automáticos); a los 12 intentos sin contacto pasa sola a Perdido / Sin respuesta y queda archivada. Fuente con **Referido por** o **Nombre del evento**, cita (fecha, hora, dirección y quién hace la demostración), notas, ventas, saldo, tareas y archivos. |
 | **Embudo de ventas** | Tablero Kanban por etapas: se arrastran las tarjetas; cada una muestra último resultado, intentos, cita y seguimiento. |
+| **Reclutamiento** | Módulo aparte de ventas para candidatos (Indeed, referidos, Facebook, Instagram, Florida Mall, ferias…). Ficha con datos del puesto (idioma, vehículo, experiencia en ventas, fines de semana, fecha para comenzar), fuente con **Referido por** conectado a la persona que refiere (equipo, candidato o cliente), 12 etapas con color (de Nuevo candidato a Contratado), responsable, intentos de contacto X/12, entrevista (fecha, hora, lugar, entrevistador y notas), próximo seguimiento con fecha, hora y comentario, e historial con agente, fecha y hora. Lista, tablero por etapas, pendientes, importación CSV de Indeed y exportación. Los candidatos no se mezclan con clientes, embudo, búsqueda ni reportes de ventas. |
 | **Ventas y pedidos** | Pedidos con varios productos, descuento, envío, impuesto, condiciones de pago, estado de entrega, abono inicial y recibo imprimible. Descuenta el inventario. |
 | **Recaudo / Cartera** | Saldos pendientes con antigüedad (al día, 1–15, 16–30, 31–60, 60+ días), abonos, recordatorio de cobro por WhatsApp e historial de pagos por método. |
 | **Productos** | Catálogo con imagen, SKU, precio, costo y margen (solo lo ve la admin), stock y alertas de stock bajo. |
@@ -41,7 +42,7 @@ Se publica con GitHub Pages desde la rama `main` (carpeta raíz). El archivo `CN
 
 - **Administrador**: acceso total.
 - **Supervisor**: ve todo el equipo, reasigna clientes y ve reportes.
-- **Agente / Vendedor**: solo ve y trabaja sus propios clientes.
+- **Agente / Vendedor**: solo ve y trabaja sus propios clientes y los candidatos de reclutamiento que tiene asignados.
 
 Cada persona entra con su correo y contraseña (Firebase Authentication). En la demo sin conexión (`?local=1`) el usuario se elige con el selector de arriba a la derecha.
 
@@ -59,7 +60,8 @@ js/store.js           ← capa de datos, permisos, lógica de negocio y datos de
 js/ui.js              ← modales, avisos, gráficos, subida a Cloudinary
 js/metrics.js         ← cálculos de indicadores
 js/app.js             ← menú, búsqueda global y navegación
-js/views/*.js         ← una sección por archivo
+js/recruit.js         ← reclutamiento: etapas, resultados y lógica de candidatos
+js/views/*.js         ← una sección por archivo (recruit.js = Reclutamiento)
 ```
 
 ## Base de datos (Firestore)
@@ -67,7 +69,8 @@ js/views/*.js         ← una sección por archivo
 El CRM guarda todo en **Firebase Firestore** (proyecto `crm-maria-8f7af`) y escucha los cambios en tiempo real: lo que registra una agente le aparece al resto del equipo al instante. También guarda una copia local, así que sigue funcionando si se cae el internet y sincroniza al volver.
 
 - La base en línea empieza vacía (sin datos de ejemplo). Si encuentra datos de ejemplo de versiones anteriores (`demoData: true`), la administración los borra automáticamente una sola vez al entrar, conservando las cuentas y la configuración.
-- Colecciones: `users`, `clients`, `activities`, `tasks`, `products`, `orders`, `payments` y el documento `meta/settings`.
+- Colecciones: `users`, `clients`, `activities`, `tasks`, `products`, `orders`, `payments`, `candidates` y `candidateActivities` (reclutamiento) y el documento `meta/settings`.
+- Si las reglas publicadas todavía no incluyen `candidates`/`candidateActivities`, el CRM sigue funcionando y Reclutamiento muestra un aviso para publicarlas.
 - Con `?local=1` en la dirección se abre la demo sin conexión, que guarda solo en el navegador.
 
 ## Ingreso y seguridad
@@ -75,5 +78,5 @@ El CRM guarda todo en **Firebase Firestore** (proyecto `crm-maria-8f7af`) y escu
 - **Firebase Authentication** (correo y contraseña). La cuenta principal `inventusmq@gmail.com` (`CRM_CONFIG.ownerEmail`) siempre es administradora; su contraseña se creó con "Primer ingreso de la cuenta principal", enlace que ahora solo aparece abriendo el CRM con `?setup=1`. **Ninguna contraseña se guarda en el repositorio.**
 - **Primer ingreso**: cada persona escribe una sola vez el nombre y apellido con el que atiende (`profileCompleted`).
 - **Usuarios**: la administración los crea en Panel admin → Usuarios con correo y rol; la persona recibe un correo para crear su contraseña o una contraseña temporal. El rol y el estado se guardan en `access/{correo}`, que es lo que leen las reglas.
-- **Reglas** (`firestore.rules`): solo entran personas con acceso activo; agentes solo leen y editan sus clientes y ventas; supervisores todo el equipo; administración todo. Se copian en Firebase → Firestore → Reglas.
+- **Reglas** (`firestore.rules`): solo entran personas con acceso activo; agentes solo leen y editan sus clientes, ventas y candidatos; supervisores todo el equipo; administración todo. Se copian en Firebase → Firestore → Reglas.
 - **Consola de Firebase**: activar Authentication → Sign-in method → Correo/contraseña, y agregar `crmsystempb.dgp-link.com` en Authentication → Settings → Authorized domains.

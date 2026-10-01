@@ -749,3 +749,6 @@ tr.stage-row td:first-child { box-shadow: inset 4px 0 0 var(--row-color); }
   .app { grid-template-columns: 1fr; }
   body { background: #fff; }
 }
+
+/* Reclutamiento: 12 etapas, se desliza de lado si no caben */
+.stage-bar.cand button { min-width: 104px; }
