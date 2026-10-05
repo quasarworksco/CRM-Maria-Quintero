@@ -176,7 +176,7 @@ Views.productividad = (() => {
         <div class="card kpi"><div class="kpi-icon">${icon('target')}</div><div class="kpi-label">Resultado del día</div><div class="kpi-value" style="font-size:24px">${teamScore ? teamScore.level.name : '—'}</div><div class="kpi-sub">${teamScore ? `${teamScore.cph.toFixed(1)} llamadas por hora · equipo` : 'Sin llamadas registradas'}</div></div>
       </div>
 
-      ${pc.failed || Store.presenceStatus().readDenied ? `<div class="archived-note" style="margin-bottom:14px">${icon('alert', 'sm')}<div><strong>No se pudo leer el tiempo conectado.</strong><div class="small">Publica las reglas nuevas de Firestore (colección <code>presence</code>). Mientras tanto, el tiempo se calcula con la hora de las llamadas.</div></div></div>` : ''}
+      ${pc.failed ? `<div class="archived-note" style="margin-bottom:14px">${icon('alert', 'sm')}<div><strong>No se pudo leer el tiempo conectado.</strong><div class="small">${Store.presenceStatus().readDenied ? 'Firestore no da permiso: publica las reglas nuevas (colección <code>presence</code>) y luego presiona el botón de actualizar o recarga la página.' : 'Revisa tu conexión a internet y presiona el botón de actualizar.'} Mientras tanto, el tiempo se calcula con la hora de las llamadas.</div></div></div>` : ''}
 
       <div class="card" style="margin-bottom:16px">
         <div class="card-head"><h2>${icon('users', 'sm')} Por agente · ${U.date(day, { weekday: 'long', day: 'numeric', month: 'long' })}</h2><span class="muted small">Haz clic en el número de llamadas para ver el detalle</span></div>

@@ -371,8 +371,8 @@ const Store = (() => {
   // Minutos activos de todo el equipo en una fecha (una lectura por persona; solo para administración)
   async function getPresence(date) {
     if (!adapter.getPresence) return [];
-    try { return await adapter.getPresence(date, db); }
-    catch (e) { if (e && e.code === 'permission-denied') presence.readDenied = true; console.warn(e); return null; }
+    try { const list = await adapter.getPresence(date, db); presence.readDenied = false; return list; }
+    catch (e) { presence.readDenied = !!(e && e.code === 'permission-denied'); console.warn(e); return null; }
   }
   const presenceStatus = () => ({ denied: presence.denied, readDenied: !!presence.readDenied });
   // Colecciones que las reglas de Firestore todavía no permiten leer (p. ej. Reclutamiento sin publicar las reglas nuevas)
