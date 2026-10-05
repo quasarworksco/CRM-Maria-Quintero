@@ -811,3 +811,9 @@ tr.stage-row td:first-child { box-shadow: inset 4px 0 0 var(--row-color); }
 @media (max-width: 600px) { .reminders { right: 16px; bottom: 16px; } }
 .table.compact th, .table.compact td { padding: 10px 10px; }
 .table.compact th { white-space: normal; line-height: 1.25; vertical-align: bottom; }
+input.invalid { border-color: var(--bad) !important; box-shadow: 0 0 0 3px var(--bad-soft); }
+.outcome-btn[data-outcome="venta"] { border-color: #e0b84a; background: #fffaeb; }
+.outcome-btn[data-outcome="venta"].selected { background: #b8860b; border-color: #b8860b; color: #fff; }
+:root[data-theme="dark"] .outcome-btn[data-outcome="venta"] { background: #2a2108; border-color: #6b5313; }
+.funnel-mini { display: flex; flex-direction: column; gap: 3px; }
+.funnel-mini span { display: block; height: 6px; border-radius: 3px; min-width: 0; }

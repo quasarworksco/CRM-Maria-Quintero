@@ -278,6 +278,7 @@ const Store = (() => {
     prodCallsPerHour: 20,
     prodContactRate: 30,
     prodApptsPerHour: 1,
+    showCommissionToAgents: true,
     categories: ['Filtros de aire', 'Purificadores', 'Filtros de agua', 'Deshumidificadores', 'Accesorios', 'Servicios'],
     staleDays: 7,
     callScript:
@@ -555,9 +556,10 @@ const Store = (() => {
     if (o && !o.contact) patch.noAnswerCount = (c.noAnswerCount || 0) + 1; else patch.noAnswerCount = 0;
     if (o && o.contact && !c.reachedAt) patch.reachedAt = now;
     if (o && o.dnc) patch.dnc = true;
-    if (nextFollowUp !== undefined) patch.nextFollowUp = nextFollowUp;
-    else if (o && o.followDays) patch.nextFollowUp = new Date(Date.now() + o.followDays * U.DAY).toISOString();
-    else if (o && o.followDays === null) patch.nextFollowUp = null;
+    // followUpExact: la hora la eligió la agente (p. ej. "Llamar después"); se avisa al llegar esa hora
+    if (nextFollowUp !== undefined) { patch.nextFollowUp = nextFollowUp; patch.followUpExact = !!nextFollowUp; }
+    else if (o && o.followDays) { patch.nextFollowUp = new Date(Date.now() + o.followDays * U.DAY).toISOString(); patch.followUpExact = false; }
+    else if (o && o.followDays === null) { patch.nextFollowUp = null; patch.followUpExact = false; }
     update('clients', clientId, patch);
     const order = STAGES.map((x) => x.id);
     const cur = get('clients', clientId).stage;
@@ -617,10 +619,31 @@ const Store = (() => {
     return p;
   }
 
+  /* ---------- Comisiones ----------
+     Cada producto tiene una comisión por unidad (p. ej. $50 o $100). Al vender, se guarda la
+     comisión de cada producto en la venta: si luego cambia la comisión del producto, las ventas
+     anteriores conservan la que tenían. La comisión es de quien queda como vendedor de la venta. */
+  function withCommission(items) {
+    return items.map((it) => {
+      if (it.commission !== undefined && it.commission !== null) return it;
+      const p = get('products', it.productId);
+      return Object.assign({}, it, { commission: p ? Number(p.commission) || 0 : 0 });
+    });
+  }
+  const itemsCommission = (items) => U.sum(items || [], (i) => (Number(i.qty) || 0) * (Number(i.commission) || 0));
+  function orderCommission(o) {
+    if (!o || o.status === 'cancelada') return 0;
+    if (o.commission !== undefined && o.commission !== null) return Number(o.commission) || 0;
+    return itemsCommission(withCommission(o.items || []));
+  }
+  // ¿Esta persona ve sus propias comisiones? (la administración las ve todas)
+  const canSeeOwnCommission = () => isAdmin() || settings().showCommissionToAgents !== false;
+
   function createOrder(data) {
+    data = Object.assign({}, data, { items: withCommission(data.items) });
     const t = calcOrderTotal(data.items, data.discount, data.shipping, data.taxRate);
     const owner = (get('clients', data.clientId) || {}).ownerId;
-    const o = insert('orders', Object.assign({ number: nextOrderNumber(), userId: owner || currentUser().id, status: 'pendiente' }, data, { subtotal: t.subtotal, tax: t.tax, total: t.total }));
+    const o = insert('orders', Object.assign({ number: nextOrderNumber(), userId: owner || currentUser().id, status: 'pendiente' }, data, { subtotal: t.subtotal, tax: t.tax, total: t.total, commission: itemsCommission(data.items) }));
     // Descontar inventario
     data.items.forEach((it) => {
       const p = get('products', it.productId);
@@ -684,6 +707,7 @@ const Store = (() => {
   return {
     init, all, get, where, insert, update, remove, settings, saveSettings, onChange: (fn) => listeners.add(fn),
     currentUser, setCurrentUser, isManager, isAdmin, can, permsOf, recruiters, myClients, myOrders, myTasks, myActivities, canSeeClient, activeUsers, sellers,
+    withCommission, itemsCommission, orderCommission, canSeeOwnCommission,
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
     exportJSON, importJSON, resetDemo, wipeAll, mode, deniedCollections, isOwner, loadClientHistory, setCallActive, getPresence, flushPresence, presenceStatus,
@@ -728,7 +752,7 @@ const Seed = {
       ['AC-UV', 'Lámpara UV para ducto', 'Accesorios', 159, 60],
       ['SV-INST', 'Instalación y revisión de sistema', 'Servicios', 89, 20],
       ['SV-DUCT', 'Limpieza de ductos', 'Servicios', 299, 90]
-    ].map(([sku, name, category, price, cost], i) => ({ id: 'pr_' + (i + 1), sku, name, category, price, cost, stock: r.int(5, 80), trackStock: category !== 'Servicios', minStock: 8, active: true, imageUrl: '', description: '', createdAt: iso(now - 100 * U.DAY), updatedAt: iso(now) }));
+    ].map(([sku, name, category, price, cost], i) => ({ id: 'pr_' + (i + 1), sku, name, category, price, cost, commission: { 'FA-1620': 5, 'FA-2025': 5, 'FA-1625': 10, 'FA-KIT6': 50, 'PU-300': 100, 'PU-150': 50, 'AG-OSM': 100, 'AG-DUCHA': 10, 'DH-50': 50, 'AC-UV': 25, 'SV-INST': 0, 'SV-DUCT': 50 }[sku] || 0, stock: r.int(5, 80), trackStock: category !== 'Servicios', minStock: 8, active: true, imageUrl: '', description: '', createdAt: iso(now - 100 * U.DAY), updatedAt: iso(now) }));
     db.products = products;
 
     const first = ['Ana', 'Luis', 'Carmen', 'José', 'María', 'Pedro', 'Rosa', 'Miguel', 'Elena', 'Juan', 'Patricia', 'Ricardo', 'Gloria', 'Fernando', 'Lucía', 'Alberto', 'Diana', 'Héctor', 'Isabel', 'Raúl', 'Teresa', 'Óscar', 'Beatriz', 'Manuel', 'Claudia', 'Roberto', 'Silvia', 'Daniel', 'Mónica', 'Andrés', 'Natalia', 'Javier', 'Paola', 'Eduardo', 'Verónica', 'Samuel'];
@@ -804,7 +828,8 @@ const Seed = {
         let outcome;
         const lastOne = k === nCalls - 1;
         if (stage === 'intentando' || noAnswer12) outcome = r.pick(['no_contesto', 'no_contesto', 'buzon', 'whatsapp']);
-        else if (lastOne && (APPT_STAGES.includes(stage) || stage === 'demo_realizada' || stage === 'ganado')) outcome = 'cita_agendada';
+        else if (lastOne && stage === 'ganado') outcome = 'venta';
+        else if (lastOne && (APPT_STAGES.includes(stage) || stage === 'demo_realizada')) outcome = 'cita_agendada';
         else if (lastOne && stage === 'contactado') outcome = r.pick(['contactado', 'llamar_despues']);
         else if (lastOne && stage === 'perdido') outcome = r.pick(['no_interesado', 'numero_incorrecto', 'no_volver']);
         else outcome = r.pick(['no_contesto', 'no_contesto', 'buzon', 'whatsapp']);
@@ -890,7 +915,7 @@ const Seed = {
         while (t < to) {
           const c = rp.pick(myClients);
           const r = rp();
-          const outcome = r < apptP ? 'cita_agendada' : r < contactP ? rp.pick(['contactado', 'contactado', 'llamar_despues', 'no_interesado']) : rp.pick(['no_contesto', 'no_contesto', 'no_contesto', 'buzon', 'whatsapp']);
+          const outcome = r < apptP * 0.3 ? 'venta' : r < apptP ? 'cita_agendada' : r < contactP ? rp.pick(['contactado', 'contactado', 'llamar_despues', 'no_interesado']) : rp.pick(['no_contesto', 'no_contesto', 'no_contesto', 'buzon', 'whatsapp', 'email']);
           const o = outcomeById(outcome);
           const at = new Date(day); at.setHours(0, t, rp.int(0, 59), 0);
           const dur = o.contact ? rp.int(90, 420) : rp.int(15, 45);

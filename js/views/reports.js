@@ -52,7 +52,7 @@ Views.reportes = (() => {
       <div class="card" style="margin-bottom:16px">
         <div class="card-head"><h2>${icon('trophy', 'sm')} Rendimiento por vendedor</h2></div>
         <div class="table-wrap"><table class="table">
-          <thead><tr><th>#</th><th>Vendedor</th><th class="right">Llamadas</th><th class="right">Contacto</th><th class="right">Tiempo</th><th class="right">Citas</th><th class="right">Demos</th><th class="right">Ventas</th>${fin ? '<th class="right">Monto</th><th class="right">Recaudado</th>' : ''}<th class="right">Cierre</th>${fin && monthFactor ? '<th style="min-width:140px">Meta del mes</th>' : ''}${fin ? '<th class="right">Cartera</th>' : ''}</tr></thead>
+          <thead><tr><th>#</th><th>Vendedor</th><th class="right">Llamadas</th><th class="right">Contacto</th><th class="right">Tiempo</th><th class="right">Citas</th><th class="right">Demos</th><th class="right">Ventas</th>${fin ? '<th class="right">Monto</th><th class="right">Recaudado</th><th class="right">Comisión</th>' : ''}<th class="right">Cierre</th>${fin && monthFactor ? '<th style="min-width:140px">Meta del mes</th>' : ''}${fin ? '<th class="right">Cartera</th>' : ''}</tr></thead>
           <tbody>${rows.map((r, i) => {
             const goalPct = r.u.salesGoal ? r.m.salesAmount / r.u.salesGoal : 0;
             const rec = fin ? Metrics.receivables(r.u.id) : { total: 0 };
@@ -65,7 +65,8 @@ Views.reportes = (() => {
               <td class="right num">${r.m.appts}</td><td class="right num">${r.m.demos}</td>
               <td class="right num">${r.m.salesCount}</td>
               ${fin ? `<td class="right num"><strong>${U.money(r.m.salesAmount)}</strong></td>
-              <td class="right num">${U.money(r.m.collected)}</td>` : ''}
+              <td class="right num">${U.money(r.m.collected)}</td>
+              <td class="right num" style="color:#b8860b">${U.money(U.sum(orders.filter((o) => o.userId === r.u.id), Store.orderCommission))}</td>` : ''}
               <td class="right num">${U.pct(r.m.closeRate)}</td>
               ${fin && monthFactor ? `<td>${r.u.salesGoal ? `<div class="progress ${goalPct >= 1 ? 'good' : ''}"><span style="width:${Math.min(100, goalPct * 100)}%"></span></div><div class="cell-sub">${U.pct(goalPct)} de ${U.money(r.u.salesGoal)}</div>` : '<span class="muted small">Sin meta</span>'}</td>` : ''}
               ${fin ? `<td class="right num" style="color:${rec.total > 0 ? 'var(--bad)' : 'inherit'}">${U.money(rec.total)}</td>` : ''}
@@ -120,7 +121,7 @@ Views.reportes = (() => {
         { label: 'Vendedor', value: (r) => r.u.name }, { label: 'Llamadas', value: (r) => r.m.calls }, { label: 'Contactos', value: (r) => r.m.contacts },
         { label: 'Tasa contacto', value: (r) => U.pct(r.m.contactRate) }, { label: 'Minutos', value: (r) => Math.round(r.m.talkTime / 60) }, { label: 'Citas agendadas', value: (r) => r.m.appts }, { label: 'Demos realizadas', value: (r) => r.m.demos },
         { label: 'Ventas', value: (r) => r.m.salesCount },
-        ...(fin ? [{ label: 'Monto', value: (r) => r.m.salesAmount }, { label: 'Recaudado', value: (r) => r.m.collected },
+        ...(fin ? [{ label: 'Monto', value: (r) => r.m.salesAmount }, { label: 'Recaudado', value: (r) => r.m.collected }, { label: 'Comisión', value: (r) => U.sum(orders.filter((o) => o.userId === r.u.id), Store.orderCommission) },
           { label: 'Meta', value: (r) => r.u.salesGoal || '' }, { label: 'Cartera', value: (r) => Metrics.receivables(r.u.id).total }] : [])
       ]);
       U.download(`reporte-equipo-${state.range}-${U.toDateInput(new Date())}.csv`, csv, 'text/csv;charset=utf-8');

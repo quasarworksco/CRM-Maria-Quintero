@@ -40,6 +40,12 @@ const Reminders = (() => {
       if (t.priority === 'alta' && now >= due - LEAD && now < due && !notified[k + '|antes']) { mark(k + '|antes'); show(t, 'antes'); }
       if (now >= due && now - due < 2 * 3600000 && !notified[k + '|hora']) { mark(k + '|hora'); show(t, 'hora'); }
     });
+    // Seguimientos con hora exacta ("Llamar después"): aviso al llegar la hora
+    Store.all('clients').filter((c) => c.ownerId === me.id && c.followUpExact && c.nextFollowUp && OPEN_STAGES.includes(c.stage)).forEach((c) => {
+      const due = new Date(c.nextFollowUp).getTime();
+      const k = 'f|' + c.id + '|' + c.nextFollowUp;
+      if (now >= due && now - due < 2 * 3600000 && !notified[k]) { mark(k); showFollow(c); }
+    });
     // Al entrar: un solo aviso con las tareas que ya estaban vencidas
     if (!summaryShown) {
       summaryShown = true;
@@ -88,6 +94,21 @@ const Reminders = (() => {
     el.querySelector('[data-r-open]').onclick = () => { el.remove(); location.hash = c ? '#/cliente/' + c.id : '#/agenda'; };
     beep();
     browserNotify(kind === 'antes' ? 'Tarea en 15 minutos' : 'Tarea pendiente', `${t.title}${c ? ' · ' + c.name : ''} (${U.time(t.due)})`);
+  }
+
+  function showFollow(c) {
+    const el = card(`
+      <div class="reminder-head">${icon('phone', 'sm')}<strong>Seguimiento: es la hora</strong><button class="btn ghost xs icon" data-r-close title="Cerrar">${icon('x', 'sm')}</button></div>
+      <div class="reminder-title">Llamar a ${U.esc(c.name)}</div>
+      <div class="small muted">Quedó en llamarle a las ${U.time(c.nextFollowUp)}${c.phone ? ' · ' + U.esc(c.phone) : ''}</div>
+      <div class="row wrap" style="gap:6px;margin-top:8px">
+        <button class="btn xs primary" data-r-open>${icon('phone', 'sm')} Abrir ficha</button>
+        <button class="btn xs" data-r-snooze>Posponer 15 min</button>
+      </div>`);
+    el.querySelector('[data-r-open]').onclick = () => { el.remove(); location.hash = '#/cliente/' + c.id; };
+    el.querySelector('[data-r-snooze]').onclick = () => { Store.update('clients', c.id, { nextFollowUp: new Date(Date.now() + 15 * 60000).toISOString(), followUpExact: true }); el.remove(); UI.toast('Te avisamos de nuevo en 15 minutos'); };
+    beep();
+    browserNotify('Seguimiento: es la hora', `Llamar a ${c.name} (${U.time(c.nextFollowUp)})`);
   }
 
   function showSummary(late) {

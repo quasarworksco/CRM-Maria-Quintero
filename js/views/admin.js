@@ -271,6 +271,7 @@ Views.admin = (() => {
               <label class="field">% de contacto<input name="prodContactRate" type="number" min="1" max="100" step="1" value="${s.prodContactRate || 30}"></label>
               <label class="field">Citas por hora<input name="prodApptsPerHour" type="number" min="0.1" step="0.1" value="${s.prodApptsPerHour || 1}"></label>
             </div></div>
+          <label class="check full"><input type="checkbox" name="showCommissionToAgents" ${s.showCommissionToAgents !== false ? 'checked' : ''}> <span>Cada agente ve sus propias comisiones (en Inicio, Ventas y Productos). La administración siempre ve todas.</span></label>
           <label class="field">Canales de venta <span class="hint">uno por línea (Instagram, Facebook, WhatsApp…)</span><textarea name="saleChannels" rows="6">${U.esc((s.saleChannels || SALE_CHANNEL_DEFAULTS).join('\n'))}</textarea></label>
           <label class="field">Reclutamiento · idiomas <span class="hint">uno por línea</span><textarea name="languages" rows="4">${U.esc((s.languages || []).join('\n'))}</textarea></label>
           <label class="field">Guion de llamada <span class="hint">variables: {nombre} {agente} {empresa} {ciudad}</span><textarea name="callScript" rows="6">${U.esc(s.callScript)}</textarea></label>

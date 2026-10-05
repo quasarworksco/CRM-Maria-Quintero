@@ -76,6 +76,9 @@
     .sec-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); }
     .sec-head h2 { margin: 4px 0 2px; font-size: 18px; letter-spacing: -.01em; }
     .sec-head p { margin: 0; color: var(--text-2); font-size: 14px; }
+    .updated { display: inline-block; margin: 0 0 8px !important; font-size: 13px; font-weight: 600; color: var(--primary) !important; background: var(--primary-soft); padding: 4px 10px; border-radius: 99px; }
+    .sec.new { border: 2px solid var(--primary); }
+    .sec.new .tag { background: var(--primary); color: #fff; }
     .tag { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--primary); background: var(--primary-soft); padding: 2px 8px; border-radius: 6px; }
     .count { font-size: 13px; font-weight: 700; color: var(--text-2); background: var(--surface-3); padding: 4px 10px; border-radius: 99px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .count.done { background: var(--good-soft); color: var(--good); }
@@ -122,6 +125,7 @@
     <div class="hero">
       <div>
         <h1>Todo lo que se hizo en el CRM</h1>
+        <p class="updated">Actualizado el <strong>5 de octubre de 2026</strong> · Los cambios más recientes están arriba.</p>
         <p>Cada cambio con una explicación corta y cómo comprobarlo. Marca la casilla cuando lo revises: el avance queda guardado en este navegador.</p>
         <div class="bar"><span id="bar"></span></div>
         <div class="tools">
@@ -130,135 +134,42 @@
           <button type="button" id="resetBtn">Desmarcar todo</button>
         </div>
       </div>
-      <div><div class="ring" id="ring" style="--p:0"><span id="pct">0%</span></div><small style="display:block;text-align:center;margin-top:6px;color:var(--text-3);font-size:12px"><span id="done">0</span> de 49 revisados</small></div>
+      <div><div class="ring" id="ring" style="--p:0"><span id="pct">0%</span></div><small style="display:block;text-align:center;margin-top:6px;color:var(--text-3);font-size:12px"><span id="done">0</span> de 58 revisados</small></div>
     </div>
 
     <nav class="chips" aria-label="Secciones">
-      <a href="#base">Base del CRM</a>
-      <a href="#nube">Publicación, nube e ingreso</a>
-      <a href="#paso1">Paso 1 · Nuevo prospecto</a>
-      <a href="#paso2">Paso 2 · Historial de contacto</a>
-      <a href="#paso3">Paso 3 · Reclutamiento</a>
-      <a href="#paso4">Paso 4 · Perfil, permisos, canales y fotos</a>
-      <a href="#paso5">Paso 5 · Imagen corporativa y revisión</a>
+      <a href="#paso7">Paso 7 · Resultados de llamada, ventas y comisiones</a>
       <a href="#paso6">Paso 6 · Productividad, tareas y ahorro de datos</a>
+      <a href="#paso5">Paso 5 · Imagen corporativa y revisión</a>
+      <a href="#paso4">Paso 4 · Perfil, permisos, canales y fotos</a>
+      <a href="#paso3">Paso 3 · Reclutamiento</a>
+      <a href="#paso2">Paso 2 · Historial de contacto</a>
+      <a href="#paso1">Paso 1 · Nuevo prospecto</a>
+      <a href="#nube">Publicación, nube e ingreso</a>
+      <a href="#base">Base del CRM</a>
     </nav>
 
-    <section class="sec" id="base">
-      <div class="sec-head"><div><span class="tag">Inicial</span><h2>Base del CRM</h2><p>Lo que se construyó primero: todas las secciones del trabajo diario, ventas y cobros.</p></div><span class="count" data-count="base">0 / 8</span></div>
-      <ul class="list" data-sec="base">
-      <li class="item"><label><input type="checkbox" data-id="base-inicio"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Inicio (tablero)</strong><span class="desc">Indicadores del negocio o del día de cada persona, embudo por etapas, seguimientos de hoy, próximas citas, ranking del equipo y actividad reciente.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM: es la primera pantalla. <a class="glink" href="../guia/#inicio-sec">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="base-llamadas"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Modo llamadas</strong><span class="desc">Cola de marcación priorizada, guion con el nombre del cliente, cronómetro, resultados con atajos 1–9 y &quot;Guardar y siguiente&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Modo llamadas → registra un resultado. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="base-agenda"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Agenda y tareas</strong><span class="desc">Seguimientos y tareas pendientes ordenados por fecha y hora, con el número de vencidos en el menú.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Agenda y tareas. <a class="glink" href="../guia/#agenda">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="base-clientes"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Clientes y prospectos</strong><span class="desc">Lista con búsqueda, filtros rápidos, acciones masivas e importación desde Excel / CSV con reparto entre agentes.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Clientes y prospectos → Importar. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="base-embudo"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Embudo de ventas</strong><span class="desc">Tablero Kanban por etapas: se arrastran las tarjetas para cambiar de etapa.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Embudo de ventas → arrastra una tarjeta. <a class="glink" href="../guia/#embudo">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="base-ventas"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Ventas, recaudo y cartera</strong><span class="desc">Pedidos con varios productos, descuentos, abonos, recibo imprimible, cartera por antigüedad y pagos por método.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Ventas y pedidos → Nueva venta. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="base-productos"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Productos</strong><span class="desc">Catálogo con foto (Cloudinary), precio, costo y margen (solo administración), stock y alerta de stock bajo.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Productos → Nuevo producto. <a class="glink" href="../guia/#productos">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="base-reportes"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Reportes y administración</strong><span class="desc">Rendimiento por persona, fuentes, productos y motivos de pérdida; usuarios, metas, &quot;Ver como&quot;, reparto de prospectos, configuración y respaldos.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Reportes y equipo / Panel de administración. <a class="glink" href="../guia/#reportes">Ver en la guía →</a></span></span></label></li>
-      </ul>
-    </section>
-    <section class="sec" id="nube">
-      <div class="sec-head"><div><span class="tag">Inicial</span><h2>Publicación, nube e ingreso</h2><p>Dónde vive el CRM y cómo entra cada persona.</p></div><span class="count" data-count="nube">0 / 6</span></div>
-      <ul class="list" data-sec="nube">
-      <li class="item"><label><input type="checkbox" data-id="nube-dominio"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Publicado en crmsystempb.dgp-link.com</strong><span class="desc">GitHub Pages desde la rama main, con Open Graph y Twitter Cards (vista previa al compartir el enlace).</span><span class="how"><b>Cómo verificarlo:</b> Abre crmsystempb.dgp-link.com y comparte el enlace por WhatsApp.</span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="nube-firestore"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Base de datos Firestore en tiempo real</strong><span class="desc">Todo se guarda en la nube al instante y el equipo ve los cambios en segundos. Copia local si se cae el internet.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM en dos equipos y cambia algo en uno.</span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="nube-login"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Ingreso con correo y contraseña</strong><span class="desc">Firebase Authentication. La cuenta principal inventusmq@gmail.com siempre es administradora y crea los demás usuarios.</span><span class="how"><b>Cómo verificarlo:</b> Cierra sesión y vuelve a entrar. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="nube-primer"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Primer ingreso: nombre y apellido</strong><span class="desc">La primera vez, cada persona escribe el nombre con el que atiende (una sola vez).</span><span class="how"><b>Cómo verificarlo:</b> Crea un usuario de prueba y entra con él. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="nube-limpio"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Base en línea limpia para trabajar</strong><span class="desc">La versión en línea empieza en cero; la demo con datos de ejemplo está aparte en ?local=1.</span><span class="how"><b>Cómo verificarlo:</b> Inicio muestra &quot;Primeros pasos&quot;.</span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="nube-propuesta"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Propuesta y guía de uso</strong><span class="desc">Cotización en /propuesta y guía didáctica con capturas en /guia.</span><span class="how"><b>Cómo verificarlo:</b> Abre /propuesta y /guia.</span></span></label></li>
-      </ul>
-    </section>
-    <section class="sec" id="paso1">
-      <div class="sec-head"><div><span class="tag">Paso 1</span><h2>Paso 1 · Nuevo prospecto</h2><p>Formulario de prospecto, etapas, resultados de llamada y citas.</p></div><span class="count" data-count="paso1">0 / 6</span></div>
-      <ul class="list" data-sec="paso1">
-      <li class="item"><label><input type="checkbox" data-id="p1-fuentes"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Fuentes nuevas</strong><span class="desc">Florida Mall / Tienda, Feria / Evento, Referido, Cliente anterior, Leads, Facebook, Instagram, Indeed y más.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → campo Fuente. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p1-referido"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>&quot;Referido por&quot; y &quot;Nombre del evento&quot;</strong><span class="desc">Si la fuente es Referido aparece &quot;Referido por&quot; (obligatorio); si es Feria / Evento aparece &quot;Nombre del evento&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → Fuente: Referido. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p1-etapas"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Etapas del embudo</strong><span class="desc">Nuevo, Intentando contactar, Contactado, Cita agendada, Cita confirmada, Demo realizada, Venta y Perdido / Sin respuesta.</span><span class="how"><b>Cómo verificarlo:</b> Ficha del cliente → barra de etapas. <a class="glink" href="../guia/#conceptos">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p1-resultados"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Resultados de llamada</strong><span class="desc">No contestó, Buzón de voz, WhatsApp enviado, Llamar después, Contactado, Cita agendada, No interesado, Número incorrecto y No volver a llamar. Cada uno mueve la etapa y programa el seguimiento.</span><span class="how"><b>Cómo verificarlo:</b> Registra un intento en la ficha. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p1-citas"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Citas</strong><span class="desc">Fecha, hora, dirección y quién realiza la demostración; confirmar, demo realizada, reagendar o cancelar; seguimiento para confirmarla el día anterior.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Agendar cita. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p1-referidos"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Reporte de referidos</strong><span class="desc">Quién trae referidos, cuántos agendaron cita y cuántos compraron.</span><span class="how"><b>Cómo verificarlo:</b> Reportes → ¿Quién trae referidos? <a class="glink" href="../guia/#reportes">Ver en la guía →</a></span></span></label></li>
-      </ul>
-    </section>
-    <section class="sec" id="paso2">
-      <div class="sec-head"><div><span class="tag">Paso 2</span><h2>Paso 2 · Historial de contacto</h2><p>Intentos numerados, regla de los 12 intentos y colores por etapa.</p></div><span class="count" data-count="paso2">0 / 4</span></div>
-      <ul class="list" data-sec="paso2">
-      <li class="item"><label><input type="checkbox" data-id="p2-historial"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Historial de contacto</strong><span class="desc">Cada intento guarda número, fecha, hora, agente, medio, resultado y comentario automáticamente.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Historial de contacto. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p2-contador"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Contador &quot;Intentos de contacto: X/12&quot;</strong><span class="desc">Visible en la ficha, en la lista de clientes y en el embudo.</span><span class="how"><b>Cómo verificarlo:</b> Lista de clientes → columna Intentos. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p2-doce"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Archivado a los 12 intentos sin respuesta</strong><span class="desc">Pasa solo a Perdido / Sin respuesta y conserva todo su historial; se puede reactivar.</span><span class="how"><b>Cómo verificarlo:</b> Registra 12 &quot;No contestó&quot; a un prospecto de prueba. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p2-colores"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Colores por etapa</strong><span class="desc">Azul (nuevo / intentando), verde (contactado), morado (citas), amarillo (demo), fucsia (venta) y rojo (perdido), en la ficha, la lista, el embudo y el Inicio.</span><span class="how"><b>Cómo verificarlo:</b> Lista de clientes → franja de color de cada fila. <a class="glink" href="../guia/#conceptos">Ver en la guía →</a></span></span></label></li>
-      </ul>
-    </section>
-    <section class="sec" id="paso3">
-      <div class="sec-head"><div><span class="tag">Paso 3</span><h2>Paso 3 · Reclutamiento</h2><p>Módulo aparte para candidatos, sin mezclarse con clientes ni ventas.</p></div><span class="count" data-count="paso3">0 / 7</span></div>
-      <ul class="list" data-sec="paso3">
-      <li class="item"><label><input type="checkbox" data-id="p3-modulo"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Sección independiente &quot;Reclutamiento&quot;</strong><span class="desc">Los candidatos no aparecen en Clientes, Embudo, Modo llamadas ni reportes de ventas.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Reclutamiento. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p3-ficha"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Ficha del candidato</strong><span class="desc">Nombre, teléfonos, email, ciudad, estado, idioma, puesto, vehículo propio, experiencia en ventas, fines de semana, fecha para comenzar y notas.</span><span class="how"><b>Cómo verificarlo:</b> Reclutamiento → Nuevo candidato. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p3-fuente"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Fuente y &quot;Referido por&quot; conectado</strong><span class="desc">Indeed, Referido, Facebook, Instagram, Florida Mall, Feria u Otra; el referido queda conectado a la persona (equipo, candidato o cliente).</span><span class="how"><b>Cómo verificarlo:</b> Nuevo candidato → Fuente: Referido. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p3-etapas"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>12 etapas con color</strong><span class="desc">De Nuevo candidato a Contratado, más No seleccionado y Sin respuesta.</span><span class="how"><b>Cómo verificarlo:</b> Ficha del candidato → barra de etapas. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p3-entrevista"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Entrevista y seguimiento</strong><span class="desc">Fecha, hora, lugar, entrevistador y notas; próximo seguimiento con fecha, hora y comentario.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Agendar entrevista. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p3-historial"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Historial del candidato</strong><span class="desc">Llamadas, mensajes, intentos X/12, entrevistas, cambios de etapa y comentarios con agente, fecha y hora.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Historial. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p3-indeed"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Importar desde Indeed y exportar</strong><span class="desc">Carga el CSV de Indeed, reparte entre el equipo y omite repetidos.</span><span class="how"><b>Cómo verificarlo:</b> Reclutamiento → Importar. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
-      </ul>
-    </section>
-    <section class="sec" id="paso4">
-      <div class="sec-head"><div><span class="tag">Paso 4</span><h2>Paso 4 · Perfil, permisos, canales y fotos</h2><p>Perfil del hogar, permisos por usuario, montos solo para la administración y fotos.</p></div><span class="count" data-count="paso4">0 / 7</span></div>
-      <ul class="list" data-sec="paso4">
-      <li class="item"><label><input type="checkbox" data-id="p4-perfil"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Perfil del cliente / hogar</strong><span class="desc">Sin A/C ni cumpleaños. Vivienda, crédito, personas en el hogar, estado civil, mejor horario, contacto preferido, mascotas y alergias / asma, con &quot;No indicado&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → Perfil del cliente / hogar. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p4-roles"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Cuatro roles</strong><span class="desc">Administrador, Supervisor, Agente / Call center y Reclutamiento (rol nuevo).</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Usuarios → tabla &quot;Qué puede ver cada rol&quot;. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p4-permisos"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Permisos ajustables por persona</strong><span class="desc">Prospectos, ventas, información financiera, reportes, ver todo el equipo, reasignar, reclutamiento, todos los candidatos y exportar.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Usuarios → Editar → Permisos. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p4-finanzas"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Montos solo para la administración</strong><span class="desc">Quien no tiene &quot;Información financiera&quot; no ve montos, pagos, saldos ni Recaudo; los pagos ni siquiera se descargan y los montos no se guardan en el historial.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Ver como (una agente) → Ventas. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p4-canal"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Canal de cada venta</strong><span class="desc">Llamada / Call center, Instagram, Facebook, WhatsApp, Página web, Tienda, Referido, Feria / Evento u Otro; reporte &quot;Ventas por canal&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nueva venta → Canal de la venta. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p4-fotos"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Fotos de perfil y de personas</strong><span class="desc">Cada cuenta pone su foto en Mi perfil; clientes y candidatos tienen foto en su ficha (Cloudinary).</span><span class="how"><b>Cómo verificarlo:</b> Menú de usuario → Mi perfil → Subir foto. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p4-reglas"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Reglas de seguridad por permisos</strong><span class="desc">Firestore aplica los permisos de cada cuenta guardados en access/{correo}.</span><span class="how"><b>Cómo verificarlo:</b> Firebase → Firestore → Reglas (publicadas).</span></span></label></li>
-      </ul>
-    </section>
-    <section class="sec" id="paso5">
-      <div class="sec-head"><div><span class="tag">Paso 5</span><h2>Paso 5 · Imagen corporativa y revisión</h2><p>Los cambios de esta entrega.</p></div><span class="count" data-count="paso5">0 / 3</span></div>
-      <ul class="list" data-sec="paso5">
-      <li class="item"><label><input type="checkbox" data-id="p5-colores"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Colores azul y blanco corporativos</strong><span class="desc">Fondo blanco, acentos en azul corporativo y menú lateral azul marino en el CRM, la guía y la propuesta. Los colores de cada etapa se mantienen porque indican el estado.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM y la guía.</span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p5-revision"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Página /revision</strong><span class="desc">Esta página: todos los cambios con su checklist.</span><span class="how"><b>Cómo verificarlo:</b> Marca cada punto a medida que lo revisas.</span></span></label></li>
-      <li class="item"><label><input type="checkbox" data-id="p5-guia"><span class="box" aria-hidden="true"></span>
-        <span class="body"><strong>Guía actualizada</strong><span class="desc">Capturas nuevas con los colores corporativos y los cambios de los pasos 1 a 5.</span><span class="how"><b>Cómo verificarlo:</b> Abre /guia.</span></span></label></li>
+    <section class="sec new" id="paso7">
+      <div class="sec-head"><div><span class="tag">Nuevo · 5 de octubre de 2026</span><h2>Paso 7 · Resultados de llamada, ventas y comisiones</h2><p>Lo más reciente: venta desde la llamada, comisión automática y embudo de conversión.</p></div><span class="count" data-count="paso7">0 / 9</span></div>
+      <ul class="list" data-sec="paso7">
+      <li class="item"><label><input type="checkbox" data-id="p7-interesado"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>&quot;Contactado&quot; ahora es &quot;Interesado&quot;</strong><span class="desc">El resultado del intento se llama Interesado (la etapa del embudo sigue siendo Contactado).</span><span class="how"><b>Cómo verificarlo:</b> Ficha del cliente → Registrar intento. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p7-email"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Nuevo resultado &quot;Email enviado&quot;</strong><span class="desc">Como WhatsApp enviado: queda en Intentando contactar con seguimiento al día siguiente.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Registrar intento → Email enviado. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p7-venta"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Nuevo resultado &quot;Venta&quot; en dorado</strong><span class="desc">Botón dorado que pasa al cliente a la etapa Venta.</span><span class="how"><b>Cómo verificarlo:</b> Ficha o Modo llamadas → botón Venta. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p7-producto"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Al marcar Venta se elige el producto vendido</strong><span class="desc">Formulario corto: producto(s), cantidad, canal y nota. La venta queda a nombre de quien llamó; la agente no ve el vendedor ni los montos.</span><span class="how"><b>Cómo verificarlo:</b> Elige Venta, guarda y escoge el producto. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p7-comision"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Comisión automática por producto</strong><span class="desc">Cada producto tiene su comisión por unidad (p. ej. $50 o $100) y se calcula sola al vender. La administración ve todas; cada agente ve las suyas (se puede apagar).</span><span class="how"><b>Cómo verificarlo:</b> Productos → editar → Comisión por unidad; luego registra una venta. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p7-llamar"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>&quot;Llamar después&quot; con fecha y hora obligatorias</strong><span class="desc">No deja guardar sin fecha y hora. Ese día aparece en Seguimientos de hoy, a esa hora llega un aviso y, si no se llama, pasa a Vencidos.</span><span class="how"><b>Cómo verificarlo:</b> Elige Llamar después sin fecha: el CRM la pide. <a class="glink" href="../guia/#agenda">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p7-rapidos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Botones Mañana / 3 días / 1 semana / 2 semanas</strong><span class="desc">En la ficha, en Modo llamadas y en el registro rápido, además de elegir fecha y hora a mano (los botones conservan la hora elegida).</span><span class="how"><b>Cómo verificarlo:</b> Registrar intento → botones bajo Próximo seguimiento. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p7-detalle"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Llamadas por agente con cliente, resultado, fecha y hora</strong><span class="desc">En Productividad, cada agente con su número de llamadas; al hacer clic, cada intento con hora, cliente y resultado, día por día.</span><span class="how"><b>Cómo verificarlo:</b> Productividad → clic en el número de llamadas. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p7-embudo"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Embudo por agente: llamadas → interesados → citas → ventas</strong><span class="desc">Con porcentaje de cada paso, conversión total y comisión, por hoy, semana, mes, 30 o 90 días.</span><span class="how"><b>Cómo verificarlo:</b> Productividad → Embudo de conversión. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
       </ul>
     </section>
     <section class="sec" id="paso6">
@@ -282,8 +193,125 @@
         <span class="body"><strong>Ahorro de datos de Firestore</strong><span class="desc">Cada agente descarga solo sus clientes, llamadas y tareas; la administración recibe en vivo los últimos 95 días; el historial completo de un cliente se descarga al abrir su ficha.</span><span class="how"><b>Cómo verificarlo:</b> Abre la ficha de un cliente: ves todo su historial.</span></span></label></li>
       </ul>
     </section>
+    <section class="sec" id="paso5">
+      <div class="sec-head"><div><span class="tag">Paso 5</span><h2>Paso 5 · Imagen corporativa y revisión</h2><p>Los cambios de esta entrega.</p></div><span class="count" data-count="paso5">0 / 3</span></div>
+      <ul class="list" data-sec="paso5">
+      <li class="item"><label><input type="checkbox" data-id="p5-colores"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Colores azul y blanco corporativos</strong><span class="desc">Fondo blanco, acentos en azul corporativo y menú lateral azul marino en el CRM, la guía y la propuesta. Los colores de cada etapa se mantienen porque indican el estado.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM y la guía.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p5-revision"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Página /revision</strong><span class="desc">Esta página: todos los cambios con su checklist.</span><span class="how"><b>Cómo verificarlo:</b> Marca cada punto a medida que lo revisas.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p5-guia"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Guía actualizada</strong><span class="desc">Capturas nuevas con los colores corporativos y los cambios de los pasos 1 a 5.</span><span class="how"><b>Cómo verificarlo:</b> Abre /guia.</span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso4">
+      <div class="sec-head"><div><span class="tag">Paso 4</span><h2>Paso 4 · Perfil, permisos, canales y fotos</h2><p>Perfil del hogar, permisos por usuario, montos solo para la administración y fotos.</p></div><span class="count" data-count="paso4">0 / 7</span></div>
+      <ul class="list" data-sec="paso4">
+      <li class="item"><label><input type="checkbox" data-id="p4-perfil"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Perfil del cliente / hogar</strong><span class="desc">Sin A/C ni cumpleaños. Vivienda, crédito, personas en el hogar, estado civil, mejor horario, contacto preferido, mascotas y alergias / asma, con &quot;No indicado&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → Perfil del cliente / hogar. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-roles"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Cuatro roles</strong><span class="desc">Administrador, Supervisor, Agente / Call center y Reclutamiento (rol nuevo).</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Usuarios → tabla &quot;Qué puede ver cada rol&quot;. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-permisos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Permisos ajustables por persona</strong><span class="desc">Prospectos, ventas, información financiera, reportes, ver todo el equipo, reasignar, reclutamiento, todos los candidatos y exportar.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Usuarios → Editar → Permisos. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-finanzas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Montos solo para la administración</strong><span class="desc">Quien no tiene &quot;Información financiera&quot; no ve montos, pagos, saldos ni Recaudo; los pagos ni siquiera se descargan y los montos no se guardan en el historial.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Ver como (una agente) → Ventas. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-canal"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Canal de cada venta</strong><span class="desc">Llamada / Call center, Instagram, Facebook, WhatsApp, Página web, Tienda, Referido, Feria / Evento u Otro; reporte &quot;Ventas por canal&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nueva venta → Canal de la venta. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-fotos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Fotos de perfil y de personas</strong><span class="desc">Cada cuenta pone su foto en Mi perfil; clientes y candidatos tienen foto en su ficha (Cloudinary).</span><span class="how"><b>Cómo verificarlo:</b> Menú de usuario → Mi perfil → Subir foto. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p4-reglas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Reglas de seguridad por permisos</strong><span class="desc">Firestore aplica los permisos de cada cuenta guardados en access/{correo}.</span><span class="how"><b>Cómo verificarlo:</b> Firebase → Firestore → Reglas (publicadas).</span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso3">
+      <div class="sec-head"><div><span class="tag">Paso 3</span><h2>Paso 3 · Reclutamiento</h2><p>Módulo aparte para candidatos, sin mezclarse con clientes ni ventas.</p></div><span class="count" data-count="paso3">0 / 7</span></div>
+      <ul class="list" data-sec="paso3">
+      <li class="item"><label><input type="checkbox" data-id="p3-modulo"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Sección independiente &quot;Reclutamiento&quot;</strong><span class="desc">Los candidatos no aparecen en Clientes, Embudo, Modo llamadas ni reportes de ventas.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Reclutamiento. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-ficha"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Ficha del candidato</strong><span class="desc">Nombre, teléfonos, email, ciudad, estado, idioma, puesto, vehículo propio, experiencia en ventas, fines de semana, fecha para comenzar y notas.</span><span class="how"><b>Cómo verificarlo:</b> Reclutamiento → Nuevo candidato. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-fuente"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Fuente y &quot;Referido por&quot; conectado</strong><span class="desc">Indeed, Referido, Facebook, Instagram, Florida Mall, Feria u Otra; el referido queda conectado a la persona (equipo, candidato o cliente).</span><span class="how"><b>Cómo verificarlo:</b> Nuevo candidato → Fuente: Referido. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-etapas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>12 etapas con color</strong><span class="desc">De Nuevo candidato a Contratado, más No seleccionado y Sin respuesta.</span><span class="how"><b>Cómo verificarlo:</b> Ficha del candidato → barra de etapas. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-entrevista"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Entrevista y seguimiento</strong><span class="desc">Fecha, hora, lugar, entrevistador y notas; próximo seguimiento con fecha, hora y comentario.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Agendar entrevista. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-historial"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Historial del candidato</strong><span class="desc">Llamadas, mensajes, intentos X/12, entrevistas, cambios de etapa y comentarios con agente, fecha y hora.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Historial. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p3-indeed"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Importar desde Indeed y exportar</strong><span class="desc">Carga el CSV de Indeed, reparte entre el equipo y omite repetidos.</span><span class="how"><b>Cómo verificarlo:</b> Reclutamiento → Importar. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso2">
+      <div class="sec-head"><div><span class="tag">Paso 2</span><h2>Paso 2 · Historial de contacto</h2><p>Intentos numerados, regla de los 12 intentos y colores por etapa.</p></div><span class="count" data-count="paso2">0 / 4</span></div>
+      <ul class="list" data-sec="paso2">
+      <li class="item"><label><input type="checkbox" data-id="p2-historial"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Historial de contacto</strong><span class="desc">Cada intento guarda número, fecha, hora, agente, medio, resultado y comentario automáticamente.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Historial de contacto. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p2-contador"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Contador &quot;Intentos de contacto: X/12&quot;</strong><span class="desc">Visible en la ficha, en la lista de clientes y en el embudo.</span><span class="how"><b>Cómo verificarlo:</b> Lista de clientes → columna Intentos. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p2-doce"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Archivado a los 12 intentos sin respuesta</strong><span class="desc">Pasa solo a Perdido / Sin respuesta y conserva todo su historial; se puede reactivar.</span><span class="how"><b>Cómo verificarlo:</b> Registra 12 &quot;No contestó&quot; a un prospecto de prueba. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p2-colores"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Colores por etapa</strong><span class="desc">Azul (nuevo / intentando), verde (contactado), morado (citas), amarillo (demo), fucsia (venta) y rojo (perdido), en la ficha, la lista, el embudo y el Inicio.</span><span class="how"><b>Cómo verificarlo:</b> Lista de clientes → franja de color de cada fila. <a class="glink" href="../guia/#conceptos">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso1">
+      <div class="sec-head"><div><span class="tag">Paso 1</span><h2>Paso 1 · Nuevo prospecto</h2><p>Formulario de prospecto, etapas, resultados de llamada y citas.</p></div><span class="count" data-count="paso1">0 / 6</span></div>
+      <ul class="list" data-sec="paso1">
+      <li class="item"><label><input type="checkbox" data-id="p1-fuentes"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Fuentes nuevas</strong><span class="desc">Florida Mall / Tienda, Feria / Evento, Referido, Cliente anterior, Leads, Facebook, Instagram, Indeed y más.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → campo Fuente. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-referido"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>&quot;Referido por&quot; y &quot;Nombre del evento&quot;</strong><span class="desc">Si la fuente es Referido aparece &quot;Referido por&quot; (obligatorio); si es Feria / Evento aparece &quot;Nombre del evento&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Nuevo prospecto → Fuente: Referido. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-etapas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Etapas del embudo</strong><span class="desc">Nuevo, Intentando contactar, Contactado, Cita agendada, Cita confirmada, Demo realizada, Venta y Perdido / Sin respuesta.</span><span class="how"><b>Cómo verificarlo:</b> Ficha del cliente → barra de etapas. <a class="glink" href="../guia/#conceptos">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-resultados"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Resultados de llamada</strong><span class="desc">No contestó, Buzón de voz, WhatsApp enviado, Llamar después, Contactado, Cita agendada, No interesado, Número incorrecto y No volver a llamar. Cada uno mueve la etapa y programa el seguimiento.</span><span class="how"><b>Cómo verificarlo:</b> Registra un intento en la ficha. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-citas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Citas</strong><span class="desc">Fecha, hora, dirección y quién realiza la demostración; confirmar, demo realizada, reagendar o cancelar; seguimiento para confirmarla el día anterior.</span><span class="how"><b>Cómo verificarlo:</b> Ficha → Agendar cita. <a class="glink" href="../guia/#ficha">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p1-referidos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Reporte de referidos</strong><span class="desc">Quién trae referidos, cuántos agendaron cita y cuántos compraron.</span><span class="how"><b>Cómo verificarlo:</b> Reportes → ¿Quién trae referidos? <a class="glink" href="../guia/#reportes">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="nube">
+      <div class="sec-head"><div><span class="tag">Inicial</span><h2>Publicación, nube e ingreso</h2><p>Dónde vive el CRM y cómo entra cada persona.</p></div><span class="count" data-count="nube">0 / 6</span></div>
+      <ul class="list" data-sec="nube">
+      <li class="item"><label><input type="checkbox" data-id="nube-dominio"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Publicado en crmsystempb.dgp-link.com</strong><span class="desc">GitHub Pages desde la rama main, con Open Graph y Twitter Cards (vista previa al compartir el enlace).</span><span class="how"><b>Cómo verificarlo:</b> Abre crmsystempb.dgp-link.com y comparte el enlace por WhatsApp.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-firestore"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Base de datos Firestore en tiempo real</strong><span class="desc">Todo se guarda en la nube al instante y el equipo ve los cambios en segundos. Copia local si se cae el internet.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM en dos equipos y cambia algo en uno.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-login"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Ingreso con correo y contraseña</strong><span class="desc">Firebase Authentication. La cuenta principal inventusmq@gmail.com siempre es administradora y crea los demás usuarios.</span><span class="how"><b>Cómo verificarlo:</b> Cierra sesión y vuelve a entrar. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-primer"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Primer ingreso: nombre y apellido</strong><span class="desc">La primera vez, cada persona escribe el nombre con el que atiende (una sola vez).</span><span class="how"><b>Cómo verificarlo:</b> Crea un usuario de prueba y entra con él. <a class="glink" href="../guia/#entrar">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-limpio"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Base en línea limpia para trabajar</strong><span class="desc">La versión en línea empieza en cero; la demo con datos de ejemplo está aparte en ?local=1.</span><span class="how"><b>Cómo verificarlo:</b> Inicio muestra &quot;Primeros pasos&quot;.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="nube-propuesta"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Propuesta y guía de uso</strong><span class="desc">Cotización en /propuesta y guía didáctica con capturas en /guia.</span><span class="how"><b>Cómo verificarlo:</b> Abre /propuesta y /guia.</span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="base">
+      <div class="sec-head"><div><span class="tag">Inicial</span><h2>Base del CRM</h2><p>Lo que se construyó primero: todas las secciones del trabajo diario, ventas y cobros.</p></div><span class="count" data-count="base">0 / 8</span></div>
+      <ul class="list" data-sec="base">
+      <li class="item"><label><input type="checkbox" data-id="base-inicio"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Inicio (tablero)</strong><span class="desc">Indicadores del negocio o del día de cada persona, embudo por etapas, seguimientos de hoy, próximas citas, ranking del equipo y actividad reciente.</span><span class="how"><b>Cómo verificarlo:</b> Abre el CRM: es la primera pantalla. <a class="glink" href="../guia/#inicio-sec">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-llamadas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Modo llamadas</strong><span class="desc">Cola de marcación priorizada, guion con el nombre del cliente, cronómetro, resultados con atajos 1–9 y &quot;Guardar y siguiente&quot;.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Modo llamadas → registra un resultado. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-agenda"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Agenda y tareas</strong><span class="desc">Seguimientos y tareas pendientes ordenados por fecha y hora, con el número de vencidos en el menú.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Agenda y tareas. <a class="glink" href="../guia/#agenda">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-clientes"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Clientes y prospectos</strong><span class="desc">Lista con búsqueda, filtros rápidos, acciones masivas e importación desde Excel / CSV con reparto entre agentes.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Clientes y prospectos → Importar. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-embudo"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Embudo de ventas</strong><span class="desc">Tablero Kanban por etapas: se arrastran las tarjetas para cambiar de etapa.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Embudo de ventas → arrastra una tarjeta. <a class="glink" href="../guia/#embudo">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-ventas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Ventas, recaudo y cartera</strong><span class="desc">Pedidos con varios productos, descuentos, abonos, recibo imprimible, cartera por antigüedad y pagos por método.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Ventas y pedidos → Nueva venta. <a class="glink" href="../guia/#ventas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-productos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Productos</strong><span class="desc">Catálogo con foto (Cloudinary), precio, costo y margen (solo administración), stock y alerta de stock bajo.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Productos → Nuevo producto. <a class="glink" href="../guia/#productos">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="base-reportes"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Reportes y administración</strong><span class="desc">Rendimiento por persona, fuentes, productos y motivos de pérdida; usuarios, metas, &quot;Ver como&quot;, reparto de prospectos, configuración y respaldos.</span><span class="how"><b>Cómo verificarlo:</b> Menú → Reportes y equipo / Panel de administración. <a class="glink" href="../guia/#reportes">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
 
-    <p class="foot">Última actualización: octubre 2026 · <a href="../guia/">Guía de uso</a> · <a href="../propuesta/">Propuesta</a></p>
+    <p class="foot">Última actualización: 5 de octubre de 2026 · <a href="../guia/">Guía de uso</a> · <a href="../propuesta/">Propuesta</a></p>
   </main>
   <script>
     (function () {

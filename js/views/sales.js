@@ -7,6 +7,7 @@ Views.ventas = (() => {
   function render(el) {
     const manager = Store.can('viewAll');
     const fin = Store.can('finance');
+    const showCom = fin || Store.canSeeOwnCommission();
     const range = Metrics.RANGES[state.range];
     const [from, to] = range ? range.get() : [new Date(0), U.endOfDay()];
     const q = U.normalize(state.q);
@@ -36,8 +37,10 @@ Views.ventas = (() => {
         ` : `
         <div class="card kpi"><div class="kpi-label">Ventas</div><div class="kpi-value">${valid.length}</div><div class="kpi-sub">${range ? range.label : 'Todo el historial'}</div></div>
         <div class="card kpi"><div class="kpi-label">Entregadas</div><div class="kpi-value">${valid.filter((o) => o.status === 'entregada').length}</div><div class="kpi-sub">Ya en manos del cliente</div></div>
+        ${showCom ? `<div class="card kpi"><div class="kpi-label">Mis comisiones</div><div class="kpi-value" style="color:#b8860b">${U.money(U.sum(valid, Store.orderCommission))}</div><div class="kpi-sub">${range ? range.label : 'Todo el historial'}</div></div>` : ''}
         <div class="card kpi"><div class="kpi-label">Canal principal</div><div class="kpi-value" style="font-size:20px">${U.esc(topChannel(valid) || '—')}</div><div class="kpi-sub">De dónde vienen más ventas</div></div>`}
         <div class="card kpi"><div class="kpi-label">Por entregar</div><div class="kpi-value">${valid.filter((o) => ['pendiente', 'confirmada', 'enviada'].includes(o.status)).length}</div><div class="kpi-sub">Pendientes, confirmados o enviados</div></div>
+        ${fin ? `<div class="card kpi"><div class="kpi-label">Comisiones</div><div class="kpi-value" style="color:#b8860b">${U.money(U.sum(valid, Store.orderCommission))}</div><div class="kpi-sub">A pagar a las agentes · ${range ? range.label.toLowerCase() : 'todo'}</div></div>` : ''}
       </div>
       <div class="card">
         <div class="toolbar">
@@ -49,7 +52,7 @@ Views.ventas = (() => {
           ${manager ? `<select id="fSeller"><option value="">Todos los vendedores</option>${UI.userOptions(state.seller)}</select>` : ''}
         </div>
         <div class="table-wrap"><table class="table">
-          <thead><tr><th>Venta</th><th>Cliente</th><th>Productos</th><th>Canal</th>${manager ? '<th>Vendedor</th>' : ''}${fin ? '<th class="right">Total</th><th class="right">Saldo</th><th>Pago</th>' : ''}<th>Entrega</th></tr></thead>
+          <thead><tr><th>Venta</th><th>Cliente</th><th>Productos</th><th>Canal</th>${manager ? '<th>Vendedor</th>' : ''}${fin ? '<th class="right">Total</th><th class="right">Saldo</th><th>Pago</th>' : ''}${showCom ? `<th class="right">${fin ? 'Comisión' : 'Mi comisión'}</th>` : ''}<th>Entrega</th></tr></thead>
           <tbody>${list.length ? list.slice(0, 300).map((o) => {
             const c = Store.get('clients', o.clientId);
             return `<tr class="clickable" data-order="${o.id}">
@@ -61,9 +64,10 @@ Views.ventas = (() => {
               ${fin ? `<td class="right num nowrap"><strong>${U.money(o.total)}</strong></td>
               <td class="right num nowrap" style="color:${Store.orderBalance(o) > 0 ? 'var(--bad)' : 'var(--text-3)'}">${U.money(Store.orderBalance(o))}</td>
               <td>${UI.payBadge(o)}</td>` : ''}
+              ${showCom ? `<td class="right num nowrap" style="color:#b8860b">${Store.orderCommission(o) ? U.money(Store.orderCommission(o)) : '—'}</td>` : ''}
               <td>${UI.orderStatusBadge(o.status)}</td>
             </tr>`;
-          }).join('') : `<tr><td colspan="9">${UI.empty('No hay ventas en este periodo.', 'cart')}</td></tr>`}</tbody>
+          }).join('') : `<tr><td colspan="10">${UI.empty('No hay ventas en este periodo.', 'cart')}</td></tr>`}</tbody>
         </table></div>
       </div>`;
 
@@ -95,6 +99,7 @@ Views.ventas = (() => {
       ...(fin ? [{ label: 'Subtotal', value: 'subtotal' }, { label: 'Descuento', value: 'discount' }, { label: 'Total', value: 'total' },
         { label: 'Pagado', value: (o) => Store.orderPaid(o) }, { label: 'Saldo', value: (o) => Store.orderBalance(o) },
         { label: 'Estado pago', value: (o) => Store.orderPayStatus(o).name }, { label: 'Condición', value: 'paymentTerms' }] : []),
+      ...(fin || Store.canSeeOwnCommission() ? [{ label: 'Comisión', value: (o) => Store.orderCommission(o) }] : []),
       { label: 'Entrega', value: (o) => orderStatusById(o.status).name }
     ]);
     U.download(`ventas-${U.toDateInput(new Date())}.csv`, csv, 'text/csv;charset=utf-8');
@@ -188,13 +193,13 @@ Views.ventas = (() => {
         refreshTotals();
       },
       onSubmit: (d) => {
-        const clean = items.filter((i) => (i.productId || i.name) && i.qty > 0).map((i) => ({ productId: i.productId || null, name: i.name || 'Producto', qty: Number(i.qty), price: Number(i.price) }));
+        const clean = Store.withCommission(items.filter((i) => (i.productId || i.name) && i.qty > 0).map((i) => Object.assign({ productId: i.productId || null, name: i.name || 'Producto', qty: Number(i.qty), price: Number(i.price) }, i.commission !== undefined ? { commission: Number(i.commission) || 0 } : {})));
         if (!clean.length) { UI.toast('Agrega al menos un producto', 'bad'); return false; }
         const data = { clientId: d.clientId, items: clean, discount: d.discount || 0, shipping: d.shipping || 0, taxRate: d.taxRate || 0, channel: d.channel, paymentTerms: d.paymentTerms, dueDate: d.dueDate ? new Date(d.dueDate + 'T12:00').toISOString() : null, deliveryDate: d.deliveryDate ? new Date(d.deliveryDate + 'T12:00').toISOString() : null, status: d.status, notes: d.notes };
         if (d.userId) data.userId = d.userId;
         if (editing) {
           const t = Store.calcOrderTotal(clean, data.discount, data.shipping, data.taxRate);
-          Store.update('orders', editing.id, Object.assign(data, { subtotal: t.subtotal, tax: t.tax, total: t.total }));
+          Store.update('orders', editing.id, Object.assign(data, { subtotal: t.subtotal, tax: t.tax, total: t.total, commission: Store.itemsCommission(clean) }));
           UI.toast('Venta actualizada', 'good');
         } else {
           const order = Store.createOrder(data);
@@ -228,7 +233,8 @@ Views.ventas = (() => {
       body: `
         <div class="grid cols-2" style="gap:12px">
           <div><div class="small muted">Cliente</div><a href="#/cliente/${c.id}" data-close-link><strong>${U.esc(c.name || '(eliminado)')}</strong></a><div class="small">${U.esc(c.phone || '')}</div><div class="small muted">${U.esc([c.address, c.city].filter(Boolean).join(', '))}</div></div>
-          <div><div class="small muted">Vendedor · Fecha</div><strong>${U.esc(UI.userName(o.userId))}</strong><div class="small">${U.dateTime(o.createdAt)}${fin && o.paymentTerms ? ' · ' + U.esc(o.paymentTerms) : ''}</div>
+          <div><div class="small muted">${Store.can('viewAll') ? 'Vendedor · ' : ''}Fecha</div>${Store.can('viewAll') ? `<strong>${U.esc(UI.userName(o.userId))}</strong>` : ''}<div class="small">${U.dateTime(o.createdAt)}${fin && o.paymentTerms ? ' · ' + U.esc(o.paymentTerms) : ''}</div>
+            ${fin || Store.canSeeOwnCommission() ? `<div class="small">Comisión: <strong style="color:#b8860b">${U.money(Store.orderCommission(o))}</strong></div>` : ''}
             <div class="small">Canal: <strong>${U.esc(o.channel || 'Sin indicar')}</strong></div>
             <div class="row" style="margin-top:6px"><span class="small muted">Entrega:</span><select id="statusSel" style="width:auto;height:30px">${UI.options(ORDER_STATUS, o.status)}</select></div></div>
         </div>

@@ -85,7 +85,7 @@ Views.productos = (() => {
           <div class="small muted">${U.esc(p.category || 'Sin categoría')}${p.sku ? ' · ' + U.esc(p.sku) : ''}</div>
           <div class="ptitle">${U.esc(p.name)}</div>
           <div class="row between" style="margin-top:auto">
-            <strong class="num" style="font-size:17px">${U.money(p.price)}</strong>
+            <strong class="num" style="font-size:17px">${U.money(p.price)}${p.commission && Store.canSeeOwnCommission() ? `<span class="small" style="color:#b8860b;font-weight:600;margin-left:6px" title="Comisión por unidad">+${U.money(p.commission)} com.</span>` : ''}</strong>
             ${stockBadge(p)}
           </div>
           <div class="small muted">${sd.qty ? `${sd.qty} vendidos en 30 días` : 'Sin ventas en 30 días'}${p.active ? '' : ' · Inactivo'}</div>
@@ -100,7 +100,7 @@ Views.productos = (() => {
 
   function table(list, sold, canEdit) {
     return `<div class="table-wrap"><table class="table">
-      <thead><tr><th style="width:56px"></th><th>Producto</th><th>Categoría</th><th class="right">Precio</th>${canEdit ? '<th class="right">Costo</th><th class="right">Margen</th>' : ''}<th class="right">Stock</th><th class="right">Vendidos 30d</th>${canEdit ? '<th></th>' : ''}</tr></thead>
+      <thead><tr><th style="width:56px"></th><th>Producto</th><th>Categoría</th><th class="right">Precio</th>${canEdit ? '<th class="right">Costo</th><th class="right">Margen</th><th class="right">Comisión</th>' : ''}<th class="right">Stock</th><th class="right">Vendidos 30d</th>${canEdit ? '<th></th>' : ''}</tr></thead>
       <tbody>${list.map((p) => {
         const sd = sold[p.id] || { qty: 0, amount: 0 };
         return `<tr class="${canEdit ? 'clickable' : ''}" data-id="${p.id}" style="${p.active ? '' : 'opacity:.55'}">
@@ -108,7 +108,7 @@ Views.productos = (() => {
           <td><div class="cell-main">${U.esc(p.name)}</div><div class="cell-sub">${U.esc(p.sku || '')}${p.active ? '' : ' · Inactivo'}</div></td>
           <td class="small">${U.esc(p.category || '—')}</td>
           <td class="right num"><strong>${U.money(p.price)}</strong></td>
-          ${canEdit ? `<td class="right num small">${p.cost ? U.money(p.cost) : '—'}</td><td class="right num small">${p.cost && p.price ? U.pct((p.price - p.cost) / p.price) : '—'}</td>` : ''}
+          ${canEdit ? `<td class="right num small">${p.cost ? U.money(p.cost) : '—'}</td><td class="right num small">${p.cost && p.price ? U.pct((p.price - p.cost) / p.price) : '—'}</td><td class="right num small" style="color:#b8860b">${p.commission ? U.money(p.commission) : '—'}</td>` : ''}
           <td class="right">${stockBadge(p)}</td>
           <td class="right num small">${sd.qty}${Store.can('finance') ? ' · ' + U.money(sd.amount) : ''}</td>
           ${canEdit ? `<td class="nowrap" data-stop>${p.trackStock ? `<button class="btn xs" data-stock="${p.id}">Stock</button> ` : ''}<button class="btn xs" data-dup="${p.id}">Duplicar</button></td>` : ''}
@@ -176,6 +176,7 @@ Views.productos = (() => {
             <label class="field">SKU / código <span class="hint">(se genera si lo dejas vacío)</span><input name="sku" value="${U.esc(p.sku)}"></label>
             <label class="field">Precio de venta *<input name="price" type="number" min="0" step="0.01" required value="${p.price ?? ''}"></label>
             <label class="field">Costo <span class="hint">(solo lo ve la admin)</span><input name="cost" type="number" min="0" step="0.01" value="${p.cost ?? ''}"></label>
+            <label class="field">Comisión por unidad ($) <span class="hint">(lo que gana la agente al venderlo)</span><input name="commission" type="number" min="0" step="0.01" value="${p.commission ?? ''}" placeholder="Ej.: 50"></label>
             <label class="field">Unidad de venta<select name="unit">${UI.options(['Unidad', 'Paquete', 'Caja', 'Kit', 'Servicio', 'Mes'], p.unit || 'Unidad')}</select></label>
             <div class="field"><span>Margen</span><div id="margin" class="num" style="height:36px;display:flex;align-items:center;font-weight:600;color:var(--text)"></div></div>
             <label class="check full"><input type="checkbox" name="trackStock" id="trackStock" ${p.trackStock ? 'checked' : ''}> Controlar inventario (desmárcalo para servicios)</label>
@@ -263,6 +264,7 @@ Views.productos = (() => {
           imageUrl,
           price: d.price || 0,
           cost: d.cost || 0,
+          commission: d.commission || 0,
           stock: d.trackStock ? (d.stock || 0) : 0,
           minStock: d.trackStock ? (d.minStock || 0) : 0,
           sku: d.sku || autoSku(d.name)
@@ -307,7 +309,7 @@ Views.productos = (() => {
     const canEdit = Store.can('manageProducts');
     const cols = [
       { label: 'SKU', value: 'sku' }, { label: 'Nombre', value: 'name' }, { label: 'Categoría', value: 'category' },
-      { label: 'Precio', value: 'price' }, ...(canEdit ? [{ label: 'Costo', value: 'cost' }] : []),
+      { label: 'Precio', value: 'price' }, ...(canEdit ? [{ label: 'Costo', value: 'cost' }, { label: 'Comisión', value: (p) => p.commission || 0 }] : []),
       { label: 'Unidad', value: 'unit' }, { label: 'Stock', value: (p) => (p.trackStock ? p.stock : '') }, { label: 'Stock mínimo', value: (p) => (p.trackStock ? p.minStock : '') },
       { label: 'Controla inventario', value: (p) => (p.trackStock ? 'Sí' : 'No') }, { label: 'Activo', value: (p) => (p.active ? 'Sí' : 'No') },
       { label: 'Descripción', value: 'description' }, { label: 'Imagen', value: 'imageUrl' }
@@ -353,7 +355,7 @@ Views.productos = (() => {
           if (category && !cats.some((c) => U.normalize(c) === U.normalize(category))) cats.push(category);
           const stockRaw = pick(r, 'stock', 'inventario', 'existencias');
           const data = {
-            name, price: num(priceRaw), cost: num(pick(r, 'costo', 'cost')),
+            name, price: num(priceRaw), cost: num(pick(r, 'costo', 'cost')), commission: num(pick(r, 'comision', 'commission')),
             category: category || cats[0], unit: pick(r, 'unidad', 'unit') || 'Unidad',
             description: pick(r, 'descripcion', 'description'), imageUrl: pick(r, 'imagen', 'image', 'foto'),
             trackStock: stockRaw !== '', stock: num(stockRaw), minStock: num(pick(r, 'stock minimo', 'minimo', 'min stock')), active: true

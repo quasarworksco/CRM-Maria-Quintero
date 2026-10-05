@@ -274,7 +274,7 @@
           <div class="card"><h4>Etapa</h4><p>En qué punto del proceso está la persona: nuevo, intentando contactar, contactado, cita agendada, cita confirmada, demo realizada, venta o perdido.</p><div class="ex">Ej.: "Ana tiene la cita confirmada".</div></div>
           <div class="card"><h4>Fuente y referido</h4><p>Cómo llegó la persona (Florida Mall, evento, referido, Facebook…). Si es <strong>referido</strong>, se anota <strong>quién la refirió</strong>; si es de un <strong>evento</strong>, el nombre del evento.</p><div class="ex">Ej.: "Referido por Gloria Pérez".</div></div>
           <div class="card"><h4>Seguimiento</h4><p>La <strong>fecha y hora</strong> en que hay que volver a contactar a alguien. Aparece como <strong>tarea pendiente</strong> de la agente. Es la clave para no perder ventas.</p><div class="ex">Ej.: "Llamar a Ana el jueves a las 10 a.m.".</div></div>
-          <div class="card"><h4>Resultado del intento</h4><p>Cómo terminó cada intento: no contestó, buzón de voz, WhatsApp enviado, llamar después, contactado, cita agendada, no interesado, número incorrecto o no volver a llamar.</p><div class="ex">Ej.: "Intento #3: Buzón de voz".</div></div>
+          <div class="card"><h4>Resultado del intento</h4><p>Cómo terminó cada intento: no contestó, buzón de voz, WhatsApp enviado, email enviado, llamar después, interesado, cita agendada, venta, no interesado, número incorrecto o no volver a llamar.</p><div class="ex">Ej.: "Intento #3: Buzón de voz".</div></div>
           <div class="card"><h4>Intentos de contacto (X/12)</h4><p>Cada intento registrado suma uno al contador y guarda <strong>número, fecha, hora y agente</strong> solos. Si se llega a <strong>12 intentos sin lograr contacto</strong>, el prospecto se archiva como <em>Perdido / Sin respuesta</em> (no se borra).</p><div class="ex">Ej.: "Intentos de contacto: 4/12".</div></div>
           <div class="card"><h4>Cita</h4><p>La demostración en casa del cliente: <strong>fecha, hora, dirección y quién la realiza</strong>. Se confirma, se marca como realizada o se reagenda.</p><div class="ex">Ej.: "Cita jueves 4 p.m., demo con Juan".</div></div>
           <div class="card"><h4>Cartera</h4><p>El dinero que <strong>te deben</strong>: ventas hechas que todavía tienen saldo pendiente.</p><div class="ex">Ej.: Ana pagó $100 de $300 → debe $200.</div></div>
@@ -402,7 +402,7 @@
           <li><strong>Apóyate en el guion.</strong> Ya trae el nombre del cliente, el tuyo y su ciudad. La administración lo puede cambiar.</li>
           <li><strong>Elige el resultado</strong> del intento con un clic (o con las teclas <kbd>1</kbd> a <kbd>9</kbd>).</li>
           <li><strong>Escribe un comentario</strong>: qué se habló, objeciones, a qué hora pidió que la llamen. La fecha, la hora y tu nombre se guardan solos.</li>
-          <li><strong>Revisa el seguimiento</strong> (opcional). El CRM lo programa solo según el resultado, pero puedes elegir otra fecha o usar "Mañana", "3 días" o "1 semana".</li>
+          <li><strong>Revisa el seguimiento.</strong> El CRM lo programa solo según el resultado, pero puedes elegir fecha y hora a mano o usar "Mañana", "3 días", "1 semana" o "2 semanas" (los botones conservan la hora que elegiste). Con <strong>"Llamar después" la fecha y la hora son obligatorias</strong>.</li>
           <li><strong>Presiona "Guardar y siguiente".</strong> Todo queda en el historial del cliente y pasa la siguiente persona de la cola.</li>
         </ol>
         <h3>Qué hace cada resultado automáticamente</h3>
@@ -412,12 +412,14 @@
             <tr><td><kbd>1</kbd></td><td><span class="dot" style="background:#2563eb"></span>No contestó</td><td>Lo pasa a <strong>Intentando contactar</strong> y programa volver a llamar mañana.</td></tr>
             <tr><td><kbd>2</kbd></td><td><span class="dot" style="background:#3b82f6"></span>Buzón de voz</td><td><strong>Intentando contactar</strong>, reintento mañana.</td></tr>
             <tr><td><kbd>3</kbd></td><td><span class="dot" style="background:#60a5fa"></span>WhatsApp enviado</td><td><strong>Intentando contactar</strong>, seguimiento mañana.</td></tr>
-            <tr><td><kbd>4</kbd></td><td><span class="dot" style="background:#22c55e"></span>Llamar después</td><td>Contestó y pidió que la llamen luego: <strong>Contactado</strong>, con seguimiento en la fecha y hora que elijas (o mañana).</td></tr>
-            <tr><td><kbd>5</kbd></td><td><span class="dot" style="background:#16a34a"></span>Contactado</td><td>Lo pasa a <strong>Contactado</strong> y programa seguimiento en 2 días.</td></tr>
-            <tr><td><kbd>6</kbd></td><td><span class="dot" style="background:#9333ea"></span>Cita agendada</td><td>Abre el formulario de la <strong>cita</strong> (fecha, hora, dirección y quién hace la demostración) y lo pasa a <strong>Cita agendada</strong>.</td></tr>
-            <tr><td><kbd>7</kbd></td><td><span class="dot" style="background:#dc2626"></span>No interesado</td><td>Lo pasa de inmediato a <strong>Perdido / Sin respuesta</strong> (motivo: No interesado).</td></tr>
-            <tr><td><kbd>8</kbd></td><td><span class="dot" style="background:#b91c1c"></span>Número incorrecto</td><td><strong>Perdido / Sin respuesta</strong> (motivo: Número incorrecto).</td></tr>
-            <tr><td><kbd>9</kbd></td><td><span class="dot" style="background:#7f1d1d"></span>No volver a llamar</td><td><strong>Perdido / Sin respuesta</strong> y lo agrega a la lista de <strong>no llamar</strong>: ya no sale en ninguna cola.</td></tr>
+            <tr><td><kbd>4</kbd></td><td><span class="dot" style="background:#0ea5e9"></span>Email enviado</td><td><strong>Intentando contactar</strong>, seguimiento mañana.</td></tr>
+            <tr><td><kbd>5</kbd></td><td><span class="dot" style="background:#22c55e"></span>Llamar después</td><td>Contestó y pidió que la llamen luego. <strong>Exige fecha y hora</strong> del próximo seguimiento. Ese día aparece en "Seguimientos de hoy", <strong>a esa hora llega un aviso</strong>, y si pasa la hora sin llamar queda en <strong>Vencidos</strong>.</td></tr>
+            <tr><td><kbd>6</kbd></td><td><span class="dot" style="background:#16a34a"></span>Interesado</td><td>Lo pasa a <strong>Contactado</strong> (etapa) y programa seguimiento en 2 días.</td></tr>
+            <tr><td><kbd>7</kbd></td><td><span class="dot" style="background:#9333ea"></span>Cita agendada</td><td>Abre el formulario de la <strong>cita</strong> (fecha, hora, dirección y quién hace la demostración) y lo pasa a <strong>Cita agendada</strong>.</td></tr>
+            <tr><td><kbd>8</kbd></td><td><span class="dot" style="background:#b8860b"></span><strong style="color:#b8860b">Venta</strong></td><td>Botón dorado. Abre un formulario corto para elegir <strong>qué producto se vendió</strong> (y la cantidad), registra la venta a nombre de quien llamó, calcula su <strong>comisión</strong> y pasa al cliente a <strong>Venta</strong>.</td></tr>
+            <tr><td><kbd>9</kbd></td><td><span class="dot" style="background:#dc2626"></span>No interesado</td><td>Lo pasa de inmediato a <strong>Perdido / Sin respuesta</strong> (motivo: No interesado).</td></tr>
+            <tr><td><kbd>0</kbd></td><td><span class="dot" style="background:#b91c1c"></span>Número incorrecto</td><td><strong>Perdido / Sin respuesta</strong> (motivo: Número incorrecto).</td></tr>
+            <tr><td>—</td><td><span class="dot" style="background:#7f1d1d"></span>No volver a llamar</td><td><strong>Perdido / Sin respuesta</strong> y lo agrega a la lista de <strong>no llamar</strong>: ya no sale en ninguna cola.</td></tr>
           </tbody>
         </table></div>
         <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div><strong>La regla de los 12 intentos</strong>Si una persona llega a <strong>12 intentos sin que se logre hablar con ella</strong>, el CRM la pasa sola a <em>Perdido / Sin respuesta</em> y la archiva: <strong>no se borra</strong> y conserva todo su historial. Si antes contesta, agenda cita, dice que no le interesa o pide que no la llamen, se respeta ese resultado y no hace falta completar los 12. El número de intentos se puede cambiar en Panel admin → Configuración.</div></div>
@@ -440,8 +442,10 @@
           <li><strong>Llamadas</strong>: haz clic en el número para ver cada llamada con su <strong>hora, cliente, resultado</strong> (contestó, no contestó, cita, seguimiento, descartado), duración y comentario, y el desglose <strong>hora por hora</strong>.</li>
           <li><strong>Ritmo por hora</strong>: llamadas por hora, porcentaje de contacto y citas por hora.</li>
           <li><strong>Productividad</strong>: compara ese ritmo con las metas (20 llamadas, 30% de contacto y 1 cita por hora, que se cambian en Configuración) y la califica como Excelente, Buena, Regular o Baja.</li>
+          <li><strong>Embudo de conversión</strong>: por agente y por periodo (hoy, semana, mes, 30 o 90 días): <strong>llamadas → interesados → citas agendadas → ventas</strong>, con el porcentaje de cada paso, la conversión total (ventas ÷ clientes llamados) y la comisión.</li>
           <li><strong>Resultado del día</strong>: una frase por agente, por ejemplo "2 h conectado · 47 llamadas (23.5 por hora) · habló con 23 (49%) · 5 citas: productividad excelente".</li>
         </ul>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/productividad-embudo.jpg" width="1280" height="800" alt="Embudo de conversión por agente: llamadas, interesados, citas agendadas, ventas, conversión y comisión" loading="lazy"></div><figcaption>Embudo de conversión por agente: llamadas → interesados → citas → ventas, con su porcentaje y la comisión.</figcaption></figure>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/productividad-detalle.jpg" width="1280" height="800" alt="Detalle de una agente con la productividad hora por hora y la lista de llamadas del día" loading="lazy"></div><figcaption>El detalle muestra qué horas fueron productivas y cada llamada del día, con filtros por resultado.</figcaption></figure>
         <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div><strong>¿Las llamadas se registran solas?</strong>Hoy cada llamada se registra cuando la agente elige el resultado y presiona "Guardar" (la hora y la duración del cronómetro se guardan solas). Cuando se integre una central telefónica (por ejemplo Twilio, Aircall o RingCentral), cada llamada podrá entrar sola con su hora y duración; la agente solo elegirá el resultado.</div></div>
       </section>
@@ -451,7 +455,7 @@
         <div class="s-head"><div class="s-num">5</div><div><h2>Agenda y tareas</h2><div class="sub">Todo lo pendiente, ordenado por fecha.</div></div></div>
         <div class="who"><span class="pill">Todos</span></div>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/agenda.jpg" width="1280" height="800" alt="Agenda con las tareas vencidas del equipo, prioridad Alta y la etiqueta Vencida" loading="lazy"></div><figcaption>Agenda vista por la administración: arriba, las tareas vencidas de todo el equipo.</figcaption></figure>
-        <p>La agenda junta todo lo que tienes que hacer en una sola lista, <strong>Mis pendientes</strong>: cada <strong>próximo seguimiento</strong> aparece como una tarea ("Llamar a Ana López") junto con las <strong>tareas</strong> que hayas creado ("enviar catálogo", "confirmar dirección"). Todo queda ordenado por fecha y hora en <strong>Vencidos, Hoy, Mañana, Próximos 7 días y Más adelante</strong>. A la derecha verás las <strong>próximas citas</strong> con su hora, dirección y quién hace la demostración.</p>
+        <p>Un pendiente pasa a <strong>Vencidos</strong> en cuanto pasa su hora sin hacerse. La agenda junta todo lo que tienes que hacer en una sola lista, <strong>Mis pendientes</strong>: cada <strong>próximo seguimiento</strong> aparece como una tarea ("Llamar a Ana López") junto con las <strong>tareas</strong> que hayas creado ("enviar catálogo", "confirmar dirección"). Todo queda ordenado por fecha y hora en <strong>Vencidos, Hoy, Mañana, Próximos 7 días y Más adelante</strong>. A la derecha verás las <strong>próximas citas</strong> con su hora, dirección y quién hace la demostración.</p>
         <h3>Cumplir un seguimiento</h3>
         <ol class="steps">
           <li>En "Mis pendientes", busca la línea <strong>"Llamar a…"</strong>.</li>
@@ -470,6 +474,7 @@
         <ul class="list">
           <li><strong>Prioridad Alta primero</strong>: en cada grupo (Vencidos, Hoy, Mañana…) las tareas de prioridad <span class="pill">Alta</span> aparecen arriba de todo.</li>
           <li><strong>Avisos</strong>: con el CRM abierto, te llega un aviso cuando es la hora de una tarea, y <strong>15 minutos antes</strong> si es de prioridad Alta, con sonido y botones para marcarla como hecha, posponerla 15 minutos o verla. Presiona <strong>"Activar avisos"</strong> en la agenda para recibirlos también como notificación del navegador aunque estés en otra pestaña. Si el CRM está cerrado, no llegan avisos.</li>
+          <li><strong>Seguimientos con hora</strong> ("Llamar después"): ese día aparecen en "Hoy", a la hora elegida llega el aviso "Seguimiento: es la hora" y, si pasa la hora sin registrar la llamada, pasan a <strong>Vencidos</strong>.</li>
           <li><strong>Vencidas</strong>: si la hora pasa y no se marca como hecha, queda con la etiqueta roja <strong>"Vencida hace…"</strong>. Si se completa tarde, queda como <strong>"Hecha tarde"</strong>. Al entrar, cada persona ve cuántas tareas vencidas tiene.</li>
           <li><strong>Para la administración</strong>: arriba de la agenda aparece <strong>"Tareas vencidas del equipo"</strong> con cuántas tiene cada persona, y en Productividad la columna "Tareas venc.".</li>
         </ul>
@@ -539,7 +544,7 @@
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/historial-contacto.jpg" width="1280" height="800" alt="Sección Historial de contacto con el contador 8/12, el formulario del intento y la lista de intentos" loading="lazy"></div><figcaption>Historial de contacto: contador, formulario del intento #9 y la lista de intentos anteriores.</figcaption></figure>
         <ol class="steps">
           <li>Arriba verás <strong>"Registrar intento #N de 12"</strong>. Elige el medio: <strong>Llamada, WhatsApp, Email o Visita</strong>.</li>
-          <li>Elige el resultado. Debajo verás un aviso de lo que el CRM hará solo, por ejemplo "mover a Contactado, programar seguimiento en 2 días".</li>
+          <li>Elige el resultado. Debajo verás un aviso de lo que el CRM hará solo, por ejemplo "mover a Contactado, programar seguimiento en 2 días" o, con "Llamar después", que la fecha y la hora son obligatorias.</li>
           <li>Escribe el <strong>comentario</strong> (por ejemplo, "pidió que la llamemos mañana después de las 5:00 PM") y, si quieres, la fecha y hora del próximo seguimiento.</li>
           <li>Presiona <strong>Guardar intento</strong>. El CRM guarda solo la fecha, la hora y tu nombre, y el contador sube (por ejemplo, de 8/12 a 9/12).</li>
         </ol>
@@ -650,6 +655,18 @@
           <li><strong>A quién se le acredita</strong>: la venta cuenta para la persona responsable del cliente. La supervisora y la dueña pueden elegir otro vendedor.</li>
         </ul>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/ventas-agente.jpg" width="1280" height="800" alt="Lista de ventas vista por una agente: productos, canal y entrega, sin montos" loading="lazy"></div><figcaption>Así ve Ventas una agente: con canal y entrega, sin montos.</figcaption></figure>
+        <h3>Venta desde una llamada y comisiones</h3>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/venta-producto.jpg" width="1280" height="800" alt="Formulario corto de venta para elegir el producto vendido y ver la comisión" loading="lazy"></div><figcaption>Al elegir el resultado "Venta", la agente indica qué producto vendió y ve su comisión.</figcaption></figure>
+        <ol class="steps">
+          <li>En la ficha del cliente o en Modo llamadas elige el resultado <strong style="color:#b8860b">Venta</strong> (botón dorado) y guarda.</li>
+          <li>Se abre un formulario corto: elige el <strong>producto vendido</strong> y la cantidad (puedes agregar otro producto), el canal y una nota.</li>
+          <li>Al registrar, la venta queda a nombre de quien la hizo y el cliente pasa a la etapa <strong>Venta</strong>. La agente no ve quién es el vendedor ni los montos; la administración sí.</li>
+        </ol>
+        <ul class="list">
+          <li><strong>Comisión por producto</strong>: en Productos, cada producto tiene su <strong>"Comisión por unidad"</strong> (por ejemplo $50 o $100). Al vender, el CRM la calcula sola: cantidad × comisión de cada producto.</li>
+          <li>La comisión queda guardada en la venta: si después cambias la comisión de un producto, las ventas anteriores conservan la que tenían.</li>
+          <li><strong>Quién la ve</strong>: la administración ve todas (Ventas, Reportes y Productividad). Cada agente ve solo las suyas en Inicio ("Mis comisiones"), en Ventas y en Productos; se puede apagar en Panel de administración → Configuración.</li>
+        </ul>
         <div class="note"><div class="ico"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div><strong>Montos solo para la administración</strong>Las agentes pueden registrar ventas y ver sus ventas con productos, canal y estado de entrega, pero <strong>no ven montos, pagos ni saldos</strong>: en su pantalla aparece el aviso con el candado. Solo quien tiene el permiso <em>Información financiera</em> (la administración, por defecto) ve totales, cobros, Recaudo / Cartera y la tabla <strong>Ventas por canal</strong> con montos en Reportes.</div></div>
       </section>
 

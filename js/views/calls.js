@@ -131,13 +131,12 @@ Views.llamadas = (() => {
 
           <div>
             <strong class="small">Resultado del intento #${(c.callCount || 0) + 1}</strong>
-            <div class="outcomes" style="margin-top:8px">${OUTCOMES.map((o, i) => `<button type="button" class="outcome-btn ${st.outcome === o.id ? 'selected' : ''}" data-outcome="${o.id}" title="Atajo: tecla ${i + 1}"><span class="dot" style="background:${o.color}"></span>${o.name}<span class="muted small" style="margin-left:auto">${i + 1}</span></button>`).join('')}</div>
+            <div class="outcomes" style="margin-top:8px">${OUTCOMES.map((o, i) => { const k = i < 9 ? String(i + 1) : i === 9 ? '0' : ''; return `<button type="button" class="outcome-btn ${st.outcome === o.id ? 'selected' : ''}" data-outcome="${o.id}" ${k ? `title="Atajo: tecla ${k}"` : ''}><span class="dot" style="background:${o.color}"></span>${o.name}<span class="muted small" style="margin-left:auto">${k}</span></button>`; }).join('')}</div>
           </div>
           <textarea id="cNotes" rows="3" placeholder="Comentario del intento…">${U.esc(st.notes)}</textarea>
           <div class="row wrap">
-            <span class="small muted">Seguimiento:</span>
-            <input type="datetime-local" id="cFollow" style="width:auto;height:32px" value="${U.esc(st.follow)}">
-            ${[['Mañana', 1], ['3 días', 3], ['1 semana', 7]].map(([l, n]) => `<button type="button" class="btn xs" data-follow="${n}">${l}</button>`).join('')}
+            <span class="small muted" id="cFollowLbl">Próximo seguimiento${(outcomeById(st.outcome) || {}).requireFollow ? ' <strong style="color:var(--bad)">(obligatorio)</strong>' : ''}:</span>
+            ${UI.followPicker('cFollow', st.follow)}
             <span class="spacer"></span>
             <button class="btn" id="skip">${icon('skip', 'sm')} Saltar</button>
             <button class="btn primary" id="saveNext">${icon('check', 'sm')} Guardar y siguiente</button>
@@ -169,10 +168,15 @@ Views.llamadas = (() => {
     $('#toggleScript').onclick = () => { st.showScript = !st.showScript; render(el); };
     const notes = $('#cNotes');
     notes.oninput = () => { st.notes = notes.value; };
-    $('#cFollow').onchange = (e) => { st.follow = e.target.value; };
-    const pick = (id) => { st.outcome = st.outcome === id ? '' : id; el.querySelectorAll('[data-outcome]').forEach((b) => b.classList.toggle('selected', b.dataset.outcome === st.outcome)); };
+    UI.bindFollowPicker(el, 'cFollow', (v) => { st.follow = v; });
+    const pick = (id) => {
+      st.outcome = st.outcome === id ? '' : id;
+      el.querySelectorAll('[data-outcome]').forEach((b) => b.classList.toggle('selected', b.dataset.outcome === st.outcome));
+      const req = (outcomeById(st.outcome) || {}).requireFollow;
+      $('#cFollowLbl').innerHTML = 'Próximo seguimiento' + (req ? ' <strong style="color:var(--bad)">(obligatorio)</strong>' : '') + ':';
+      if (req && !st.follow) $('#cFollow').focus();
+    };
     el.querySelectorAll('[data-outcome]').forEach((b) => b.onclick = () => pick(b.dataset.outcome));
-    el.querySelectorAll('[data-follow]').forEach((b) => b.onclick = () => { const t = U.addDays(new Date(), Number(b.dataset.follow)); t.setHours(10, 0, 0, 0); st.follow = U.toLocalInput(t); $('#cFollow').value = st.follow; });
     $('#skip').onclick = () => { st.skipped.add(c.id); st.currentId = null; render(el); };
     $('#saveNext').onclick = () => save(el, c);
 
@@ -180,8 +184,9 @@ Views.llamadas = (() => {
     el._keys && document.removeEventListener('keydown', el._keys);
     el._keys = (e) => {
       if (!document.getElementById('cNotes') || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.querySelector('.modal-backdrop')) return;
-      const n = Number(e.key);
-      if (n >= 1 && n <= OUTCOMES.length) pick(OUTCOMES[n - 1].id);
+      if (!/^[0-9]$/.test(e.key)) return;
+      const i = e.key === '0' ? 9 : Number(e.key) - 1;
+      if (OUTCOMES[i]) pick(OUTCOMES[i].id);
     };
     document.addEventListener('keydown', el._keys);
   }
@@ -189,6 +194,7 @@ Views.llamadas = (() => {
   function save(el, c) {
     if (!st.outcome) return UI.toast('Selecciona el resultado de la llamada', 'bad');
     const o = outcomeById(st.outcome);
+    if (o.requireFollow && !st.follow) { const f = el.querySelector('#cFollow'); f.classList.add('invalid'); f.focus(); return UI.toast('Para "Llamar después" elige la fecha y hora del próximo seguimiento', 'bad'); }
     const dur = Math.round(currentElapsed());
     Store.logCall(c.id, { outcome: st.outcome, notes: st.notes.trim(), duration: dur, nextFollowUp: st.follow ? U.fromInput(st.follow) : undefined });
     st.session.calls++;

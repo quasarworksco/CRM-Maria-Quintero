@@ -240,6 +240,7 @@ Views.clientes = (() => {
         const dup = Store.all('clients').find((x) => x.id !== id && U.cleanPhone(x.phone).slice(-10) === U.cleanPhone(d.phone).slice(-10) && U.cleanPhone(d.phone).length >= 7);
         if (dup && !id && !window.confirm(`Ya existe un cliente con ese teléfono: ${dup.name} (${UI.userName(dup.ownerId)}). ¿Crear de todas formas?`)) return false;
         const outcome = d.lastOutcome;
+        if ((outcomeById(outcome) || {}).requireFollow && !d.nextFollowUp) { const x = document.querySelector('.modal [name=nextFollowUp]'); if (x) { x.classList.add('invalid'); x.focus(); } UI.toast('Para "Llamar después" escribe la fecha y hora del próximo seguimiento', 'bad'); return false; }
         const tri = (v) => (v === 'si' ? true : v === 'no' ? false : null);
         const data = Object.assign({}, d, {
           pets: tri(d.pets), allergies: tri(d.allergies), householdSize: d.householdSize ? Number(d.householdSize) : null,
@@ -266,8 +267,7 @@ Views.clientes = (() => {
         // El resultado elegido se registra como un intento de contacto (fecha, hora e intentos automáticos)
         if (outcome) {
           Store.logCall(clientId, { outcome, notes: 'Registrado desde el formulario', nextFollowUp: data.nextFollowUp || undefined });
-          const o = outcomeById(outcome);
-          if (o && o.appointment) setTimeout(() => Views.cliente.openAppointment(clientId), 80);
+          Views.cliente.afterOutcome(clientId, outcome);
         }
         if (!id) location.hash = '#/cliente/' + clientId;
       }

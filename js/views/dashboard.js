@@ -73,6 +73,7 @@ Views.dashboard = (() => {
         ${kpi('Citas agendadas', U.num(m.appts), `${m.upcomingAppts} ${m.upcomingAppts === 1 ? 'cita próxima' : 'citas próximas'}`, 'calendar', '#52525b')}
         ${kpi('Demos', U.num(m.demos), 'Demostraciones realizadas en el periodo', 'flag', '#52525b')}
         ${Store.can('sales') ? kpi('Ventas', U.num(m.salesCount), 'Ventas registradas en el periodo', 'cart', '#52525b') : ''}
+        ${Store.can('sales') && Store.canSeeOwnCommission() ? kpi('Mis comisiones', U.money(U.sum(Store.all('orders').filter((o) => o.userId === me.id && Metrics.inRange(o.createdAt, from, to)), Store.orderCommission)), `Por mis ventas · ${Metrics.RANGES[range].label.toLowerCase()}`, 'trophy', '#b8860b') : ''}
         ${kpi('Prospectos activos', U.num(m.openLeads), `${m.newLeads} nuevos en el periodo · ${overdue.length} seguimientos vencidos`, 'users', '#52525b')}`}
       </div>
 

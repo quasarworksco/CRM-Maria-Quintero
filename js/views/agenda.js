@@ -5,13 +5,14 @@ Views.agenda = (() => {
   const state = { owner: 'me', showDone: false };
 
   function buckets(items, getDate) {
-    const sod = U.startOfDay().getTime(), eod = U.endOfDay().getTime();
+    const eod = U.endOfDay().getTime();
     const tom = U.endOfDay(U.addDays(new Date(), 1)).getTime();
     const week = U.endOfDay(U.addDays(new Date(), 7)).getTime();
     const b = { vencido: [], hoy: [], manana: [], semana: [], despues: [] };
     items.forEach((x) => {
       const t = new Date(getDate(x)).getTime();
-      if (t < sod) b.vencido.push(x); else if (t <= eod) b.hoy.push(x); else if (t <= tom) b.manana.push(x); else if (t <= week) b.semana.push(x); else b.despues.push(x);
+      // Vencido en cuanto pasa la hora programada sin hacerse
+      if (t < Date.now()) b.vencido.push(x); else if (t <= eod) b.hoy.push(x); else if (t <= tom) b.manana.push(x); else if (t <= week) b.semana.push(x); else b.despues.push(x);
     });
     // Las tareas de prioridad Alta van primero en cada grupo; luego por fecha y hora
     const rank = (x) => (x.kind === 'task' && x.t.priority === 'alta' ? 0 : 1);

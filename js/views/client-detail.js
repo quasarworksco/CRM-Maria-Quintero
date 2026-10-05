@@ -139,9 +139,8 @@ Views.cliente = (() => {
                 <div class="outcomes">${OUTCOMES.map((o, i) => `<button type="button" class="outcome-btn ${d.outcome === o.id ? 'selected' : ''}" data-outcome="${o.id}"><span class="dot" style="background:${o.color}"></span>${o.name}</button>`).join('')}</div>
                 <label class="field" style="margin-top:4px">Comentario<textarea id="actNotes" rows="2" placeholder="Ej.: La cliente pidió que la llamemos mañana después de las 5:00 PM.">${U.esc(d.notes)}</textarea></label>
                 <div class="row wrap">
-                  <span class="small muted">Próximo seguimiento:</span>
-                  <input type="datetime-local" id="actFollow" style="width:auto;height:32px" value="${U.esc(d.follow)}">
-                  ${[['Mañana', 1], ['3 días', 3], ['1 semana', 7], ['2 semanas', 14]].map(([l, n]) => `<button type="button" class="btn xs" data-follow="${n}">${l}</button>`).join('')}
+                  <span class="small muted" id="actFollowLbl">Próximo seguimiento${(outcomeById(d.outcome) || {}).requireFollow ? ' <strong style="color:var(--bad)">(obligatorio)</strong>' : ''}:</span>
+                  ${UI.followPicker('actFollow', d.follow)}
                   <span class="spacer"></span>
                   <button class="btn primary" id="saveAct">${icon('check', 'sm')} Guardar intento</button>
                 </div>
@@ -247,9 +246,7 @@ Views.cliente = (() => {
     const id = c.id;
     const $ = (s) => el.querySelector(s);
     const notes = $('#actNotes');
-    const follow = $('#actFollow');
     notes.oninput = () => { d.notes = notes.value; };
-    follow.onchange = () => { d.follow = follow.value; };
 
     const showHint = () => {
       const o = outcomeById(d.outcome);
@@ -257,7 +254,9 @@ Views.cliente = (() => {
       if (!o) { h.textContent = ''; return; }
       const bits = [];
       if (o.stage && o.stage !== c.stage) bits.push(`mover a <strong>${stageById(o.stage).name}</strong>`);
-      if (o.followDays && !d.follow) bits.push(`programar seguimiento en <strong>${o.followDays} día(s)</strong>`);
+      if (o.requireFollow) bits.push(d.follow ? `programar el seguimiento para el <strong>${U.dateTime(U.fromInput(d.follow))}</strong> (te avisamos a esa hora)` : '<strong style="color:var(--bad)">pedirte la fecha y hora del próximo seguimiento (obligatorio)</strong>');
+      else if (o.followDays && !d.follow) bits.push(`programar seguimiento en <strong>${o.followDays} día(s)</strong>`);
+      if (o.sale) bits.push('abrir el registro de la venta para indicar el <strong>producto vendido</strong>');
       if (o.appointment) bits.push('abrir el formulario para agendar la <strong>cita</strong>');
       if (o.reschedule) bits.push(Store.activeAppointment(c) ? 'abrir la <strong>cita</strong> para cambiarle la fecha' : 'dejar el seguimiento en la fecha que elijas');
       if (o.lose) bits.push(`marcarlo como <strong>Perdido / Sin respuesta</strong> (${o.lose})${o.dnc ? ' y en la lista de no llamar' : ''}`);
@@ -270,15 +269,15 @@ Views.cliente = (() => {
     el.querySelectorAll('[data-outcome]').forEach((b) => b.onclick = () => {
       d.outcome = d.outcome === b.dataset.outcome ? '' : b.dataset.outcome;
       el.querySelectorAll('[data-outcome]').forEach((x) => x.classList.toggle('selected', x.dataset.outcome === d.outcome));
+      const req = (outcomeById(d.outcome) || {}).requireFollow;
+      $('#actFollowLbl').innerHTML = 'Próximo seguimiento' + (req ? ' <strong style="color:var(--bad)">(obligatorio)</strong>' : '') + ':';
       showHint();
     });
-    el.querySelectorAll('[data-follow]').forEach((b) => b.onclick = () => {
-      const t = U.addDays(new Date(), Number(b.dataset.follow)); t.setHours(10, 0, 0, 0);
-      d.follow = U.toLocalInput(t); follow.value = d.follow; showHint();
-    });
+    UI.bindFollowPicker(el, 'actFollow', (v) => { d.follow = v; showHint(); });
     $('#saveAct').onclick = () => {
       if (!d.outcome) return UI.toast('Selecciona el resultado del intento', 'bad');
       const o = outcomeById(d.outcome);
+      if (o.requireFollow && !d.follow) { const f = $('#actFollow'); f.classList.add('invalid'); f.focus(); return UI.toast('Para "Llamar después" elige la fecha y hora del próximo seguimiento', 'bad'); }
       const n = (Store.get('clients', id).callCount || 0) + 1;
       Store.logCall(id, { outcome: d.outcome, type: d.type, notes: d.notes.trim(), nextFollowUp: d.follow ? U.fromInput(d.follow) : undefined, duration: 0 });
       draft[id] = { type: d.type, outcome: '', notes: '', follow: '', note: d.note };
@@ -383,6 +382,62 @@ Views.cliente = (() => {
     if (!o) return;
     const c = Store.get('clients', id);
     if (o.appointment || (o.reschedule && Store.activeAppointment(c))) setTimeout(() => openAppointment(id), 60);
+    if (o.sale) setTimeout(() => openQuickSale(id), 60);
+  }
+
+  /* ---------- Resultado "Venta": qué producto se vendió ----------
+     La venta queda a nombre de quien la registra (su comisión se calcula sola por producto).
+     Quien no tiene información financiera no ve precios ni totales. */
+  function openQuickSale(id) {
+    const c = Store.get('clients', id);
+    if (!c) return;
+    if (!Store.can('sales')) { UI.toast('Tu usuario no puede registrar ventas: avisa a la administración', 'bad'); return; }
+    const fin = Store.can('finance');
+    const showCom = Store.canSeeOwnCommission();
+    const products = Store.all('products').filter((p) => p.active);
+    const channels = (Store.settings().saleChannels || SALE_CHANNEL_DEFAULTS);
+    const rows = [{ productId: (c.interests || []).find((pid) => products.some((p) => p.id === pid)) || '', qty: 1 }];
+    const rowHtml = (r, i) => `<div class="row" style="gap:8px;margin-bottom:8px" data-row="${i}">
+        <select data-k="productId" data-i="${i}" style="flex:1"><option value="">— Producto vendido —</option>${products.map((p) => `<option value="${p.id}" ${p.id === r.productId ? 'selected' : ''}>${U.esc(p.name)}${fin ? ' · ' + U.money(p.price) : ''}</option>`).join('')}</select>
+        <input type="number" min="1" step="1" data-k="qty" data-i="${i}" value="${r.qty}" style="width:80px" aria-label="Cantidad">
+        <button type="button" class="btn ghost sm icon" data-rm="${i}" ${rows.length === 1 ? 'disabled' : ''} title="Quitar">${icon('x', 'sm')}</button>
+      </div>`;
+    const summary = () => {
+      const items = rows.filter((r) => r.productId).map((r) => { const p = products.find((x) => x.id === r.productId); return { qty: Number(r.qty) || 1, price: p.price, commission: Number(p.commission) || 0 }; });
+      const bits = [];
+      if (fin) bits.push(`Total: <strong>${U.money(U.sum(items, (x) => x.qty * x.price))}</strong>`);
+      if (showCom) bits.push(`${fin ? 'Comisión' : 'Tu comisión'}: <strong style="color:#b8860b">${U.money(U.sum(items, (x) => x.qty * x.commission))}</strong>`);
+      return bits.join(' · ');
+    };
+    UI.modal({
+      title: `${icon('trophy', 'sm')} Venta · ${U.esc(c.name)}`,
+      submitLabel: 'Registrar venta',
+      body: `
+        <p class="small muted" style="margin:0">¿Qué producto se vendió? La fecha, la hora y quién la registró se guardan solas.</p>
+        <div id="qsRows">${rows.map(rowHtml).join('')}</div>
+        <button type="button" class="btn sm" id="qsAdd">${icon('plus', 'sm')} Otro producto</button>
+        <div class="form-grid">
+          <label class="field">Canal de la venta<select name="channel">${UI.options(channels, channelFromSource(c.source))}</select></label>
+          <label class="field">Notas <span class="hint">(opcional)</span><input name="notes" placeholder="Color, medida, fecha de entrega…"></label>
+        </div>
+        <div class="script-box small" id="qsSum">${summary()}</div>
+        ${fin ? '<p class="small muted" style="margin:0">Para agregar descuentos, abonos o fecha de entrega usa <a href="#" id="qsFull">la venta completa</a>.</p>' : ''}`,
+      onOpen: (form, close) => {
+        const box = form.querySelector('#qsRows');
+        const redraw = () => { box.innerHTML = rows.map(rowHtml).join(''); form.querySelector('#qsSum').innerHTML = summary(); };
+        box.addEventListener('change', (e) => { const i = e.target.dataset.i; if (i === undefined) return; rows[i][e.target.dataset.k] = e.target.dataset.k === 'qty' ? Math.max(1, Number(e.target.value) || 1) : e.target.value; form.querySelector('#qsSum').innerHTML = summary(); });
+        box.addEventListener('click', (e) => { const b = e.target.closest('[data-rm]'); if (b) { rows.splice(Number(b.dataset.rm), 1); redraw(); } });
+        form.querySelector('#qsAdd').onclick = () => { rows.push({ productId: '', qty: 1 }); redraw(); };
+        const full = form.querySelector('#qsFull');
+        if (full) full.onclick = (e) => { e.preventDefault(); close(); Views.ventas.openOrderForm({ clientId: id }); };
+      },
+      onSubmit: (f) => {
+        const items = rows.filter((r) => r.productId).map((r) => { const p = products.find((x) => x.id === r.productId); return { productId: p.id, name: p.name, qty: Number(r.qty) || 1, price: p.price }; });
+        if (!items.length) { UI.toast('Elige el producto vendido', 'bad'); return false; }
+        const order = Store.createOrder({ clientId: id, userId: Store.currentUser().id, items, discount: 0, shipping: 0, taxRate: 0, channel: f.channel, paymentTerms: 'Contado', status: 'pendiente', notes: f.notes, dueDate: U.addDays(new Date(), 15).toISOString() });
+        UI.toast(`Venta ${order.number} registrada 🎉${showCom ? ' · Comisión ' + U.money(Store.orderCommission(order)) : ''}`, 'good');
+      }
+    });
   }
 
   /* ---------- Cita: fecha, hora, dirección y quién hace la demostración ---------- */
@@ -460,10 +515,14 @@ Views.cliente = (() => {
       body: `<div class="outcomes">${OUTCOMES.map((o) => `<label class="outcome-btn"><input type="radio" name="outcome" value="${o.id}" hidden><span class="dot" style="background:${o.color}"></span>${o.name}</label>`).join('')}</div>
              <p class="small muted" style="margin:0">Fecha, hora y agente (${U.esc(Store.currentUser().name)}) se guardan solos.</p>
              <label class="field">Comentario<textarea name="notes" rows="3" placeholder="¿Qué pasó en este intento?"></textarea></label>
-             <label class="field">Próximo seguimiento <span class="hint">(fecha y hora · si lo dejas vacío se programa solo según el resultado)</span><input type="datetime-local" name="follow"></label>`,
-      onOpen: (form) => form.querySelectorAll('.outcome-btn').forEach((l) => l.addEventListener('click', () => { form.querySelectorAll('.outcome-btn').forEach((x) => x.classList.remove('selected')); l.classList.add('selected'); })),
-      onSubmit: (f) => {
+             <div class="field">Próximo seguimiento <span class="hint">(fecha y hora · obligatorio con "Llamar después"; si lo dejas vacío se programa solo según el resultado)</span>${UI.followPicker('qlFollow', '').replace('id="qlFollow"', 'id="qlFollow" name="follow"')}</div>`,
+      onOpen: (form) => {
+        form.querySelectorAll('.outcome-btn').forEach((l) => l.addEventListener('click', () => { form.querySelectorAll('.outcome-btn').forEach((x) => x.classList.remove('selected')); l.classList.add('selected'); }));
+        UI.bindFollowPicker(form, 'qlFollow', () => {});
+      },
+      onSubmit: (f, form) => {
         if (!f.outcome) { UI.toast('Selecciona un resultado', 'bad'); return false; }
+        if ((outcomeById(f.outcome) || {}).requireFollow && !f.follow) { const x = form.querySelector('#qlFollow'); x.classList.add('invalid'); x.focus(); UI.toast('Para "Llamar después" elige la fecha y hora del próximo seguimiento', 'bad'); return false; }
         Store.logCall(id, { outcome: f.outcome, notes: f.notes, nextFollowUp: f.follow ? U.fromInput(f.follow) : undefined });
         UI.toast('Intento registrado', 'good');
         afterOutcome(id, f.outcome);
@@ -471,5 +530,5 @@ Views.cliente = (() => {
     });
   }
 
-  return { title: 'Cliente', perm: 'prospects', render, setStage, quickLog, openAppointment, afterOutcome };
+  return { title: 'Cliente', perm: 'prospects', render, setStage, quickLog, openAppointment, afterOutcome, openQuickSale };
 })();

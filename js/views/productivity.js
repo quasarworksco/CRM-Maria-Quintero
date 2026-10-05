@@ -10,10 +10,11 @@ const Productivity = (() => {
   const GAP_MIN = 20; // una pausa de más de 20 min entre llamadas corta la sesión de trabajo
   const CALL_TYPES = ['llamada', 'whatsapp'];
   const GROUPS = [
-    { id: 'contesto', name: 'Contestó', color: '#16a34a', test: (o) => o && o.contact && !o.appointment && !o.lose && o.id !== 'llamar_despues' },
+    { id: 'interesado', name: 'Interesado', color: '#16a34a', test: (o) => o && o.id === 'contactado' },
+    { id: 'seguimiento', name: 'Llamar después', color: '#22c55e', test: (o) => o && o.id === 'llamar_despues' },
     { id: 'cita', name: 'Cita', color: '#9333ea', test: (o) => o && o.appointment },
-    { id: 'seguimiento', name: 'Seguimiento', color: '#22c55e', test: (o) => o && o.id === 'llamar_despues' },
-    { id: 'no_contesto', name: 'No contestó', color: '#2563eb', test: (o) => o && ['no_contesto', 'buzon', 'whatsapp'].includes(o.id) },
+    { id: 'venta', name: 'Venta', color: '#b8860b', test: (o) => o && o.sale },
+    { id: 'no_contesto', name: 'No contestó', color: '#2563eb', test: (o) => o && ['no_contesto', 'buzon', 'whatsapp', 'email'].includes(o.id) },
     { id: 'perdido', name: 'Descartado', color: '#dc2626', test: (o) => o && !!o.lose }
   ];
   const groupOf = (outcome) => { const o = outcomeById(outcome); return GROUPS.find((g) => g.test(o)) || null; };
@@ -74,7 +75,10 @@ const Productivity = (() => {
     const tasks = Store.all('tasks').filter((t) => t.userId === userId);
     const overdueTasks = tasks.filter((t) => !t.done && new Date(t.due).getTime() < now).length;
     const lateDone = tasks.filter((t) => t.done && t.doneAt && new Date(t.doneAt) > new Date(t.due) && new Date(t.doneAt).getTime() >= from && new Date(t.doneAt).getTime() <= to).length;
-    const res = { userId, calls, n: calls.length, contacts, appts, by, talk, minutes, presMin, callMin, firstCall: times[0] || null, lastCall: times[times.length - 1] || null, first, last, overdueTasks, lateDone };
+    const dayOrders = Store.all('orders').filter((o) => o.userId === userId && o.status !== 'cancelada' && (t => t >= from && t <= to)(new Date(o.createdAt).getTime()));
+    const sales = new Set(dayOrders.map((o) => o.clientId).concat(calls.filter((a) => (outcomeById(a.outcome) || {}).sale).map((a) => a.clientId))).size;
+    const commission = U.sum(dayOrders, Store.orderCommission);
+    const res = { userId, calls, n: calls.length, contacts, appts, sales, commission, by, talk, minutes, presMin, callMin, firstCall: times[0] || null, lastCall: times[times.length - 1] || null, first, last, overdueTasks, lateDone };
     // Con muy poco tiempo registrado el ritmo se dispara: se califica sobre al menos 30 minutos
     res.score = score({ calls: res.n, contacts, appts, minutes: Math.max(minutes, 30) });
     res.level = res.score ? res.score.level : level(null);
@@ -103,14 +107,29 @@ const Productivity = (() => {
     if (!r.n) return `${name} no registró llamadas este día.`;
     const t = targets();
     const s = r.score;
-    return `${name}: ${hm(r.minutes)} ${r.presMin ? 'conectado' : 'de trabajo (según sus llamadas)'} · ${r.n} llamadas (${s.cph.toFixed(1)} por hora; meta ${t.cph}) · habló con ${r.contacts} (${U.pct(s.contactRate)}; meta ${Math.round(t.contact * 100)}%) · ${r.appts} ${r.appts === 1 ? 'cita' : 'citas'} (${s.aph.toFixed(1)} por hora; meta ${t.aph}). Productividad: ${r.level.name.toLowerCase()}.`;
+    return `${name}: ${hm(r.minutes)} ${r.presMin ? 'conectado' : 'de trabajo (según sus llamadas)'} · ${r.n} llamadas (${s.cph.toFixed(1)} por hora; meta ${t.cph}) · habló con ${r.contacts} (${U.pct(s.contactRate)}; meta ${Math.round(t.contact * 100)}%) · ${r.appts} ${r.appts === 1 ? 'cita' : 'citas'} (${s.aph.toFixed(1)} por hora; meta ${t.aph})${r.sales ? ` · ${r.sales} ${r.sales === 1 ? 'venta' : 'ventas'}` : ''}. Productividad: ${r.level.name.toLowerCase()}.`;
   }
 
-  return { GROUPS, groupOf, forUser, score, level, targets, hm, clock, verdict };
+  // Embudo de conversión: clientes llamados → interesados → citas → ventas (clientes únicos)
+  function funnel(userId, from, to) {
+    const f = from.getTime(), t = to.getTime();
+    const inR = (d) => { const x = new Date(d).getTime(); return x >= f && x <= t; };
+    const acts = Store.all('activities').filter((a) => a.userId === userId && inR(a.createdAt));
+    const calls = acts.filter((a) => CALL_TYPES.includes(a.type) && a.outcome);
+    const uniq = (list) => new Set(list.map((a) => a.clientId)).size;
+    const called = uniq(calls);
+    const interested = uniq(calls.filter((a) => (outcomeById(a.outcome) || {}).interested));
+    const appts = new Set(calls.filter((a) => (outcomeById(a.outcome) || {}).appointment).map((a) => a.clientId).concat(acts.filter((a) => a.type === 'cita' && a.kind === 'agendada').map((a) => a.clientId))).size;
+    const orders = Store.all('orders').filter((o) => o.userId === userId && o.status !== 'cancelada' && inR(o.createdAt));
+    const sales = new Set(orders.map((o) => o.clientId).concat(calls.filter((a) => (outcomeById(a.outcome) || {}).sale).map((a) => a.clientId))).size;
+    return { calls: calls.length, called, interested, appts, sales, orders: orders.length, commission: U.sum(orders, Store.orderCommission), amount: U.sum(orders, (o) => o.total || 0) };
+  }
+
+  return { GROUPS, groupOf, forUser, funnel, score, level, targets, hm, clock, verdict };
 })();
 
 Views.productividad = (() => {
-  const state = { day: U.toDateInput(new Date()) };
+  const state = { day: U.toDateInput(new Date()), range: 'mes' };
   const presCache = {}; // fecha → { at, list } para no repetir lecturas
 
   function loadPresence(date, force) {
@@ -162,7 +181,7 @@ Views.productividad = (() => {
       <div class="card" style="margin-bottom:16px">
         <div class="card-head"><h2>${icon('users', 'sm')} Por agente · ${U.date(day, { weekday: 'long', day: 'numeric', month: 'long' })}</h2><span class="muted small">Haz clic en el número de llamadas para ver el detalle</span></div>
         <div class="table-wrap"><table class="table compact">
-          <thead><tr><th>Agente</th><th>Conectado</th><th class="right">Llamadas</th><th class="right">Contestó</th><th class="right">No contestó</th><th class="right">Citas</th><th class="right">Seguim.</th><th>Ritmo por hora</th><th class="right" title="Tareas vencidas sin completar">Tareas venc.</th><th style="min-width:110px">Productividad</th></tr></thead>
+          <thead><tr><th>Agente</th><th>Conectado</th><th class="right">Llamadas</th><th class="right">Contestó</th><th class="right">No contestó</th><th class="right">Citas</th><th class="right">Ventas</th><th class="right">Llamar después</th><th>Ritmo por hora</th><th class="right" title="Tareas vencidas sin completar">Tareas venc.</th><th style="min-width:110px">Productividad</th></tr></thead>
           <tbody>${rows.length ? rows.map(({ u, r }) => `<tr class="clickable" data-user="${u.id}">
             <td><div class="row nowrap">${UI.avatar(u)}<div class="cell-main">${U.esc(u.name)}</div></div></td>
             <td class="small nowrap">${r.minutes ? `<strong>${Productivity.hm(r.minutes)}</strong><div class="cell-sub">${r.presMin ? `${Productivity.clock(r.first)} – ${Productivity.clock(r.last + 1)}` : `${U.time(r.firstCall)} – ${U.time(r.lastCall)} · según llamadas`}</div>` : '<span class="muted">—</span>'}</td>
@@ -170,13 +189,16 @@ Views.productividad = (() => {
             <td class="right num">${r.contacts}</td>
             <td class="right num">${r.by.no_contesto}</td>
             <td class="right num"><strong>${r.appts}</strong></td>
+            <td class="right num" style="color:${r.sales ? '#b8860b' : 'inherit'}"><strong>${r.sales}</strong>${r.commission ? `<div class="cell-sub">${U.money(r.commission)} com.</div>` : ''}</td>
             <td class="right num">${r.by.seguimiento}</td>
             <td class="small nowrap">${r.score ? `<strong>${r.score.cph.toFixed(1)}</strong> llamadas<div class="cell-sub">${U.pct(r.score.contactRate)} contacto · ${r.score.aph.toFixed(1)} citas</div>` : '<span class="muted">—</span>'}</td>
             <td class="right num" style="color:${r.overdueTasks ? 'var(--bad)' : 'inherit'}">${r.overdueTasks}${r.lateDone ? `<div class="cell-sub">${r.lateDone} hechas tarde</div>` : ''}</td>
             <td>${levelCell(r)}</td>
-          </tr>`).join('') : `<tr><td colspan="10">${UI.empty('No hay agentes activos.', 'users')}</td></tr>`}</tbody>
+          </tr>`).join('') : `<tr><td colspan="11">${UI.empty('No hay agentes activos.', 'users')}</td></tr>`}</tbody>
         </table></div>
       </div>
+
+      ${funnelCard(people)}
 
       <div class="grid span-2-1">
         <div class="card">
@@ -203,8 +225,37 @@ Views.productividad = (() => {
     if ($('#today')) $('#today').onclick = () => setDay(U.toDateInput(new Date()));
     $('#refresh').onclick = () => { Store.flushPresence(); setTimeout(() => loadPresence(state.day, true), 400); UI.toast('Actualizando…'); };
     if ($('#export')) $('#export').onclick = () => exportDay(rows, day);
+    el.querySelectorAll('[data-fr]').forEach((b) => b.onclick = () => { state.range = b.dataset.fr; render(el); });
     el.querySelectorAll('[data-calls]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); openDetail(b.dataset.calls, day, pres[b.dataset.calls]); });
     el.querySelectorAll('tr[data-user]').forEach((tr) => tr.onclick = () => openDetail(tr.dataset.user, day, pres[tr.dataset.user]));
+  }
+
+  /* ---------- Embudo de conversión por agente ---------- */
+  function funnelCard(people) {
+    const R = Metrics.RANGES[state.range] || Metrics.RANGES.mes;
+    const [from, to] = R.get();
+    const rows = U.sortBy(people.map((u) => ({ u, f: Productivity.funnel(u.id, from, to) })).filter((x) => x.f.calls || x.f.sales), (x) => -(x.f.sales * 1000 + x.f.appts * 10 + x.f.interested));
+    const team = rows.reduce((t, { f }) => ({ calls: t.calls + f.calls, called: t.called + f.called, interested: t.interested + f.interested, appts: t.appts + f.appts, sales: t.sales + f.sales, commission: t.commission + f.commission }), { calls: 0, called: 0, interested: 0, appts: 0, sales: 0, commission: 0 });
+    const pct = (a, b) => (b ? U.pct(a / b) : '—');
+    const bars = (f) => { const max = Math.max(f.called, 1); return `<div class="funnel-mini">${[['called', '#2563eb'], ['interested', '#16a34a'], ['appts', '#9333ea'], ['sales', '#b8860b']].map(([k, c]) => `<span style="width:${Math.max(f[k] ? 4 : 0, (f[k] / max) * 100)}%;background:${c}" title="${f[k]}"></span>`).join('')}</div>`; };
+    const row = (name, f, avatar) => `<tr>
+      <td><div class="row nowrap">${avatar}<div class="cell-main">${name}</div></div></td>
+      <td class="right num"><strong>${f.calls}</strong><div class="cell-sub">${f.called} clientes</div></td>
+      <td class="right num"><strong>${f.interested}</strong><div class="cell-sub">${pct(f.interested, f.called)}</div></td>
+      <td class="right num"><strong>${f.appts}</strong><div class="cell-sub">${pct(f.appts, f.interested)} de interesados</div></td>
+      <td class="right num" style="color:#b8860b"><strong>${f.sales}</strong><div class="cell-sub">${pct(f.sales, f.interested)} de interesados</div></td>
+      <td class="right num"><strong>${pct(f.sales, f.called)}</strong></td>
+      <td class="right num" style="color:#b8860b">${f.commission ? U.money(f.commission) : '—'}</td>
+      <td style="min-width:130px">${bars(f)}</td></tr>`;
+    return `<div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h2>${icon('chart', 'sm')} Embudo de conversión: llamadas → interesados → citas → ventas</h2>
+        <div class="seg" id="fRange">${Object.entries(Metrics.RANGES).map(([k, r]) => `<button data-fr="${k}" class="${k === state.range ? 'active' : ''}">${r.label}</button>`).join('')}</div></div>
+      <div class="table-wrap"><table class="table compact">
+        <thead><tr><th>Agente</th><th class="right">Llamadas</th><th class="right">Interesados</th><th class="right">Citas agendadas</th><th class="right">Ventas</th><th class="right">Conversión total</th><th class="right">Comisión</th><th>Embudo</th></tr></thead>
+        <tbody>${rows.length ? rows.map(({ u, f }) => row(U.esc(u.name), f, UI.avatar(u))).join('') + (rows.length > 1 ? row('<strong>Todo el equipo</strong>', team, `<span class="avatar" style="background:var(--primary)">${icon('users', 'sm')}</span>`) : '') : `<tr><td colspan="8">${UI.empty('Sin llamadas en este periodo.', 'phone')}</td></tr>`}</tbody>
+      </table></div>
+      <div class="card-body small muted" style="padding-top:10px">Se cuentan clientes distintos: <strong>interesados</strong> = clientes con resultado Interesado, Cita agendada o Venta; <strong>conversión total</strong> = ventas ÷ clientes llamados. La comisión se calcula sola según el producto vendido.</div>
+    </div>`;
   }
 
   function levelCell(r) {
@@ -237,11 +288,12 @@ Views.productividad = (() => {
       hideFooter: true,
       body: `
         <div class="script-box">${U.esc(Productivity.verdict(r, u.name.split(' ')[0]))}</div>
-        <div class="grid cols-4" style="gap:10px;text-align:center">
+        <div class="grid" style="gap:10px;text-align:center;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">
           <div class="card" style="padding:10px"><div class="small muted">Conectado</div><strong>${Productivity.hm(r.minutes)}</strong></div>
           <div class="card" style="padding:10px"><div class="small muted">Llamadas</div><strong>${r.n}</strong></div>
           <div class="card" style="padding:10px"><div class="small muted">Habló con</div><strong>${r.contacts}</strong></div>
           <div class="card" style="padding:10px"><div class="small muted">Citas</div><strong>${r.appts}</strong></div>
+          <div class="card" style="padding:10px"><div class="small muted">Ventas</div><strong style="color:#b8860b">${r.sales}</strong>${r.commission ? `<div class="small muted">${U.money(r.commission)} de comisión</div>` : ''}</div>
         </div>
         <div class="form-section">Hora por hora</div>
         ${r.hours.length ? `<div class="table-wrap"><table class="table">
@@ -272,7 +324,7 @@ Views.productividad = (() => {
     const csv = U.toCSV(rows, [
       { label: 'Fecha', value: () => U.toDateInput(day) }, { label: 'Agente', value: (x) => x.u.name },
       { label: 'Minutos conectado', value: (x) => x.r.minutes }, { label: 'Llamadas', value: (x) => x.r.n }, { label: 'Contestó', value: (x) => x.r.contacts },
-      { label: 'No contestó', value: (x) => x.r.by.no_contesto }, { label: 'Citas', value: (x) => x.r.appts }, { label: 'Seguimientos', value: (x) => x.r.by.seguimiento },
+      { label: 'No contestó', value: (x) => x.r.by.no_contesto }, { label: 'Citas', value: (x) => x.r.appts }, { label: 'Ventas', value: (x) => x.r.sales }, { label: 'Comisión', value: (x) => x.r.commission }, { label: 'Llamar después', value: (x) => x.r.by.seguimiento },
       { label: 'Llamadas por hora', value: (x) => (x.r.score ? x.r.score.cph.toFixed(1) : '') }, { label: 'Tasa de contacto', value: (x) => (x.r.score ? U.pct(x.r.score.contactRate) : '') },
       { label: 'Citas por hora', value: (x) => (x.r.score ? x.r.score.aph.toFixed(2) : '') }, { label: 'Productividad', value: (x) => x.r.level.name }, { label: 'Tareas vencidas', value: (x) => x.r.overdueTasks }
     ]);

@@ -103,7 +103,8 @@ const UI = (() => {
   const followLabel = (d) => {
     if (!d) return '<span class="muted">Sin programar</span>';
     const t = new Date(d).getTime();
-    if (t < U.startOfDay().getTime()) return `<span class="overdue">${icon('alert', 'sm')} Vencido · ${U.dateTime(d)}</span>`;
+    // Vencido en cuanto pasa la hora programada sin registrar el seguimiento
+    if (t < Date.now()) return `<span class="overdue">${icon('alert', 'sm')} Vencido · ${U.isToday(d) ? 'hoy ' + U.time(d) : U.dateTime(d)}</span>`;
     if (U.isToday(d)) return `<span style="color:var(--warn);font-weight:600">Hoy ${U.time(d)}</span>`;
     return U.dateTime(d);
   };
@@ -239,7 +240,29 @@ const UI = (() => {
     return (await pickPhoto(subfolder).catch(() => null)) || null;
   }
 
+  /* ---------- Próximo seguimiento: fecha y hora + botones rápidos ---------- */
+  const FOLLOW_QUICK = [['Mañana', 1], ['3 días', 3], ['1 semana', 7], ['2 semanas', 14]];
+  const followPicker = (id, value) => `<span class="follow-picker row wrap" style="gap:6px">
+      <input type="datetime-local" id="${id}" style="width:auto;height:32px" value="${U.esc(value || '')}" aria-label="Fecha y hora del próximo seguimiento">
+      ${FOLLOW_QUICK.map(([l, n]) => `<button type="button" class="btn xs" data-fq="${id}" data-days="${n}">${l}</button>`).join('')}
+    </span>`;
+  // Los botones rápidos cambian la fecha y conservan la hora elegida (10:00 si no había)
+  function bindFollowPicker(root, id, onChange) {
+    const input = root.querySelector('#' + id);
+    if (!input) return;
+    input.addEventListener('change', () => onChange(input.value));
+    root.querySelectorAll(`[data-fq="${id}"]`).forEach((b) => b.onclick = () => {
+      const cur = input.value ? new Date(input.value) : null;
+      const t = U.addDays(new Date(), Number(b.dataset.days));
+      if (cur && !isNaN(cur)) t.setHours(cur.getHours(), cur.getMinutes(), 0, 0); else t.setHours(10, 0, 0, 0);
+      input.value = U.toLocalInput(t);
+      input.classList.remove('invalid');
+      onChange(input.value);
+    });
+  }
+
   return {
+    followPicker, bindFollowPicker,
     personPhoto, thumb, pickPhoto, editPhoto,
     toast, modal, confirm, formData, avatar, userName, stageBadge, attempts, outcomeBadge, orderStatusBadge, payBadge, apptBadge,
     empty, options, userOptions, followLabel, barChart, hbars, initTooltips, cloudinaryReady, uploadToCloudinary
