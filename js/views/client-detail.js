@@ -211,7 +211,8 @@ Views.cliente = (() => {
           <span><span class="lbl">Fecha</span>${U.date(a.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
           <span><span class="lbl">Hora</span>${U.time(a.createdAt)}</span>
           <span><span class="lbl">Agente</span>${U.esc(UI.userName(a.userId))}</span>
-          <span><span class="lbl">Medio</span>${t.name}</span>
+          <span><span class="lbl">Medio</span>${a.call ? 'Teléfono del CRM' : t.name}</span>
+          ${a.call ? `<span><span class="lbl">Llamada</span>${a.call.answered ? 'Contestada' : 'No contestada'}${a.duration ? ' · ' + U.duration(a.duration) : ''}${a.call.callerId ? ' · desde ' + U.esc(a.call.callerId) : ''}</span>` : ''}
           <span><span class="lbl">Resultado</span>${UI.outcomeBadge(a.outcome)}</span>
           ${Store.isAdmin() ? `<button class="btn ghost xs icon" data-del-att="${a.id}" title="Eliminar intento (solo administración)" style="margin-left:auto">${icon('trash', 'sm')}</button>` : ''}
         </div>

@@ -817,3 +817,20 @@ input.invalid { border-color: var(--bad) !important; box-shadow: 0 0 0 3px var(-
 :root[data-theme="dark"] .outcome-btn[data-outcome="venta"] { background: #2a2108; border-color: #6b5313; }
 .funnel-mini { display: flex; flex-direction: column; gap: 3px; }
 .funnel-mini span { display: block; height: 6px; border-radius: 3px; min-width: 0; }
+
+/* Teléfono integrado */
+.phone-dock { position: fixed; left: 272px; bottom: 20px; z-index: 295; width: min(330px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 12px 14px; }
+.phone-dock.live.in-call { border-left-color: var(--good); }
+.phone-dock.live.ringing .ph-ico, .phone-dock.live.connecting .ph-ico { animation: ph-pulse 1s ease-in-out infinite; }
+.phone-dock.pending { border-left-color: #b8860b; }
+.ph-ico { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); flex: none; }
+.phone-dock.in-call .ph-ico { background: var(--good-soft); color: var(--good); }
+.ph-name { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph-sub { color: var(--text-3); }
+.ph-timer { font-weight: 700; font-size: 18px; }
+.ph-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.incoming { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); z-index: 400; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--good); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 14px 16px; width: min(360px, calc(100vw - 32px)); }
+.phone-line { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12.5px; font-weight: 600; color: var(--primary); background: var(--primary-soft); padding: 4px 10px; border-radius: 99px; }
+.phone-line.off { color: var(--bad); background: var(--bad-soft); }
+@keyframes ph-pulse { 50% { transform: scale(1.12); } }
+@media (max-width: 900px) { .phone-dock { left: 16px; bottom: 16px; } }

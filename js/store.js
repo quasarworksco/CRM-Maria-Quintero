@@ -162,6 +162,9 @@ const FirestoreAdapter = {
     return cache;
   },
 
+  // Token de la sesión: las funciones de Twilio lo usan para saber quién llama
+  idToken() { return this.auth && this.auth.currentUser ? this.auth.currentUser.getIdToken() : Promise.resolve(''); },
+
   /* ---------- Descargas puntuales (sin escuchar en vivo) ---------- */
   // Todo el historial de un cliente: se pide una vez al abrir su ficha
   async fetchWhere(col, field, value) {
@@ -279,6 +282,13 @@ const Store = (() => {
     prodContactRate: 30,
     prodApptsPerHour: 1,
     showCommissionToAgents: true,
+    // Teléfono integrado (Twilio). phoneMode: 'off' | 'demo' | 'twilio'
+    phoneHoursStart: '10:30',
+    phoneHoursEnd: '19:30',
+    phoneTz: 'America/New_York',
+    phoneEnforceHours: true,
+    phoneAutoLogNoAnswer: true,
+    phoneAutoNext: true,
     categories: ['Filtros de aire', 'Purificadores', 'Filtros de agua', 'Deshumidificadores', 'Accesorios', 'Servicios'],
     staleDays: 7,
     callScript:
@@ -546,12 +556,15 @@ const Store = (() => {
   // actualiza el último resultado, el contador de intentos y el próximo seguimiento, y mueve la etapa.
   const maxAttempts = () => Number(settings().maxAttempts) || 12;
   const attemptsOf = (clientId) => U.sortBy(db.activities.filter((a) => a.clientId === clientId && isAttempt(a)), (a) => a.createdAt);
-  function logCall(clientId, { outcome, duration = 0, notes = '', nextFollowUp, type = 'llamada' }) {
+  function logCall(clientId, { outcome, duration = 0, notes = '', nextFollowUp, type = 'llamada', call }) {
     const c = get('clients', clientId);
     const o = outcomeById(outcome);
     const now = new Date().toISOString();
     const attempt = (c.callCount || 0) + 1;
-    logActivity({ clientId, type, outcome, duration, text: notes, attempt });
+    // Llamada hecha con el teléfono del CRM: se guardan la duración real, si contestaron y el número usado
+    if (!call && typeof Phone !== 'undefined') call = Phone.takeCallMeta(clientId);
+    if (call && !duration) duration = call.talkSec || 0;
+    logActivity(Object.assign({ clientId, type, outcome, duration, text: notes, attempt }, call ? { call } : {}));
     const patch = { lastOutcome: outcome || '', lastContact: now, lastCallAt: now, callCount: attempt };
     if (o && !o.contact) patch.noAnswerCount = (c.noAnswerCount || 0) + 1; else patch.noAnswerCount = 0;
     if (o && o.contact && !c.reachedAt) patch.reachedAt = now;

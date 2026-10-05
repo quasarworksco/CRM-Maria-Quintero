@@ -405,6 +405,7 @@ const App = (() => {
     window.addEventListener('hashchange', route);
     route();
     if (typeof Reminders !== 'undefined') Reminders.start();
+    if (typeof Phone !== 'undefined') Phone.init();
     if (Store.authMode()) {
       const me = Store.realUser();
       if (me.email && Store.get('users', me.id)) {

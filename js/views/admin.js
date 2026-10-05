@@ -351,7 +351,54 @@ Views.admin = (() => {
             <p style="margin:0">Almacena imágenes de productos y archivos de clientes (fotos de instalación, facturas, contratos).</p>
             <p style="margin:0" class="muted">Configura <code>cloudName</code> y un <code>uploadPreset</code> sin firma en <code>js/config.js</code>.</p>
           </div></div>
-      </div>`;
+      </div>
+      ${phoneCard()}`;
+    bindPhoneCard(el);
+  }
+
+  /* ---------- Teléfono integrado (Twilio) ---------- */
+  function phoneCard() {
+    const s = Store.settings();
+    const m = Phone.mode();
+    const badge = m === 'twilio' ? (s.phoneBaseUrl ? '<span class="badge good">Twilio</span>' : '<span class="badge warn">Falta la dirección</span>') : m === 'demo' ? '<span class="badge info">Demostración</span>' : '<span class="badge">Apagado</span>';
+    return `<div class="card" style="margin-top:16px">
+      <div class="card-head"><h2>${icon('phone', 'sm')} Teléfono integrado (Twilio)</h2>${badge}</div>
+      <div class="card-body">
+        <form id="phoneForm" class="form-grid">
+          <label class="field">Modo<select name="phoneMode">
+            <option value="off" ${m === 'off' ? 'selected' : ''}>Apagado: el botón Llamar abre el teléfono</option>
+            <option value="demo" ${m === 'demo' ? 'selected' : ''}>Demostración: simula llamadas (para enseñar y probar)</option>
+            <option value="twilio" ${m === 'twilio' ? 'selected' : ''}>Twilio: llamadas reales con audífonos</option>
+          </select></label>
+          <label class="field">Dirección de las funciones de Twilio <span class="hint">(termina en .twil.io)</span><input name="phoneBaseUrl" value="${U.esc(s.phoneBaseUrl || '')}" placeholder="https://crm-telefono-1234.twil.io"></label>
+          <label class="field">Las agentes pueden llamar desde<input name="phoneHoursStart" type="time" value="${U.esc(s.phoneHoursStart || '10:30')}"></label>
+          <label class="field">hasta <span class="hint">(hora de Miami)</span><input name="phoneHoursEnd" type="time" value="${U.esc(s.phoneHoursEnd || '19:30')}"></label>
+          <label class="check full"><input type="checkbox" name="phoneEnforceHours" ${s.phoneEnforceHours !== false ? 'checked' : ''}> <span>Aplicar el horario a las agentes (la administración y la supervisión pueden llamar a cualquier hora)</span></label>
+          <label class="check full"><input type="checkbox" name="phoneAutoLogNoAnswer" ${s.phoneAutoLogNoAnswer !== false ? 'checked' : ''}> <span>Si no contestan, registrar "No contestó" solo y pasar al siguiente cliente en Modo llamadas</span></label>
+          <div class="full row wrap" style="gap:8px"><button type="submit" class="btn primary">Guardar</button><button type="button" class="btn" id="phoneTest">${icon('refresh', 'sm')} Probar conexión</button><span class="small muted" id="phoneTestMsg"></span></div>
+        </form>
+        <div class="script-box small" style="margin-top:14px">
+          <strong>Cómo funciona</strong>: cada botón "Llamar" del CRM llama desde la computadora. Al colgar se guardan solos la duración, la agente, la hora y si contestaron; el resultado lo elige la agente. Con un cliente 787 o 939 sale con el número de Puerto Rico; con los demás, con el 407.<br>
+          Para activarlo con Twilio sigue el archivo <code>twilio/LEEME.md</code> del proyecto (crear la cuenta, comprar los números y publicar las funciones) y pega aquí la dirección que te da Twilio.
+        </div>
+      </div>
+    </div>`;
+  }
+  function bindPhoneCard(el) {
+    const f = el.querySelector('#phoneForm');
+    if (!f) return;
+    f.onsubmit = (e) => {
+      e.preventDefault();
+      const d = UI.formData(f);
+      if (d.phoneMode === 'twilio' && !/^https:\/\/.+/.test(d.phoneBaseUrl)) return UI.toast('Escribe la dirección https de las funciones de Twilio', 'bad');
+      Store.saveSettings({ phoneMode: d.phoneMode, phoneBaseUrl: d.phoneBaseUrl.replace(/\/+$/, ''), phoneHoursStart: d.phoneHoursStart || '10:30', phoneHoursEnd: d.phoneHoursEnd || '19:30', phoneEnforceHours: d.phoneEnforceHours, phoneAutoLogNoAnswer: d.phoneAutoLogNoAnswer });
+      UI.toast('Teléfono guardado', 'good');
+    };
+    el.querySelector('#phoneTest').onclick = async () => {
+      const msg = el.querySelector('#phoneTestMsg'); msg.textContent = 'Probando…';
+      const r = await Phone.testConnection();
+      msg.innerHTML = `<span style="color:${r.ok ? 'var(--good)' : 'var(--bad)'}">${U.esc(r.msg)}</span>`;
+    };
   }
 
   return { title: 'Administración', perm: 'manageUsers', render };

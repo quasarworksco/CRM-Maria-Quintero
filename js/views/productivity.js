@@ -277,7 +277,7 @@ Views.productividad = (() => {
         <tbody>${calls.map((a) => { const c = Store.get('clients', a.clientId); return `<tr>
           <td class="nowrap num"><strong>${U.time(a.createdAt)}</strong></td>
           <td>${c ? `<a href="#/cliente/${c.id}" data-close-link>${U.esc(c.name)}</a><div class="cell-sub">${U.esc(c.phone || '')}</div>` : '<span class="muted">(cliente no visible)</span>'}</td>
-          <td class="small">${(ACTIVITY_TYPES[a.type] || {}).name || a.type}</td>
+          <td class="small">${a.call ? `Teléfono del CRM<div class="cell-sub">${a.call.answered ? 'Contestada' : 'No contestada'}${a.call.callerId ? ' · ' + U.esc(a.call.callerId) : ''}</div>` : (ACTIVITY_TYPES[a.type] || {}).name || a.type}</td>
           <td>${UI.outcomeBadge(a.outcome)}</td>
           <td class="right num small">${a.duration ? U.duration(a.duration) : '—'}</td>
           <td class="small" style="max-width:260px">${a.text ? U.esc(a.text) : '<span class="muted">—</span>'}</td></tr>`; }).join('')}</tbody></table></div>` : UI.empty('Sin llamadas con este resultado.', 'phone');

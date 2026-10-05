@@ -32,6 +32,7 @@ Se publica con GitHub Pages desde la rama `main` (carpeta raíz). El archivo `CN
 |---|---|
 | **Inicio** | Tablero con ventas, recaudo, cartera, llamadas, meta del mes, embudo por etapas, seguimientos del día, próximas citas y ranking del equipo. La agente ve sus propios números. |
 | **Modo llamadas** | Cola de marcación priorizada (vencidos → hoy → citas por confirmar → nuevos → reintentos → olvidados), guion con el nombre del cliente, cronómetro, resultados (No contestó, Buzón, WhatsApp, Email enviado, Llamar después con fecha y hora obligatorias, Interesado, Cita agendada, Venta, No interesado…) con atajos de teclado 1–0, botones Mañana / 3 días / 1 semana / 2 semanas, "Guardar y siguiente", meta diaria. |
+| **Teléfono integrado** (Twilio) | Llamadas desde el computador con audífonos (Twilio Voice JS SDK). Caller ID 787 para clientes 787/939 y 407 para los demás. Al colgar se guarda sola la llamada (hora, duración, agente, contestó o no, número usado); si no contestó se registra "No contestó" y pasa al siguiente cliente. Agentes solo de 10:30 a. m. a 7:30 p. m. hora de Miami (validado en el CRM y en el servidor); administración y supervisión sin horario. Llamadas entrantes y buzón de voz. Modo Demostración para probar sin Twilio. Configuración en Panel admin → Conexiones; instalación en `twilio/LEEME.md`. |
 | **Agenda y tareas** | "Mis pendientes": cada próximo seguimiento aparece como tarea ("Llamar a…") junto con las tareas, por fecha y hora; prioridad Alta primero; avisos a la hora (15 min antes si es Alta) con notificación del navegador opcional; etiquetas "Vencida" y "Hecha tarde"; la administración ve las tareas vencidas de todo el equipo. |
 | **Productividad** (solo administración) | Embudo por agente y periodo: llamadas → interesados → citas → ventas, con conversión y comisión. Por agente y día: tiempo conectado (presencia), llamadas, contestó, no contestó, citas, seguimientos, ritmo por hora, tareas vencidas y calificación contra metas por hora; detalle de cada llamada con hora, cliente y resultado, y desglose hora por hora. |
 | **Clientes y prospectos** | Lista con búsqueda, filtros rápidos (sin contactar, vencidos, olvidados, con saldo…), acciones masivas (asignar, cambiar etapa, exportar, eliminar), importación desde Excel/CSV con reparto automático entre agentes y detección de duplicados. |
@@ -72,6 +73,9 @@ js/metrics.js         ← cálculos de indicadores
 js/app.js             ← menú, búsqueda global y navegación
 js/recruit.js         ← reclutamiento: etapas, resultados y lógica de candidatos
 js/views/*.js         ← una sección por archivo (recruit.js = Reclutamiento)
+js/reminders.js       ← avisos de tareas y seguimientos
+js/phone.js           ← teléfono integrado (Twilio / demostración)
+twilio/               ← funciones de Twilio (token, voz, buzón) y guía LEEME.md
 ```
 
 ## Base de datos (Firestore)

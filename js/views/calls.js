@@ -4,6 +4,38 @@
 Views.llamadas = (() => {
   const st = { queue: 'smart', currentId: null, timerStart: null, elapsed: 0, outcome: '', notes: '', follow: '', skipped: new Set(), session: { calls: 0, contacts: 0, talk: 0, sales: 0 }, showScript: true };
   let tick = null;
+  let lastEl = null;
+
+  // Teléfono del CRM: el cronómetro sigue a la llamada real (se conecta al abrir la pantalla,
+  // porque phone.js carga después de este archivo)
+  let phoneHooked = false;
+  const hookPhone = () => { if (phoneHooked || typeof Phone === 'undefined') return; phoneHooked = true; Phone.on(onPhoneState); };
+  const onPhoneState = ((ph) => {
+    if (!lastEl || !/^#\/llamadas/.test(location.hash) || ph.clientId !== st.currentId) return;
+    const t = document.getElementById('timer');
+    if (ph.status === 'in-call' && ph.answeredAt && !st.timerStart) { st.elapsed = 0; st.timerStart = ph.answeredAt; if (t) t.classList.add('running'); }
+    const lbl = document.getElementById('phStatus');
+    if (lbl) lbl.textContent = { connecting: 'Conectando…', ringing: 'Timbrando…', 'in-call': 'En llamada', ended: 'Llamada terminada', idle: '' }[ph.status] || '';
+  });
+  // Al colgar: si no contestaron se registra solo y pasa al siguiente; si contestaron, se pide el resultado
+  function onEnded(data) {
+    if (!lastEl || !/^#\/llamadas/.test(location.hash) || !data.clientId || data.clientId !== st.currentId) return false;
+    const c = Store.get('clients', data.clientId);
+    if (!c) return false;
+    Phone.setPending(data);
+    st.timerStart = null;
+    st.elapsed = data.talkSec || 0;
+    if (!data.answered && data.direction === 'saliente') {
+      st.outcome = 'no_contesto';
+      if (Store.settings().phoneAutoLogNoAnswer !== false) { save(lastEl, c, { auto: true }); return true; }
+      render(lastEl);
+      UI.toast('No contestó: revisa y guarda', 'bad');
+      return true;
+    }
+    render(lastEl);
+    UI.toast('Llamada terminada: elige el resultado y guarda', 'good');
+    return true;
+  }
 
   const QUEUES = {
     smart: { label: 'Prioridad inteligente', desc: 'Vencidos → hoy → citas por confirmar → nuevos → reintentos → olvidados' },
@@ -52,6 +84,9 @@ Views.llamadas = (() => {
   }
 
   function render(el) {
+    lastEl = el;
+    hookPhone();
+    if (typeof Phone !== 'undefined') Phone.setEndedHandler(onEnded);
     if (st.queue === 'cobro' && !Store.can('finance')) st.queue = 'smart';
     const queue = buildQueue();
     if (!st.currentId || !queue.find((c) => c.id === st.currentId)) { st.currentId = queue[0] ? queue[0].id : null; resetCall(); }
@@ -61,7 +96,7 @@ Views.llamadas = (() => {
 
     el.innerHTML = `
       <div class="page-head">
-        <div><h1>Modo llamadas</h1><p>${QUEUES[st.queue].desc}</p></div>
+        <div><h1>Modo llamadas</h1><p>${QUEUES[st.queue].desc}</p>${phoneLine()}</div>
         <div class="page-actions">
           <select id="queueSel" style="width:auto">${Object.entries(QUEUES).filter(([k]) => k !== 'cobro' || Store.can('finance')).map(([k, q]) => `<option value="${k}" ${k === st.queue ? 'selected' : ''}>${q.label}</option>`).join('')}</select>
           ${st.skipped.size ? `<button class="btn" id="unskip">Restaurar ${st.skipped.size} saltados</button>` : ''}
@@ -98,6 +133,14 @@ Views.llamadas = (() => {
     bind(el, c);
   }
 
+  // Estado del teléfono integrado y horario de llamadas
+  function phoneLine() {
+    if (typeof Phone === 'undefined' || !Phone.enabled()) return '';
+    const chk = Phone.canCallNow();
+    const label = Phone.mode() === 'demo' ? 'Teléfono del CRM · modo demostración (no llama de verdad)' : 'Teléfono del CRM · llamadas con audífonos';
+    return `<div class="phone-line ${chk.ok ? '' : 'off'}">${icon('phone', 'sm')} ${label}${Phone.restricted() ? ` · Horario: ${Phone.hoursLabel()}` : ''}${chk.ok ? '' : ' · <strong>Fuera de horario</strong>'}</div>`;
+  }
+
   function callCard(c) {
     const lastActs = U.sortBy(Store.where('activities', (a) => a.clientId === c.id), (a) => a.createdAt, -1).slice(0, 4);
     const products = (c.interests || []).map((id) => Store.get('products', id)).filter(Boolean);
@@ -114,6 +157,7 @@ Views.llamadas = (() => {
             </div>
             <div class="stack" style="gap:8px;align-items:flex-end">
               <div class="timer ${st.timerStart ? 'running' : ''}" id="timer">${U.duration(currentElapsed())}</div>
+              ${typeof Phone !== 'undefined' && Phone.enabled() ? `<div class="small muted" id="phStatus">${Phone.state.clientId === c.id ? ({ connecting: 'Conectando…', ringing: 'Timbrando…', 'in-call': 'En llamada' }[Phone.state.status] || '') : ''}</div>` : ''}
               <div class="row">
                 <a class="btn good" href="${U.telLink(c.phone)}" id="dial">${icon('phone', 'sm')} Llamar</a>
                 <a class="btn icon" href="${U.waLink(c.phone)}" target="_blank" rel="noopener" title="WhatsApp">${icon('message', 'sm')}</a>
@@ -191,8 +235,9 @@ Views.llamadas = (() => {
     document.addEventListener('keydown', el._keys);
   }
 
-  function save(el, c) {
+  function save(el, c, { auto = false } = {}) {
     if (!st.outcome) return UI.toast('Selecciona el resultado de la llamada', 'bad');
+    if (typeof Phone !== 'undefined' && Phone.state.clientId === c.id && ['connecting', 'ringing', 'in-call'].includes(Phone.state.status)) return UI.toast('Cuelga la llamada antes de guardar', 'bad');
     const o = outcomeById(st.outcome);
     if (o.requireFollow && !st.follow) { const f = el.querySelector('#cFollow'); f.classList.add('invalid'); f.focus(); return UI.toast('Para "Llamar después" elige la fecha y hora del próximo seguimiento', 'bad'); }
     const dur = Math.round(currentElapsed());
@@ -204,7 +249,7 @@ Views.llamadas = (() => {
     st.skipped.add(c.id); // no volver a mostrarlo en esta sesión
     st.currentId = null;
     resetCall();
-    UI.toast(`Guardado: ${o.name}`, 'good');
+    UI.toast(auto ? `No contestó: registrado solo${Store.settings().phoneAutoNext !== false ? ' · siguiente cliente' : ''}` : `Guardado: ${o.name}`, 'good');
     render(el);
     Views.cliente.afterOutcome(c.id, o.id);
   }
