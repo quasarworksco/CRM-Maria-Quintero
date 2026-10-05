@@ -464,6 +464,14 @@
           <li><strong>Nunca</strong> llama a clientes en la lista de no llamar ni a números 900 / 976.</li>
           <li>Las llamadas que entran a los números 407 y 787 suenan en el CRM de quien se elija; si nadie contesta, van al <strong>buzón de voz</strong>.</li>
         </ul>
+        <h3 id="marcador">Marcador libre: llamar a cualquier número</h3>
+        <p>Con el botón del <strong>teléfono</strong> de la barra de arriba (junto a "Nuevo prospecto"), o con <strong>"Abrir marcador"</strong> en Panel admin → Conexiones, se abre un teclado para marcar cualquier número, aunque no sea cliente: un proveedor, un técnico o un número que te dejaron en un papel.</p>
+        <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/telefono-marcador.jpg" width="1280" height="800" alt="Marcador del teléfono con teclado numérico, botón Llamar y llamadas recientes" loading="lazy"></div><figcaption>Escribe o pega el número (o usa el teclado). Abajo, tus llamadas recientes: un clic y se vuelve a marcar.</figcaption></figure>
+        <ul class="list">
+          <li>Si el número es de un cliente, el marcador muestra su nombre y la llamada queda en su historial como cualquier otra.</li>
+          <li>Si no es cliente y contestan, al colgar aparece <strong>"Guardar como prospecto"</strong>: se crea la ficha con ese teléfono y enseguida se registra el resultado de la llamada.</li>
+          <li><strong>Quién lo ve</strong>: la administración y la supervisión, siempre. Las agentes, solo si la administración marca "Las agentes también pueden usar el marcador libre" en Conexiones (y siempre dentro de su horario).</li>
+        </ul>
         <figure><div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="img/telefono-config.jpg" width="1280" height="800" alt="Panel de administración, Conexiones, tarjeta Teléfono integrado con modo, dirección del servicio y horario de las agentes" loading="lazy"></div><figcaption>Panel admin → Conexiones → Teléfono integrado: modo, dirección del servicio, horario de las agentes y "Probar conexión".</figcaption></figure>
         <div class="tip"><div class="ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><div><strong>Pruébalo antes de tener Twilio</strong>En Panel admin → Conexiones → Teléfono integrado elige <strong>Modo: Demostración</strong>. Las llamadas se simulan (no llaman de verdad), pero se ve todo el flujo: barra del teléfono, tiempo, registro automático de "No contestó" y paso al siguiente cliente. Para activar Twilio, sigue la guía paso a paso del archivo <code>twilio/LEEME.md</code> del proyecto y luego elige <strong>Modo: Twilio</strong>.</div></div>
       </section>

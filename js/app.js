@@ -69,6 +69,7 @@ const App = (() => {
             <div class="topbar-right">
               ${Store.can('prospects') ? `<button class="btn primary sm" id="quickAdd">${icon('userPlus', 'sm')}<span class="hide-sm">Nuevo prospecto</span></button>`
                 : Store.can('recruitment') ? `<button class="btn primary sm" id="quickAdd" data-cand="1">${icon('userPlus', 'sm')}<span class="hide-sm">Nuevo candidato</span></button>` : ''}
+              ${typeof Phone !== 'undefined' && Phone.canDial() ? `<button class="btn ghost icon" id="dialBtn" title="Teléfono: marcar un número">${icon('phone')}</button>` : ''}
               <button class="btn ghost icon" id="themeBtn" title="Cambiar tema">${icon('moon')}</button>
               ${Store.authMode() ? `
               <div class="user-menu">
@@ -108,6 +109,8 @@ const App = (() => {
     if (ex) ex.onclick = () => { Store.setViewAs(null); shell(); route(); };
     bindUserMenu();
     document.getElementById('themeBtn').onclick = toggleTheme;
+    const db = document.getElementById('dialBtn');
+    if (db) db.onclick = () => Phone.openDialer();
     const qa = document.getElementById('quickAdd');
     if (qa) qa.onclick = () => (qa.dataset.cand ? Views.candidato.openForm() : Views.clientes.openForm());
     initSearch();

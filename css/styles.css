@@ -834,3 +834,20 @@ input.invalid { border-color: var(--bad) !important; box-shadow: 0 0 0 3px var(-
 .phone-line.off { color: var(--bad); background: var(--bad-soft); }
 @keyframes ph-pulse { 50% { transform: scale(1.12); } }
 @media (max-width: 900px) { .phone-dock { left: 16px; bottom: 16px; } }
+
+/* Marcador libre */
+.dialer { max-width: 300px; margin: 0 auto; }
+.dial-display { display: flex; align-items: center; gap: 4px; border-bottom: 2px solid var(--border); padding-bottom: 4px; }
+.dial-display input { flex: 1; border: 0; background: transparent; font-size: 22px; font-weight: 600; text-align: center; color: var(--text); padding: 6px 0; min-width: 0; }
+.dial-display input:focus, .dial-display input:focus-visible { outline: none; box-shadow: none; }
+.dial-display:focus-within { border-bottom-color: var(--primary); }
+.dial-match { min-height: 20px; text-align: center; margin: 6px 0 10px; color: var(--muted); }
+.dial-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dial-key { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 56px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-2, var(--surface)); color: var(--text); cursor: pointer; font: inherit; }
+.dial-key:hover { border-color: var(--primary); background: var(--primary-soft, var(--surface)); }
+.dial-key b { font-size: 20px; line-height: 1; }
+.dial-key small { font-size: 9px; letter-spacing: .08em; color: var(--muted); min-height: 11px; }
+.dial-call { width: 100%; justify-content: center; margin-top: 12px; height: 46px; font-size: 15px; }
+.dial-rec { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--text); cursor: pointer; font: inherit; }
+.dial-rec .grow { flex: 1; }
+.dial-rec:hover { background: var(--surface-2, rgba(0,0,0,.04)); }

@@ -134,6 +134,7 @@ const Phone = (() => {
 
   // Qué pasa al colgar
   function handleEnded(data) {
+    if (!data.clientId) saveRecent(data);
     if (endedHandler) { try { if (endedHandler(data) === true) return; } catch (e) { console.error(e); } }
     if (!data.answered && data.clientId && data.direction === 'saliente' && settings().phoneAutoLogNoAnswer !== false) {
       Store.logCall(data.clientId, { outcome: 'no_contesto', duration: 0, call: meta(data) });
@@ -154,6 +155,7 @@ const Phone = (() => {
   function takeCallMeta(clientId) {
     if (!pending || (pending.clientId && pending.clientId !== clientId)) return null;
     const m = meta(pending);
+    removeRecent(pending.at); // ya queda en el historial del cliente
     pending = null;
     setTimeout(reset, 300);
     return m;
@@ -278,6 +280,7 @@ const Phone = (() => {
     const show = state.status !== 'idle' || pending;
     if (!show) { if (dock) dock.remove(); return; }
     if (!dock) { dock = document.createElement('div'); dock.id = 'phoneDock'; dock.className = 'phone-dock'; document.body.appendChild(dock); }
+    if (pending && !pending.clientId) { const m = findClientByPhone(pending.number); if (m) pending.clientId = m.id; }
     const c = state.clientId ? Store.get('clients', state.clientId) : (pending && pending.clientId ? Store.get('clients', pending.clientId) : null);
     const live = state.status === 'connecting' || state.status === 'ringing' || state.status === 'in-call';
     const p = !live && pending;
@@ -296,14 +299,114 @@ const Phone = (() => {
         <button class="btn sm danger solid" data-ph="hang" style="margin-left:auto">Colgar</button>
       </div>
       <div class="ph-keys hidden" id="phKeys">${'123456789*0#'.split('').map((k) => `<button class="btn sm" data-key="${k}">${k}</button>`).join('')}</div>` : ''}
-      ${p ? `<div class="row" style="gap:6px;margin-top:10px">${pending.clientId ? '<button class="btn sm primary" data-ph="log">Registrar resultado</button>' : ''}<button class="btn sm ghost" data-ph="dismiss">Descartar</button></div>` : ''}`;
+      ${p ? `<div class="row wrap" style="gap:6px;margin-top:10px">${pending.clientId ? '<button class="btn sm primary" data-ph="log">Registrar resultado</button>' : Store.can('prospects') ? '<button class="btn sm primary" data-ph="newc">Guardar como prospecto</button>' : ''}<button class="btn sm ghost" data-ph="dismiss">Descartar</button></div>` : ''}`;
     const q = (s) => dock.querySelector(s);
     if (q('[data-ph="hang"]')) q('[data-ph="hang"]').onclick = hangup;
     if (q('[data-ph="mute"]')) q('[data-ph="mute"]').onclick = mute;
     if (q('[data-ph="keys"]')) q('[data-ph="keys"]').onclick = () => q('#phKeys').classList.toggle('hidden');
     dock.querySelectorAll('[data-key]').forEach((b) => b.onclick = () => digits(b.dataset.key));
     if (q('[data-ph="log"]')) q('[data-ph="log"]').onclick = () => Views.cliente.quickLog(pending.clientId);
+    if (q('[data-ph="newc"]')) q('[data-ph="newc"]').onclick = () => newProspectFromPending();
     if (q('[data-ph="dismiss"]')) q('[data-ph="dismiss"]').onclick = () => { pending = null; reset(); renderDock(); };
+  }
+
+  /* ---------- Marcador libre: llamar a cualquier número ---------- */
+  const RECENT_KEY = 'crm_mq_recent_calls';
+  function readRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch (e) { return []; } }
+  function saveRecent(d) {
+    if (d.direction !== 'saliente') return;
+    const list = readRecent().filter((x) => x.at !== d.at);
+    list.unshift({ number: d.number, at: d.at, answered: !!d.answered, talkSec: d.talkSec || 0 });
+    try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 15))); } catch (e) {}
+  }
+  function removeRecent(at) { const list = readRecent(); const next = list.filter((x) => x.at !== at); if (next.length !== list.length) try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch (e) {} }
+  // Quién puede usarlo: administración y supervisión siempre; las agentes solo si la administración lo activa
+  function canDial(u = Store.realUser()) {
+    if (!enabled() || !u) return false;
+    if (u.role === 'admin' || u.role === 'supervisor') return true;
+    return settings().phoneDialerAgents === true && Store.can('prospects');
+  }
+  // Últimas llamadas: las del historial de clientes y las hechas a números sueltos
+  function recentCalls() {
+    const me = Store.realUser();
+    const fromClients = Store.all('activities').filter((a) => a.call && a.userId === me.id && a.call.direction !== 'entrante')
+      .map((a) => ({ number: a.call.number, at: a.createdAt, answered: a.call.answered, talkSec: a.call.talkSec || 0, clientId: a.clientId }));
+    return fromClients.concat(readRecent()).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 8);
+  }
+  function pretty(e164) { const d = String(e164 || '').replace(/\D/g, '').slice(-10); return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : String(e164 || ''); }
+
+  function openDialer(preset = '') {
+    if (!canDial()) { UI.toast(enabled() ? 'Tu usuario no tiene el marcador activado' : 'Activa el teléfono en Panel admin → Conexiones', 'bad'); return; }
+    const hrs = restricted() ? `<div class="small muted" style="text-align:center;margin-top:6px">Horario de llamadas: ${U.esc(hoursLabel())}</div>` : '';
+    const m = UI.modal({
+      title: `${icon('phone', 'sm')} Teléfono`,
+      size: 'sm',
+      hideFooter: true,
+      body: `
+        <div class="dialer">
+          <div class="dial-display"><input id="dlNum" inputmode="tel" autocomplete="off" placeholder="Escribe o pega un número" value="${U.esc(preset)}"><button type="button" class="btn ghost icon sm" id="dlDel" title="Borrar">${icon('x', 'sm')}</button></div>
+          <div class="dial-match small" id="dlMatch"></div>
+          <div class="dial-pad">${[['1', ''], ['2', 'ABC'], ['3', 'DEF'], ['4', 'GHI'], ['5', 'JKL'], ['6', 'MNO'], ['7', 'PQRS'], ['8', 'TUV'], ['9', 'WXYZ'], ['*', ''], ['0', '+'], ['#', '']].map(([k, l]) => `<button type="button" class="dial-key" data-k="${k}"><b>${k}</b><small>${l}</small></button>`).join('')}</div>
+          <button type="button" class="btn primary dial-call" id="dlCall">${icon('phone', 'sm')} Llamar</button>
+          ${hrs}
+          <div class="dial-recent">
+            <div class="small muted" style="margin:14px 0 6px;font-weight:600">Llamadas recientes</div>
+            <div id="dlRecent"></div>
+          </div>
+        </div>`
+    });
+    const root = m.el.querySelector('.dialer');
+    const inp = root.querySelector('#dlNum');
+    const match = root.querySelector('#dlMatch');
+    const update = () => {
+      const v = inp.value;
+      const e = toE164(v);
+      const c = findClientByPhone(v);
+      match.innerHTML = c ? `${icon('user', 'sm')} <a href="#/cliente/${c.id}" data-dl-close>${U.esc(c.name)}</a>${c.dnc ? ' · <span style="color:var(--bad)">no volver a llamar</span>' : ''}`
+        : e ? `${isPR(e) ? 'Puerto Rico' : 'EE. UU.'} · ${pretty(e)} · no está en tus clientes` : (v.replace(/\D/g, '').length >= 10 ? '<span style="color:var(--bad)">Número no válido para EE. UU. o Puerto Rico</span>' : '');
+      root.querySelectorAll('[data-dl-close]').forEach((a) => a.onclick = () => close());
+    };
+    const close = m.close;
+    const doCall = async () => {
+      const c = findClientByPhone(inp.value);
+      if (!toE164(inp.value)) { UI.toast('Escribe un número de 10 dígitos de EE. UU. o Puerto Rico', 'bad'); inp.focus(); return; }
+      close();
+      await call({ number: inp.value, clientId: c ? c.id : null });
+    };
+    root.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { inp.value += b.dataset.k; update(); inp.focus(); });
+    root.querySelector('#dlDel').onclick = () => { inp.value = inp.value.slice(0, -1); update(); inp.focus(); };
+    root.querySelector('#dlCall').onclick = doCall;
+    inp.addEventListener('input', update);
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doCall(); } });
+    const rec = recentCalls();
+    root.querySelector('#dlRecent').innerHTML = rec.length ? rec.map((r) => {
+      const c = r.clientId ? Store.get('clients', r.clientId) : findClientByPhone(r.number);
+      return `<button type="button" class="dial-rec" data-num="${U.esc(r.number)}">
+        <span class="grow" style="min-width:0;text-align:left"><strong>${U.esc(c ? c.name : pretty(r.number))}</strong><span class="small muted" style="display:block">${c ? pretty(r.number) + ' · ' : ''}${U.esc(U.dateTime(r.at))}</span></span>
+        <span class="small" style="color:${r.answered ? 'var(--good)' : 'var(--muted)'}">${r.answered ? U.duration(r.talkSec) : 'No contestó'}</span></button>`;
+    }).join('') : '<div class="small muted">Aún no hay llamadas.</div>';
+    root.querySelectorAll('[data-num]').forEach((b) => b.onclick = () => { inp.value = pretty(b.dataset.num); update(); inp.focus(); });
+    update();
+    setTimeout(() => inp.focus(), 50);
+    return m;
+  }
+
+  // Una llamada a un número suelto que resultó ser un prospecto: se crea y se registra el resultado
+  function newProspectFromPending() {
+    if (!pending) return;
+    const num = pending.number;
+    Views.clientes.openForm(null, { phone: pretty(num), source: '' });
+    let tries = 0;
+    const iv = setInterval(() => {
+      tries++;
+      const c = findClientByPhone(num);
+      if (c && pending && !pending.clientId) {
+        clearInterval(iv);
+        pending.clientId = c.id;
+        renderDock();
+        setTimeout(() => Views.cliente.quickLog(c.id), 400);
+      } else if (!pending || tries > 240) clearInterval(iv);
+    }, 500);
   }
 
   /* ---------- Clic en cualquier botón "Llamar" del CRM ---------- */
@@ -319,5 +422,5 @@ const Phone = (() => {
     if (mode() === 'twilio' && enabled() && Store.auth()) setTimeout(() => getBackend().catch((e) => console.warn('Teléfono:', e.message)), 2500);
   }
 
-  return { init, mode, enabled, call, hangup, mute, digits, on, setEndedHandler, state, takeCallMeta, hasPending, setPending, canCallNow, hoursLabel, restricted, toE164, isPR, findClientByPhone, testConnection, reset };
+  return { init, mode, enabled, canDial, openDialer, call, hangup, mute, digits, on, setEndedHandler, state, takeCallMeta, hasPending, setPending, canCallNow, hoursLabel, restricted, toE164, isPR, findClientByPhone, testConnection, reset };
 })();

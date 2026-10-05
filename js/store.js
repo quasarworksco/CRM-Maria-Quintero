@@ -288,6 +288,7 @@ const Store = (() => {
     phoneTz: 'America/New_York',
     phoneEnforceHours: true,
     phoneAutoLogNoAnswer: true,
+    phoneDialerAgents: false,
     phoneAutoNext: true,
     categories: ['Filtros de aire', 'Purificadores', 'Filtros de agua', 'Deshumidificadores', 'Accesorios', 'Servicios'],
     staleDays: 7,
