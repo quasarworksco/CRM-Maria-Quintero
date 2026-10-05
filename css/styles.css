@@ -799,3 +799,15 @@ tr.stage-row td:first-child { box-shadow: inset 4px 0 0 var(--row-color); }
 .login { background: radial-gradient(1100px 460px at 50% -10%, #d6e3ff 0%, var(--bg) 62%); }
 :root[data-theme="dark"] .login { background: radial-gradient(1100px 460px at 50% -10%, #12306a 0%, var(--bg) 62%); }
 .kpi-label { padding-right: 42px; }
+
+/* Avisos de tareas */
+.reminders { position: fixed; right: 20px; bottom: 76px; z-index: 290; display: flex; flex-direction: column; gap: 10px; width: min(340px, calc(100vw - 32px)); }
+.reminder { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 12px 14px; animation: rem-in .25s ease-out; }
+.reminder.alta { border-left-color: var(--bad); }
+.reminder-head { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.reminder-head .btn { margin-left: auto; }
+.reminder-title { font-weight: 650; margin-top: 4px; }
+@keyframes rem-in { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 600px) { .reminders { right: 16px; bottom: 16px; } }
+.table.compact th, .table.compact td { padding: 10px 10px; }
+.table.compact th { white-space: normal; line-height: 1.25; vertical-align: bottom; }

@@ -13,7 +13,9 @@ Views.agenda = (() => {
       const t = new Date(getDate(x)).getTime();
       if (t < sod) b.vencido.push(x); else if (t <= eod) b.hoy.push(x); else if (t <= tom) b.manana.push(x); else if (t <= week) b.semana.push(x); else b.despues.push(x);
     });
-    Object.values(b).forEach((arr) => arr.sort((a, c) => new Date(getDate(a)) - new Date(getDate(c))));
+    // Las tareas de prioridad Alta van primero en cada grupo; luego por fecha y hora
+    const rank = (x) => (x.kind === 'task' && x.t.priority === 'alta' ? 0 : 1);
+    Object.values(b).forEach((arr) => arr.sort((a, c) => rank(a) - rank(c) || new Date(getDate(a)) - new Date(getDate(c))));
     return b;
   }
   const LABELS = { vencido: 'Vencidos', hoy: 'Hoy', manana: 'Mañana', semana: 'Próximos 7 días', despues: 'Más adelante' };
@@ -32,6 +34,11 @@ Views.agenda = (() => {
       const a = Store.activeAppointment(c);
       return a && new Date(a.at) >= U.startOfDay() && (ownerFilter(c.ownerId) || a.demoBy === me.id);
     }), (c) => Store.activeAppointment(c).at);
+    // Administración: tareas vencidas de todo el equipo, aunque esté viendo su propia agenda
+    const nowT = Date.now();
+    const teamOverdue = Store.can('viewAll') ? U.sortBy(Store.all('tasks').filter((t) => !t.done && new Date(t.due).getTime() < nowT), (t) => t.due) : [];
+    const byOwner = U.groupBy(teamOverdue, (t) => t.userId);
+    const perm = typeof Reminders !== 'undefined' ? Reminders.permission() : 'unsupported';
 
     el.innerHTML = `
       <div class="page-head">
@@ -42,6 +49,15 @@ Views.agenda = (() => {
           <button class="btn primary" id="newTask">${icon('plus', 'sm')} Nueva tarea</button>
         </div>
       </div>
+      ${perm === 'default' ? `<div class="script-box small row wrap" style="margin-bottom:14px;gap:10px">${icon('clock', 'sm')}<span>El CRM te avisa cuando llega la hora de cada tarea (y 15 minutos antes si es de prioridad <strong>Alta</strong>). Activa los avisos del navegador para recibirlos aunque estés en otra pestaña.</span><button class="btn sm primary" id="askNotify">Activar avisos</button></div>` : ''}
+      ${teamOverdue.length ? `<div class="card" style="margin-bottom:16px">
+        <div class="card-head"><h2>${icon('alert', 'sm')} Tareas vencidas del equipo</h2><span class="badge bad">${teamOverdue.length}</span></div>
+        <div class="card-body flush">
+          <div class="row wrap" style="gap:6px;padding:12px 18px;border-bottom:1px solid var(--border)">${Object.entries(byOwner).sort((a, b) => b[1].length - a[1].length).map(([uid, list]) => `<span class="badge">${UI.avatar(Store.get('users', uid))} ${U.esc(UI.userName(uid))}: <strong>${list.length}</strong></span>`).join('')}</div>
+          ${teamOverdue.slice(0, 12).map((t) => taskItem(t, { showOwner: true })).join('')}
+          ${teamOverdue.length > 12 ? `<div class="small muted" style="padding:10px 18px">Y ${teamOverdue.length - 12} más. Elige "Todo el equipo" arriba para verlas todas.</div>` : ''}
+        </div>
+      </div>` : ''}
       <div class="grid span-2-1">
         <div class="card">
           <div class="card-head"><h2>${icon('check', 'sm')} ${state.owner === 'me' ? 'Mis pendientes' : 'Pendientes'}</h2><label class="check small"><input type="checkbox" id="showDone" ${state.showDone ? 'checked' : ''}> Ver tareas completadas</label></div>
@@ -70,6 +86,8 @@ Views.agenda = (() => {
     if (own) own.onchange = () => { state.owner = own.value; render(el); };
     el.querySelector('#showDone').onchange = (e) => { state.showDone = e.target.checked; render(el); };
     el.querySelector('#newTask').onclick = () => openTaskForm({});
+    const an = el.querySelector('#askNotify');
+    if (an) an.onclick = async () => { await Reminders.askPermission(); render(el); };
     el.querySelectorAll('[data-go]').forEach((x) => x.onclick = (e) => { if (e.target.closest('[data-log]')) return; location.hash = x.dataset.go; });
     el.querySelectorAll('[data-log]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); Views.cliente.quickLog(b.dataset.log); });
     bindTaskItems(el);
@@ -93,14 +111,18 @@ Views.agenda = (() => {
   function taskItem(t, { hideClient = false, showOwner = false } = {}) {
     const c = t.clientId && Store.get('clients', t.clientId);
     const overdue = !t.done && new Date(t.due) < new Date();
+    const late = t.done && t.doneAt && new Date(t.doneAt) > new Date(t.due);
     return `<div class="list-item ${t.done ? 'task-done' : ''}">
       <input type="checkbox" data-task-toggle="${t.id}" ${t.done ? 'checked' : ''} title="Marcar como hecha">
       <div class="grow" data-task-edit="${t.id}" style="cursor:pointer">
-        <div class="title">${t.priority === 'alta' ? `<span style="color:var(--bad)">●</span> ` : ''}${U.esc(t.title)}</div>
+        <div class="title">${t.priority === 'alta' ? '<span class="badge bad">Alta</span> ' : ''}${U.esc(t.title)}</div>
         <div class="small muted">${!hideClient && c ? `<a href="#/cliente/${c.id}">${U.esc(c.name)}</a> · ` : ''}<span class="${overdue ? 'overdue' : ''}">${U.dateTime(t.due)}</span>${showOwner ? ' · ' + U.esc(UI.userName(t.userId)) : ''}</div>
       </div>
+      ${overdue ? `<span class="badge bad" title="No se completó a tiempo">Vencida ${lateLabel(Date.now() - new Date(t.due).getTime())}</span>` : late ? `<span class="badge warn" title="Completada el ${U.dateTime(t.doneAt)}">Hecha tarde</span>` : ''}
     </div>`;
   }
+
+  const lateLabel = (ms) => { const m = Math.round(ms / 60000); return m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
 
   function bindTaskItems(el) {
     el.querySelectorAll('[data-task-toggle]').forEach((cb) => cb.onchange = () => {
@@ -121,7 +143,7 @@ Views.agenda = (() => {
         <label class="field">¿Qué hay que hacer? *<input name="title" required value="${U.esc(t.title)}" placeholder="Enviar cotización, confirmar entrega…"></label>
         <div class="form-grid">
           <label class="field">Fecha y hora<input name="due" type="datetime-local" required value="${U.toLocalInput(t.due)}"></label>
-          <label class="field">Prioridad<select name="priority">${UI.options([{ id: 'normal', name: 'Normal' }, { id: 'alta', name: 'Alta' }], t.priority)}</select></label>
+          <label class="field">Prioridad<select name="priority">${UI.options([{ id: 'normal', name: 'Normal' }, { id: 'alta', name: 'Alta' }], t.priority)}</select><span class="hint">Alta: aparece primero y avisa 15 min antes</span></label>
           <label class="field">Cliente<select name="clientId">${UI.options(clients, t.clientId, { blank: '— Sin cliente —' })}</select></label>
           <label class="field">Responsable<select name="userId" ${Store.can('reassign') ? '' : 'disabled'}>${UI.userOptions(t.userId)}</select></label>
         </div>

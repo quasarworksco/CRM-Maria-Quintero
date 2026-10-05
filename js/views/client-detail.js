@@ -9,6 +9,7 @@ Views.cliente = (() => {
     const c = Store.get('clients', id);
     if (!c) { el.innerHTML = UI.empty('Cliente no encontrado. <a href="#/clientes">Volver</a>', 'users'); return; }
     if (!Store.canSeeClient(c)) { el.innerHTML = UI.empty('Este cliente está asignado a otro agente.', 'ban'); return; }
+    Store.loadClientHistory(id); // historial completo, una sola vez por sesión
     const owner = Store.get('users', c.ownerId);
     const d = draft[id] || (draft[id] = { type: 'llamada', outcome: '', notes: '', follow: '', note: '' });
     if (d.type === 'nota') d.type = 'llamada';

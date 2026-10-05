@@ -104,6 +104,12 @@ service cloud.firestore {
       allow update: if can('recruitAll') || (can('recruitment') && resource.data.ownerId == myId() && request.resource.data.ownerId == myId());
       allow delete: if isAdmin();
     }
+    // Tiempo conectado: cada persona escribe solo su documento del día; solo la administración lo lee
+    match /presence/{id} {
+      allow read, delete: if isAdmin();
+      allow create, update: if hasAccess() && request.resource.data.userId == myId()
+        && id == myId() + '_' + request.resource.data.date;
+    }
     match /candidateActivities/{id} {
       allow read, create: if can('recruitment') || can('recruitAll');
       allow update, delete: if can('recruitAll') || (can('recruitment') && resource.data.userId == myId());

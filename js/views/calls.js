@@ -65,6 +65,7 @@ Views.llamadas = (() => {
         <div class="page-actions">
           <select id="queueSel" style="width:auto">${Object.entries(QUEUES).filter(([k]) => k !== 'cobro' || Store.can('finance')).map(([k, q]) => `<option value="${k}" ${k === st.queue ? 'selected' : ''}>${q.label}</option>`).join('')}</select>
           ${st.skipped.size ? `<button class="btn" id="unskip">Restaurar ${st.skipped.size} saltados</button>` : ''}
+          ${Store.isAdmin() ? `<a class="btn" href="#/productividad">${icon('target', 'sm')} Productividad del equipo</a>` : ''}
         </div>
       </div>
       <div class="kpis">
@@ -150,7 +151,7 @@ Views.llamadas = (() => {
   }
 
   const currentElapsed = () => st.elapsed + (st.timerStart ? (Date.now() - st.timerStart) / 1000 : 0);
-  function resetCall() { st.timerStart = null; st.elapsed = 0; st.outcome = ''; st.notes = ''; st.follow = ''; }
+  function resetCall() { st.timerStart = null; st.elapsed = 0; st.outcome = ''; st.notes = ''; st.follow = ''; if (typeof Store !== 'undefined' && Store.setCallActive) Store.setCallActive(false); }
 
   function bind(el, c) {
     clearInterval(tick);
@@ -161,8 +162,8 @@ Views.llamadas = (() => {
     if (!c) return;
 
     tick = setInterval(() => { const t = document.getElementById('timer'); if (!t) return clearInterval(tick); t.textContent = U.duration(currentElapsed()); }, 1000);
-    $('#dial').addEventListener('click', () => { if (!st.timerStart) { st.timerStart = Date.now(); $('#timer').classList.add('running'); } });
-    $('#timer').onclick = () => { if (st.timerStart) { st.elapsed = currentElapsed(); st.timerStart = null; $('#timer').classList.remove('running'); } else { st.timerStart = Date.now(); $('#timer').classList.add('running'); } };
+    $('#dial').addEventListener('click', () => { if (!st.timerStart) { st.timerStart = Date.now(); $('#timer').classList.add('running'); Store.setCallActive(true); } });
+    $('#timer').onclick = () => { if (st.timerStart) { st.elapsed = currentElapsed(); st.timerStart = null; $('#timer').classList.remove('running'); Store.setCallActive(false); } else { st.timerStart = Date.now(); $('#timer').classList.add('running'); Store.setCallActive(true); } };
     $('#timer').style.cursor = 'pointer';
     $('#timer').title = 'Clic para iniciar/pausar el cronómetro';
     $('#toggleScript').onclick = () => { st.showScript = !st.showScript; render(el); };

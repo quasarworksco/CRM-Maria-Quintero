@@ -265,6 +265,12 @@ Views.admin = (() => {
           <label class="field">Categorías de productos <span class="hint">una por línea</span><textarea name="categories" rows="6">${U.esc(s.categories.join('\n'))}</textarea></label>
           <label class="field">Reclutamiento · puestos <span class="hint">uno por línea</span><textarea name="positions" rows="6">${U.esc((s.positions || []).join('\n'))}</textarea></label>
           <label class="field">Reclutamiento · fuentes de candidatos <span class="hint">una por línea</span><textarea name="candidateSources" rows="6">${U.esc((s.candidateSources || []).join('\n'))}</textarea></label>
+          <div class="field full"><strong>Metas de productividad por hora</strong> <span class="hint">(califican a cada agente en Productividad)</span>
+            <div class="form-grid cols-3" style="margin-top:6px">
+              <label class="field">Llamadas por hora<input name="prodCallsPerHour" type="number" min="1" step="1" value="${s.prodCallsPerHour || 20}"></label>
+              <label class="field">% de contacto<input name="prodContactRate" type="number" min="1" max="100" step="1" value="${s.prodContactRate || 30}"></label>
+              <label class="field">Citas por hora<input name="prodApptsPerHour" type="number" min="0.1" step="0.1" value="${s.prodApptsPerHour || 1}"></label>
+            </div></div>
           <label class="field">Canales de venta <span class="hint">uno por línea (Instagram, Facebook, WhatsApp…)</span><textarea name="saleChannels" rows="6">${U.esc((s.saleChannels || SALE_CHANNEL_DEFAULTS).join('\n'))}</textarea></label>
           <label class="field">Reclutamiento · idiomas <span class="hint">uno por línea</span><textarea name="languages" rows="4">${U.esc((s.languages || []).join('\n'))}</textarea></label>
           <label class="field">Guion de llamada <span class="hint">variables: {nombre} {agente} {empresa} {ciudad}</span><textarea name="callScript" rows="6">${U.esc(s.callScript)}</textarea></label>
@@ -284,7 +290,7 @@ Views.admin = (() => {
       e.preventDefault();
       const d = UI.formData(e.target);
       const lines = (t) => t.split('\n').map((x) => x.trim()).filter(Boolean);
-      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), positions: lines(d.positions), saleChannels: lines(d.saleChannels), candidateSources: lines(d.candidateSources), languages: lines(d.languages), staleDays: d.staleDays || 7, maxAttempts: d.maxAttempts || 12 }));
+      Store.saveSettings(Object.assign(d, { sources: lines(d.sources), lostReasons: lines(d.lostReasons), categories: lines(d.categories), positions: lines(d.positions), saleChannels: lines(d.saleChannels), candidateSources: lines(d.candidateSources), languages: lines(d.languages), staleDays: d.staleDays || 7, prodCallsPerHour: d.prodCallsPerHour || 20, prodContactRate: d.prodContactRate || 30, prodApptsPerHour: d.prodApptsPerHour || 1, maxAttempts: d.maxAttempts || 12 }));
       App.shell(); App.route();
       UI.toast('Configuración guardada', 'good');
     };

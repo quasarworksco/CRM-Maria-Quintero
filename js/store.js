@@ -10,6 +10,8 @@
 const COLLECTIONS = ['users', 'clients', 'activities', 'tasks', 'products', 'orders', 'payments', 'candidates', 'candidateActivities'];
 // Colecciones de Reclutamiento: si las reglas aún no las permiten, el resto del CRM sigue funcionando
 const OPTIONAL_COLLECTIONS = ['candidates', 'candidateActivities'];
+// Días de actividad que recibe en vivo quien ve todo el equipo (reportes de hasta 90 días)
+const ACTIVITY_WINDOW_DAYS = 95;
 
 // Firestore no acepta campos undefined: el viaje por JSON los elimina
 const cleanDoc = (d) => JSON.parse(JSON.stringify(d));
@@ -30,6 +32,15 @@ const LocalAdapter = {
   del(_col, _id, db) { this._flush(db); },
   putSettings(_s, db) { this._flush(db); },
   replaceAll(db) { this._flush(db, true); },
+  putPresence(userId, date, minutes, db) {
+    db.presence = db.presence || [];
+    let p = db.presence.find((x) => x.userId === userId && x.date === date);
+    if (!p) { p = { id: userId + '_' + date, userId, date, minutes: [] }; db.presence.push(p); }
+    p.minutes = [...new Set(p.minutes.concat(minutes))].sort((a, b) => a - b);
+    this._flush(db);
+    return Promise.resolve();
+  },
+  getPresence(date, db) { return Promise.resolve((db.presence || []).filter((x) => x.date === date)); },
   _flush(db, now) {
     clearTimeout(this._timer);
     const write = () => {
@@ -112,8 +123,23 @@ const FirestoreAdapter = {
       if (col === 'payments') return perms.finance ? ref : null;
       if (col === 'candidates') return perms.recruitAll ? ref : perms.recruitment ? fs.query(ref, fs.where('ownerId', '==', mine)) : null;
       if (col === 'candidateActivities') return perms.recruitment ? ref : null;
+      // Ahorro de lecturas: el historial completo de un cliente se descarga solo al abrir su ficha.
+      // Quien ve todo el equipo recibe en vivo los últimos días; cada agente, solo lo suyo.
+      if (col === 'activities') return perms.viewAll ? fs.query(ref, fs.where('createdAt', '>=', new Date(Date.now() - ACTIVITY_WINDOW_DAYS * U.DAY).toISOString())) : fs.query(ref, fs.where('userId', '==', mine));
+      if (col === 'tasks') return perms.viewAll ? ref : fs.query(ref, fs.where('userId', '==', mine));
       return ref;
     };
+    // Documentos descargados aparte (historial de una ficha) que se suman a lo que llega en vivo
+    const extra = this.extra = {};
+    const live = {};
+    const rebuild = (col) => {
+      const docs = live[col] || [];
+      const ex = extra[col];
+      if (!ex || !ex.size) { cache[col] = docs; return; }
+      const ids = new Set(docs.map((d) => d.id));
+      cache[col] = docs.concat([...ex.values()].filter((d) => !ids.has(d.id)));
+    };
+    this._rebuild = rebuild;
     this.denied = [];
     const listen = (ref, apply, optional) => new Promise((resolve, reject) => {
       let first = true;
@@ -127,13 +153,32 @@ const FirestoreAdapter = {
       });
     });
     await Promise.all([
-      ...COLLECTIONS.filter((col) => source(col)).map((col) => listen(source(col), (snap) => { cache[col] = snap.docs.map((d) => normalizeDoc(col, Object.assign({ id: d.id }, d.data()))); }, OPTIONAL_COLLECTIONS.includes(col) && col)),
+      ...COLLECTIONS.filter((col) => source(col)).map((col) => listen(source(col), (snap) => { live[col] = snap.docs.map((d) => normalizeDoc(col, Object.assign({ id: d.id }, d.data()))); rebuild(col); }, OPTIONAL_COLLECTIONS.includes(col) && col)),
       listen(settingsRef, (snap) => { cache.settings = Object.assign({}, ctx.defaults, snap.exists() ? snap.data() : {}); })
     ]);
 
     // Si la sesión se cierra en otra pestaña, se recarga
     authMod.onAuthStateChanged(this.auth, (u) => { if (!u || String(u.email || '').toLowerCase() !== email) location.reload(); });
     return cache;
+  },
+
+  /* ---------- Descargas puntuales (sin escuchar en vivo) ---------- */
+  // Todo el historial de un cliente: se pide una vez al abrir su ficha
+  async fetchWhere(col, field, value) {
+    const snap = await this.fs.getDocs(this.fs.query(this.fs.collection(this.fdb, col), this.fs.where(field, '==', value)));
+    const ex = this.extra[col] || (this.extra[col] = new Map());
+    snap.docs.forEach((d) => ex.set(d.id, normalizeDoc(col, Object.assign({ id: d.id }, d.data()))));
+    this._rebuild(col);
+    return snap.docs.length;
+  },
+  // Tiempo conectado: un documento por persona y día con los minutos en que estuvo activa
+  putPresence(userId, date, minutes) {
+    const fs = this.fs;
+    return fs.setDoc(fs.doc(this.fdb, 'presence', userId + '_' + date), { userId, date, minutes: fs.arrayUnion(...minutes), updatedAt: new Date().toISOString() }, { merge: true });
+  },
+  async getPresence(date) {
+    const snap = await this.fs.getDocs(this.fs.query(this.fs.collection(this.fdb, 'presence'), this.fs.where('date', '==', date)));
+    return snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
   },
 
   /* ---------- Cuentas (Firebase Authentication) ---------- */
@@ -229,6 +274,10 @@ const Store = (() => {
     positions: ['Agente de ventas telefónicas', 'Vendedor(a) de campo', 'Técnico(a) instalador', 'Supervisor(a)', 'Recepcionista', 'Otro'],
     languages: ['Español', 'Inglés', 'Bilingüe (Español/Inglés)', 'Otro'],
     saleChannels: SALE_CHANNEL_DEFAULTS.slice(),
+    // Productividad: metas por hora para calificar el trabajo de cada agente
+    prodCallsPerHour: 20,
+    prodContactRate: 30,
+    prodApptsPerHour: 1,
     categories: ['Filtros de aire', 'Purificadores', 'Filtros de agua', 'Deshumidificadores', 'Accesorios', 'Servicios'],
     staleDays: 7,
     callScript:
@@ -259,8 +308,62 @@ const Store = (() => {
       await Promise.all(db.users.filter((u) => u.authAccount || isOwner(u)).map((u) => syncAccess(u)));
       saveSettings({ permsVersion: 1 });
     }
+    startPresence();
   }
   const mode = () => adapter.name;
+
+  /* ---------- Historial completo de un cliente (bajo demanda) ---------- */
+  const historyLoaded = new Set();
+  function loadClientHistory(clientId) {
+    if (!adapter.fetchWhere || historyLoaded.has(clientId)) return;
+    historyLoaded.add(clientId);
+    adapter.fetchWhere('activities', 'clientId', clientId).then(() => emit()).catch((e) => { historyLoaded.delete(clientId); console.warn(e); });
+  }
+
+  /* ---------- Tiempo conectado (presencia) ----------
+     Cada minuto en que la persona tiene el CRM abierto y lo está usando (o tiene el
+     cronómetro de una llamada corriendo) se marca como activo. Se guarda en la nube
+     como máximo cada 5 minutos: unas 12 escrituras por hora y persona. */
+  const presence = { pending: new Set(), lastInput: Date.now(), date: null, denied: false, callActive: false, started: false };
+  function startPresence() {
+    if (presence.started || typeof window === 'undefined') return;
+    presence.started = true;
+    const mark = () => { presence.lastInput = Date.now(); };
+    ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'].forEach((ev) => window.addEventListener(ev, mark, { passive: true }));
+    const tick = () => {
+      const now = new Date();
+      const date = U.toDateInput(now);
+      if (presence.date && presence.date !== date) flushPresence();
+      presence.date = date;
+      const visible = document.visibilityState === 'visible';
+      if (visible && (presence.callActive || Date.now() - presence.lastInput < 5 * 60000)) presence.pending.add(now.getHours() * 60 + now.getMinutes());
+    };
+    tick();
+    setInterval(tick, 60000);
+    setInterval(flushPresence, 5 * 60000);
+    window.addEventListener('pagehide', flushPresence);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPresence(); });
+  }
+  function flushPresence() {
+    if (presence.denied || !presence.pending.size || !adapter.putPresence) return;
+    const u = realUser();
+    if (!u || !u.id || u.id === '__yo__') return;
+    const mins = [...presence.pending];
+    const date = presence.date;
+    presence.pending.clear();
+    adapter.putPresence(u.id, date, mins, db).catch((e) => {
+      if (e && e.code === 'permission-denied') presence.denied = true;
+      else mins.forEach((m) => presence.pending.add(m));
+    });
+  }
+  const setCallActive = (v) => { presence.callActive = !!v; if (v) presence.lastInput = Date.now(); };
+  // Minutos activos de todo el equipo en una fecha (una lectura por persona; solo para administración)
+  async function getPresence(date) {
+    if (!adapter.getPresence) return [];
+    try { return await adapter.getPresence(date, db); }
+    catch (e) { if (e && e.code === 'permission-denied') presence.readDenied = true; console.warn(e); return null; }
+  }
+  const presenceStatus = () => ({ denied: presence.denied, readDenied: !!presence.readDenied });
   // Colecciones que las reglas de Firestore todavía no permiten leer (p. ej. Reclutamiento sin publicar las reglas nuevas)
   const deniedCollections = () => (adapter.denied || []).slice();
 
@@ -583,7 +686,7 @@ const Store = (() => {
     currentUser, setCurrentUser, isManager, isAdmin, can, permsOf, recruiters, myClients, myOrders, myTasks, myActivities, canSeeClient, activeUsers, sellers,
     orderPaid, orderBalance, orderPayStatus, calcOrderTotal, clientOrders, clientBalance, clientRevenue, nextOrderNumber,
     leadScore, isStale, logActivity, changeStage, logCall, registerPayment, createOrder, reassign, deleteClient,
-    exportJSON, importJSON, resetDemo, wipeAll, mode, deniedCollections, isOwner,
+    exportJSON, importJSON, resetDemo, wipeAll, mode, deniedCollections, isOwner, loadClientHistory, setCallActive, getPresence, flushPresence, presenceStatus,
     saveAppointment, setAppointmentStatus, maxAttempts, attemptsOf, removeAttempt, activeAppointment, demoByName, APPT_STATUS,
     realUser, isViewingAs, setViewAs, authMode, syncAccess, auth
   };
@@ -697,6 +800,7 @@ const Seed = {
       let t = created;
       for (let k = 0; k < nCalls; k++) {
         t = Math.min(now - r.int(0, 8) * 3600000, t + r.int(1, 6) * U.DAY + r.int(0, 30000) * 1000);
+        { const d = new Date(t); const h = d.getHours(); if (h < 9 || h >= 19) { d.setHours(9 + (h % 10)); if (d.getTime() <= now) t = d.getTime(); } } // horario laboral
         let outcome;
         const lastOne = k === nCalls - 1;
         if (stage === 'intentando' || noAnswer12) outcome = r.pick(['no_contesto', 'no_contesto', 'buzon', 'whatsapp']);
@@ -768,6 +872,43 @@ const Seed = {
       if (!r.chance(0.3)) return;
       const due = now + r.int(-2, 5) * U.DAY + r.int(-3, 3) * 3600000;
       db.tasks.push({ id: U.uid('ta_'), clientId: c.id, userId: c.ownerId, title: r.pick(taskTitles), due: iso(due), done: due < now - U.DAY && r.chance(0.6), priority: r.pick(['normal', 'normal', 'alta']), createdAt: iso(now - 5 * U.DAY), updatedAt: iso(now) });
+    });
+
+    // Productividad (demo): bloques de llamadas de ayer y de hoy con su tiempo conectado
+    db.presence = [];
+    const rp = U.rng(20261005);
+    const profiles = { us_2: [14, 0.42, 0.12], us_3: [24, 0.5, 0.11], us_4: [18, 0.36, 0.07], us_5: [11, 0.3, 0.04], us_6: [21, 0.45, 0.09] };
+    const dayBlocks = (day, blocks, u) => {
+      const date = U.toDateInput(day);
+      const myClients = db.clients.filter((c) => c.ownerId === u.id);
+      if (!myClients.length) return;
+      const [cph, contactP, apptP] = profiles[u.id] || [15, 0.35, 0.06];
+      const mins = new Set();
+      blocks.forEach(([from, to]) => {
+        for (let m = from; m < to; m++) if (!(rp() < 0.04)) mins.add(m);
+        let t = from + rp.int(1, 4);
+        while (t < to) {
+          const c = rp.pick(myClients);
+          const r = rp();
+          const outcome = r < apptP ? 'cita_agendada' : r < contactP ? rp.pick(['contactado', 'contactado', 'llamar_despues', 'no_interesado']) : rp.pick(['no_contesto', 'no_contesto', 'no_contesto', 'buzon', 'whatsapp']);
+          const o = outcomeById(outcome);
+          const at = new Date(day); at.setHours(0, t, rp.int(0, 59), 0);
+          const dur = o.contact ? rp.int(90, 420) : rp.int(15, 45);
+          db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: u.id, type: outcome === 'whatsapp' ? 'whatsapp' : 'llamada', outcome, duration: dur, text: o.contact ? rp.pick(['Le interesa el kit de filtros', 'Pidió que le llamen en la tarde', 'Quiere ver la demostración', '']) : '', createdAt: at.toISOString(), updatedAt: at.toISOString() });
+          if (o.appointment) db.activities.push({ id: U.uid('ac_'), clientId: c.id, userId: u.id, type: 'cita', kind: 'agendada', text: 'Cita agendada desde una llamada', createdAt: new Date(at.getTime() + 60000).toISOString(), updatedAt: at.toISOString() });
+          t += Math.max(1, Math.round(60 / cph * (0.6 + rp() * 0.8)) + (o.contact ? Math.round(dur / 60) : 0));
+        }
+      });
+      db.presence.push({ id: u.id + '_' + date, userId: u.id, date, minutes: [...mins].sort((a, b) => a - b) });
+    };
+    const nowD = new Date(now);
+    const nowMin = nowD.getHours() * 60 + nowD.getMinutes();
+    const yesterday = U.addDays(U.startOfDay(nowD), -1);
+    agents.forEach((u, i) => {
+      dayBlocks(yesterday, [[540 + i * 7, 690 + i * 5], [840, 960 - i * 9]], u);
+      const end = nowMin - 5;
+      const start = Math.max(480 + i * 6, end - rp.int(70, 150));
+      if (end - start >= 30) dayBlocks(U.startOfDay(nowD), [[start, end]], u);
     });
 
     // Reclutamiento (demo): candidatos separados de los prospectos de ventas

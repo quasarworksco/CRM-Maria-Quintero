@@ -8,6 +8,7 @@ const App = (() => {
     { section: 'Trabajo diario' },
     { id: 'dashboard', label: 'Inicio', icon: 'dashboard', perm: 'prospects' },
     { id: 'llamadas', label: 'Modo llamadas', icon: 'phone', perm: 'prospects' },
+    { id: 'productividad', label: 'Productividad', icon: 'target', perm: 'manageUsers' },
     { id: 'agenda', label: 'Agenda y tareas', icon: 'calendar', perm: 'prospects', badge: () => overdueCount() },
     { section: 'Clientes' },
     { id: 'clientes', label: 'Clientes y prospectos', icon: 'users', perm: 'prospects' },
@@ -403,6 +404,7 @@ const App = (() => {
     Store.onChange(watchAccount);
     window.addEventListener('hashchange', route);
     route();
+    if (typeof Reminders !== 'undefined') Reminders.start();
     if (Store.authMode()) {
       const me = Store.realUser();
       if (me.email && Store.get('users', me.id)) {

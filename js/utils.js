@@ -6,7 +6,7 @@ const U = (() => {
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  const settings = () => (window.Store ? Store.settings() : { currency: 'USD', locale: 'es-US' });
+  const settings = () => (typeof Store !== 'undefined' ? Store.settings() : { currency: 'USD', locale: 'es-US' });
 
   function money(n, opts = {}) {
     const s = settings();

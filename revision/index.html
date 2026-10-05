@@ -130,7 +130,7 @@
           <button type="button" id="resetBtn">Desmarcar todo</button>
         </div>
       </div>
-      <div><div class="ring" id="ring" style="--p:0"><span id="pct">0%</span></div><small style="display:block;text-align:center;margin-top:6px;color:var(--text-3);font-size:12px"><span id="done">0</span> de 41 revisados</small></div>
+      <div><div class="ring" id="ring" style="--p:0"><span id="pct">0%</span></div><small style="display:block;text-align:center;margin-top:6px;color:var(--text-3);font-size:12px"><span id="done">0</span> de 49 revisados</small></div>
     </div>
 
     <nav class="chips" aria-label="Secciones">
@@ -141,6 +141,7 @@
       <a href="#paso3">Paso 3 · Reclutamiento</a>
       <a href="#paso4">Paso 4 · Perfil, permisos, canales y fotos</a>
       <a href="#paso5">Paso 5 · Imagen corporativa y revisión</a>
+      <a href="#paso6">Paso 6 · Productividad, tareas y ahorro de datos</a>
     </nav>
 
     <section class="sec" id="base">
@@ -258,6 +259,27 @@
         <span class="body"><strong>Página /revision</strong><span class="desc">Esta página: todos los cambios con su checklist.</span><span class="how"><b>Cómo verificarlo:</b> Marca cada punto a medida que lo revisas.</span></span></label></li>
       <li class="item"><label><input type="checkbox" data-id="p5-guia"><span class="box" aria-hidden="true"></span>
         <span class="body"><strong>Guía actualizada</strong><span class="desc">Capturas nuevas con los colores corporativos y los cambios de los pasos 1 a 5.</span><span class="how"><b>Cómo verificarlo:</b> Abre /guia.</span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso6">
+      <div class="sec-head"><div><span class="tag">Paso 6</span><h2>Paso 6 · Productividad, tareas y ahorro de datos</h2><p>Medir el trabajo diario de cada agente y no perder ninguna tarea.</p></div><span class="count" data-count="paso6">0 / 8</span></div>
+      <ul class="list" data-sec="paso6">
+      <li class="item"><label><input type="checkbox" data-id="p6-panel"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Panel de Productividad (solo administración)</strong><span class="desc">Por agente y por día: tiempo conectado, llamadas, contestó, no contestó, citas, seguimientos, ritmo por hora y calificación (Excelente, Buena, Regular o Baja).</span><span class="how"><b>Cómo verificarlo:</b> Menú → Productividad (o Modo llamadas → Productividad del equipo). <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p6-detalle"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Detalle de llamadas de cada agente</strong><span class="desc">Al hacer clic en el número de llamadas: cada llamada con hora, cliente, resultado, duración y comentario, filtros por resultado y desglose hora por hora.</span><span class="how"><b>Cómo verificarlo:</b> Productividad → clic en el número de llamadas. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p6-conectado"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Tiempo conectado</strong><span class="desc">Minutos con el CRM abierto y en uso (o con el cronómetro de una llamada corriendo), con hora de entrada y salida.</span><span class="how"><b>Cómo verificarlo:</b> Productividad → columna Conectado. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p6-resultado"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Resultado del día y metas por hora</strong><span class="desc">Una frase por agente con su resultado; metas de llamadas, contacto y citas por hora editables en Configuración.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Configuración → Metas de productividad. <a class="glink" href="../guia/#llamadas">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p6-alta"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Tareas de prioridad Alta primero</strong><span class="desc">En cada grupo de la agenda, las tareas de prioridad Alta aparecen arriba.</span><span class="how"><b>Cómo verificarlo:</b> Agenda y tareas → crea una tarea Alta. <a class="glink" href="../guia/#agenda">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p6-avisos"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Avisos a la hora de cada tarea</strong><span class="desc">Aviso con sonido a la hora (y 15 minutos antes si es Alta), con Hecha, Posponer y Ver; notificaciones del navegador opcionales.</span><span class="how"><b>Cómo verificarlo:</b> Crea una tarea para dentro de 2 minutos y espera el aviso. <a class="glink" href="../guia/#agenda">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p6-vencidas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Tareas vencidas visibles para la administración</strong><span class="desc">Etiquetas &quot;Vencida hace…&quot; y &quot;Hecha tarde&quot;; recuadro &quot;Tareas vencidas del equipo&quot; en la agenda y columna en Productividad.</span><span class="how"><b>Cómo verificarlo:</b> Agenda y tareas (como administración). <a class="glink" href="../guia/#agenda">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p6-ahorro"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Ahorro de datos de Firestore</strong><span class="desc">Cada agente descarga solo sus clientes, llamadas y tareas; la administración recibe en vivo los últimos 95 días; el historial completo de un cliente se descarga al abrir su ficha.</span><span class="how"><b>Cómo verificarlo:</b> Abre la ficha de un cliente: ves todo su historial.</span></span></label></li>
       </ul>
     </section>
 
