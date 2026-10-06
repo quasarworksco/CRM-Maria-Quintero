@@ -376,7 +376,7 @@ Views.admin = (() => {
           <label class="check full"><input type="checkbox" name="phoneEnforceHours" ${s.phoneEnforceHours !== false ? 'checked' : ''}> <span>Aplicar el horario a las agentes (la administración y la supervisión pueden llamar a cualquier hora)</span></label>
           <label class="check full"><input type="checkbox" name="phoneDialerAgents" ${s.phoneDialerAgents === true ? 'checked' : ''}> <span>Las agentes también pueden usar el marcador libre (llamar a números que no son clientes). La administración y la supervisión siempre pueden.</span></label>
           <label class="check full"><input type="checkbox" name="phoneAutoLogNoAnswer" ${s.phoneAutoLogNoAnswer !== false ? 'checked' : ''}> <span>Si no contestan, registrar "No contestó" solo y pasar al siguiente cliente en Modo llamadas</span></label>
-          <div class="full row wrap" style="gap:8px"><button type="submit" class="btn primary">Guardar</button><button type="button" class="btn" id="phoneTest">${icon('refresh', 'sm')} Probar conexión</button><button type="button" class="btn" id="phoneDial" ${Phone.enabled() ? '' : 'disabled title="Guarda primero el modo Demostración o Twilio"'}>${icon('phone', 'sm')} Abrir marcador</button><span class="small muted" id="phoneTestMsg"></span></div>
+          <div class="full row wrap" style="gap:8px"><button type="submit" class="btn primary">Guardar</button><button type="button" class="btn" id="phoneTest">${icon('refresh', 'sm')} Probar conexión</button><button type="button" class="btn" id="phoneDial">${icon('phone', 'sm')} Abrir marcador</button><span class="small muted" id="phoneTestMsg"></span></div>
         </form>
         <div class="script-box small" style="margin-top:14px">
           <strong>Cómo funciona</strong>: cada botón "Llamar" del CRM llama desde la computadora, y el botón ${icon('phone', 'sm')} de arriba (o "Abrir marcador") permite marcar cualquier número. Al colgar se guardan solos la duración, la agente, la hora y si contestaron; el resultado lo elige la agente. Con un cliente 787 o 939 sale con el número de Puerto Rico; con los demás, con el 407.<br>
@@ -396,7 +396,7 @@ Views.admin = (() => {
       UI.toast('Teléfono guardado', 'good');
       App.shell(); App.route();
     };
-    el.querySelector('#phoneDial').onclick = () => Phone.openDialer();
+    el.querySelector('#phoneDial').onclick = () => (Phone.enabled() ? Phone.openDialer() : UI.toast('Elige el modo Demostración o Twilio y presiona Guardar', 'bad'));
     el.querySelector('#phoneTest').onclick = async () => {
       const msg = el.querySelector('#phoneTestMsg'); msg.textContent = 'Probando…';
       const r = await Phone.testConnection();

@@ -419,7 +419,15 @@ const Phone = (() => {
       call({ number, clientId: a.dataset.clientId || null });
     }, true);
     // En línea: prepara el teléfono al entrar para poder recibir llamadas
-    if (mode() === 'twilio' && enabled() && Store.auth()) setTimeout(() => getBackend().catch((e) => console.warn('Teléfono:', e.message)), 2500);
+    // (la configuración puede llegar de la nube después de abrir la página: se revisa también en cada cambio)
+    let preloaded = false, tries = 0;
+    const preload = () => {
+      if (preloaded || tries >= 3 || mode() !== 'twilio' || !enabled() || !Store.auth()) return;
+      preloaded = true; tries++;
+      getBackend().catch((e) => { preloaded = false; console.warn('Teléfono:', e.message); });
+    };
+    setTimeout(preload, 2500);
+    Store.onChange(() => setTimeout(preload, 1000));
   }
 
   return { init, mode, enabled, canDial, openDialer, call, hangup, mute, digits, on, setEndedHandler, state, takeCallMeta, hasPending, setPending, canCallNow, hoursLabel, restricted, toE164, isPR, findClientByPhone, testConnection, reset };

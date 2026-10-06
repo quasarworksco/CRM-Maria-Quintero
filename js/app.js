@@ -69,7 +69,6 @@ const App = (() => {
             <div class="topbar-right">
               ${Store.can('prospects') ? `<button class="btn primary sm" id="quickAdd">${icon('userPlus', 'sm')}<span class="hide-sm">Nuevo prospecto</span></button>`
                 : Store.can('recruitment') ? `<button class="btn primary sm" id="quickAdd" data-cand="1">${icon('userPlus', 'sm')}<span class="hide-sm">Nuevo candidato</span></button>` : ''}
-              ${typeof Phone !== 'undefined' && Phone.canDial() ? `<button class="btn ghost icon" id="dialBtn" title="Teléfono: marcar un número">${icon('phone')}</button>` : ''}
               <button class="btn ghost icon" id="themeBtn" title="Cambiar tema">${icon('moon')}</button>
               ${Store.authMode() ? `
               <div class="user-menu">
@@ -109,8 +108,7 @@ const App = (() => {
     if (ex) ex.onclick = () => { Store.setViewAs(null); shell(); route(); };
     bindUserMenu();
     document.getElementById('themeBtn').onclick = toggleTheme;
-    const db = document.getElementById('dialBtn');
-    if (db) db.onclick = () => Phone.openDialer();
+    syncDialBtn();
     const qa = document.getElementById('quickAdd');
     if (qa) qa.onclick = () => (qa.dataset.cand ? Views.candidato.openForm() : Views.clientes.openForm());
     initSearch();
@@ -355,9 +353,25 @@ const App = (() => {
     document.getElementById('app').classList.remove('nav-open');
   }
 
+  // Botón del teléfono en la barra: aparece en cuanto llega la configuración (puede llegar después de dibujar la barra)
+  function syncDialBtn() {
+    const theme = document.getElementById('themeBtn');
+    if (!theme) return;
+    const show = typeof Phone !== 'undefined' && Phone.canDial();
+    let b = document.getElementById('dialBtn');
+    if (show && !b) {
+      b = document.createElement('button');
+      b.className = 'btn ghost icon'; b.id = 'dialBtn'; b.title = 'Teléfono: marcar un número';
+      b.innerHTML = icon('phone');
+      b.onclick = () => Phone.openDialer();
+      theme.parentNode.insertBefore(b, theme);
+    } else if (!show && b) b.remove();
+  }
+
   // Re-render tras cambios en datos (sin perder la vista actual)
   let pendingRefresh = false;
   const refresh = U.debounce(() => {
+    syncDialBtn();
     if (document.querySelector('.modal-backdrop')) { renderNav(); return; }
     const a = document.activeElement;
     if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && a.closest('#view') && a.type !== 'checkbox') {
