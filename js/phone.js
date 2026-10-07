@@ -126,11 +126,23 @@ const Phone = (() => {
     if (info.error) { UI.toast('La llamada no se pudo completar: ' + info.error, 'bad'); setTimeout(reset, 2500); return; }
     // Detalle exacto desde Twilio (ocupado, no contestó, duración real); si tarda, se usa lo que vio el navegador
     if (mode() === 'twilio' && data.callSid && backend && backend.result && data.direction === 'saliente') {
-      const wait = new Promise((r) => setTimeout(() => r(null), 3000));
-      Promise.race([backend.result(data.callSid).catch(() => null), wait]).then((r) => { if (r) Object.assign(data, r); handleEnded(data); });
+      // Se espera un momento para que Twilio cierre la llamada; si no responde a tiempo, vale lo que vio el navegador
+      const ask = new Promise((r) => setTimeout(r, 1200)).then(() => backend.result(data.callSid)).catch(() => null);
+      const wait = new Promise((r) => setTimeout(() => r(null), 4500));
+      Promise.race([ask, wait]).then((r) => { mergeResult(data, r); handleEnded(data); });
     } else handleEnded(data);
   }
-  function reset() { if (state.status === 'ended') set({ status: 'idle', clientId: null, number: '', callSid: '' }); }
+  // Solo se usa el dato de Twilio si la llamada ya terminó allá. Si el navegador vio que contestaron,
+  // la llamada cuenta como contestada (nunca se registra "No contestó" por un dato que llegó tarde).
+  const FINAL = ['completed', 'busy', 'no-answer', 'failed', 'canceled'];
+  function mergeResult(data, r) {
+    if (!r || !FINAL.includes(r.status)) return;
+    const seen = data.answered;
+    data.answered = seen || !!r.answered;
+    data.status = data.answered ? 'completed' : r.status;
+    if (r.talkSec > 0) data.talkSec = r.talkSec;
+  }
+  function reset() { if (state.status === 'ended') { set({ status: 'idle', clientId: null, number: '', callSid: '' }); refreshDialCard(); } }
 
   // Qué pasa al colgar
   function handleEnded(data) {
@@ -166,12 +178,19 @@ const Phone = (() => {
   function tickStart() { clearInterval(timer); timer = setInterval(() => { const t = document.getElementById('phTimer'); if (t) t.textContent = U.duration(talkSec()); }, 1000); }
 
   /* ---------- Motores ---------- */
+  // Un solo teléfono por pestaña (si se pide dos veces a la vez, se espera al mismo)
+  let building = null;
   async function getBackend() {
     const m = mode();
     if (backend && backend.kind === m) return backend;
+    if (building && building.kind === m) return building.promise;
     if (backend && backend.destroy) backend.destroy();
-    backend = m === 'twilio' ? await TwilioBackend() : DemoBackend();
-    return backend;
+    backend = null;
+    const promise = (m === 'twilio' ? TwilioBackend() : Promise.resolve(DemoBackend()))
+      .then((b) => { backend = b; return b; })
+      .finally(() => { if (building && building.promise === promise) building = null; });
+    building = { kind: m, promise };
+    return promise;
   }
 
   // Simulación: suena 1–2 s, contestan o no (configurable para pruebas con window.__phoneDemo)
@@ -318,6 +337,15 @@ const Phone = (() => {
     const list = readRecent().filter((x) => x.at !== d.at);
     list.unshift({ number: d.number, at: d.at, answered: !!d.answered, talkSec: d.talkSec || 0 });
     try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 15))); } catch (e) {}
+    refreshDialCard();
+  }
+  // La tarjeta del Inicio muestra las recientes: se actualiza al terminar una llamada
+  function refreshDialCard() {
+    const root = document.querySelector('#dialCard .dialer');
+    if (!root || typeof App === 'undefined') return;
+    const a = document.activeElement;
+    if (a && a.tagName === 'INPUT' && root.contains(a) && a.value) return; // alguien está escribiendo un número
+    App.refresh();
   }
   function removeRecent(at) { const list = readRecent(); const next = list.filter((x) => x.at !== at); if (next.length !== list.length) try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch (e) {} }
   // Quién puede usarlo: administración y supervisión siempre; las agentes solo si la administración lo activa
@@ -335,51 +363,53 @@ const Phone = (() => {
   }
   function pretty(e164) { const d = String(e164 || '').replace(/\D/g, '').slice(-10); return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : String(e164 || ''); }
 
-  function openDialer(preset = '') {
-    if (!canDial()) { UI.toast(enabled() ? 'Tu usuario no tiene el marcador activado' : 'Activa el teléfono en Panel admin → Conexiones', 'bad'); return; }
+  // El marcador se usa en una ventana (botón de arriba) y como tarjeta en el Inicio
+  let draft = ''; // número a medio escribir (se conserva si la pantalla se vuelve a dibujar)
+  function dialerHTML(preset, compact) {
     const hrs = restricted() ? `<div class="small muted" style="text-align:center;margin-top:6px">Horario de llamadas: ${U.esc(hoursLabel())}</div>` : '';
-    const m = UI.modal({
-      title: `${icon('phone', 'sm')} Teléfono`,
-      size: 'sm',
-      hideFooter: true,
-      body: `
-        <div class="dialer">
-          <div class="dial-display"><input id="dlNum" inputmode="tel" autocomplete="off" placeholder="Escribe o pega un número" value="${U.esc(preset)}"><button type="button" class="btn ghost icon sm" id="dlDel" title="Borrar">${icon('x', 'sm')}</button></div>
-          <div class="dial-match small" id="dlMatch"></div>
+    return `
+        <div class="dialer${compact ? ' compact' : ''}">
+          <div class="dial-display"><input class="dl-num" inputmode="tel" autocomplete="off" placeholder="Escribe o pega un número" aria-label="Número a marcar" value="${U.esc(preset)}"><button type="button" class="btn ghost icon sm dl-del" title="Borrar">${icon('x', 'sm')}</button></div>
+          <div class="dial-match small dl-match"></div>
           <div class="dial-pad">${[['1', ''], ['2', 'ABC'], ['3', 'DEF'], ['4', 'GHI'], ['5', 'JKL'], ['6', 'MNO'], ['7', 'PQRS'], ['8', 'TUV'], ['9', 'WXYZ'], ['*', ''], ['0', '+'], ['#', '']].map(([k, l]) => `<button type="button" class="dial-key" data-k="${k}"><b>${k}</b><small>${l}</small></button>`).join('')}</div>
-          <button type="button" class="btn primary dial-call" id="dlCall">${icon('phone', 'sm')} Llamar</button>
+          <button type="button" class="btn primary dial-call dl-call">${icon('phone', 'sm')} Llamar</button>
           ${hrs}
           <div class="dial-recent">
             <div class="small muted" style="margin:14px 0 6px;font-weight:600">Llamadas recientes</div>
-            <div id="dlRecent"></div>
+            <div class="dl-recent"></div>
           </div>
-        </div>`
-    });
-    const root = m.el.querySelector('.dialer');
-    const inp = root.querySelector('#dlNum');
-    const match = root.querySelector('#dlMatch');
+        </div>`;
+  }
+  function bindDialer(root, { close, recentMax = 8 } = {}) {
+    const inp = root.querySelector('.dl-num');
+    const match = root.querySelector('.dl-match');
     const update = () => {
       const v = inp.value;
+      draft = v;
       const e = toE164(v);
       const c = findClientByPhone(v);
       match.innerHTML = c ? `${icon('user', 'sm')} <a href="#/cliente/${c.id}" data-dl-close>${U.esc(c.name)}</a>${c.dnc ? ' · <span style="color:var(--bad)">no volver a llamar</span>' : ''}`
         : e ? `${isPR(e) ? 'Puerto Rico' : 'EE. UU.'} · ${pretty(e)} · no está en tus clientes` : (v.replace(/\D/g, '').length >= 10 ? '<span style="color:var(--bad)">Número no válido para EE. UU. o Puerto Rico</span>' : '');
-      root.querySelectorAll('[data-dl-close]').forEach((a) => a.onclick = () => close());
+      if (close) match.querySelectorAll('[data-dl-close]').forEach((a) => a.onclick = () => close());
     };
-    const close = m.close;
     const doCall = async () => {
       const c = findClientByPhone(inp.value);
       if (!toE164(inp.value)) { UI.toast('Escribe un número de 10 dígitos de EE. UU. o Puerto Rico', 'bad'); inp.focus(); return; }
-      close();
-      await call({ number: inp.value, clientId: c ? c.id : null });
+      if (state.status !== 'idle' && state.status !== 'ended') { UI.toast('Ya hay una llamada en curso', 'bad'); return; }
+      const number = inp.value;
+      if (close) close();
+      draft = '';
+      inp.value = ''; update();
+      inp.blur();
+      await call({ number, clientId: c ? c.id : null });
     };
     root.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { inp.value += b.dataset.k; update(); inp.focus(); });
-    root.querySelector('#dlDel').onclick = () => { inp.value = inp.value.slice(0, -1); update(); inp.focus(); };
-    root.querySelector('#dlCall').onclick = doCall;
+    root.querySelector('.dl-del').onclick = () => { inp.value = inp.value.slice(0, -1); update(); inp.focus(); };
+    root.querySelector('.dl-call').onclick = doCall;
     inp.addEventListener('input', update);
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doCall(); } });
-    const rec = recentCalls();
-    root.querySelector('#dlRecent').innerHTML = rec.length ? rec.map((r) => {
+    const rec = recentCalls().slice(0, recentMax);
+    root.querySelector('.dl-recent').innerHTML = rec.length ? rec.map((r) => {
       const c = r.clientId ? Store.get('clients', r.clientId) : findClientByPhone(r.number);
       return `<button type="button" class="dial-rec" data-num="${U.esc(r.number)}">
         <span class="grow" style="min-width:0;text-align:left"><strong>${U.esc(c ? c.name : pretty(r.number))}</strong><span class="small muted" style="display:block">${c ? pretty(r.number) + ' · ' : ''}${U.esc(U.dateTime(r.at))}</span></span>
@@ -387,8 +417,29 @@ const Phone = (() => {
     }).join('') : '<div class="small muted">Aún no hay llamadas.</div>';
     root.querySelectorAll('[data-num]').forEach((b) => b.onclick = () => { inp.value = pretty(b.dataset.num); update(); inp.focus(); });
     update();
+    return inp;
+  }
+
+  function openDialer(preset = '') {
+    if (!canDial()) { UI.toast(enabled() ? 'Tu usuario no tiene el marcador activado' : 'Activa el teléfono en Panel admin → Conexiones', 'bad'); return; }
+    const m = UI.modal({ title: `${icon('phone', 'sm')} Teléfono`, size: 'sm', hideFooter: true, body: dialerHTML(preset) });
+    const inp = bindDialer(m.el.querySelector('.dialer'), { close: m.close });
     setTimeout(() => inp.focus(), 50);
     return m;
+  }
+
+  // Tarjeta del marcador para el Inicio
+  function dialerCard() {
+    if (!canDial()) return '';
+    const live = state.status === 'connecting' || state.status === 'ringing' || state.status === 'in-call';
+    return `<div class="card" id="dialCard">
+      <div class="card-head"><h2>${icon('phone', 'sm')} Teléfono</h2><span class="badge ${mode() === 'twilio' ? 'good' : 'info'}">${live ? 'En llamada' : mode() === 'twilio' ? 'Listo' : 'Demostración'}</span></div>
+      <div class="card-body">${dialerHTML(draft, true)}</div>
+    </div>`;
+  }
+  function bindDialerCard(el) {
+    const root = el.querySelector('#dialCard .dialer');
+    if (root) bindDialer(root, { recentMax: 4 });
   }
 
   // Una llamada a un número suelto que resultó ser un prospecto: se crea y se registra el resultado
@@ -430,5 +481,5 @@ const Phone = (() => {
     Store.onChange(() => setTimeout(preload, 1000));
   }
 
-  return { init, mode, enabled, canDial, openDialer, call, hangup, mute, digits, on, setEndedHandler, state, takeCallMeta, hasPending, setPending, canCallNow, hoursLabel, restricted, toE164, isPR, findClientByPhone, testConnection, reset };
+  return { init, mode, enabled, canDial, openDialer, dialerCard, bindDialerCard, call, hangup, mute, digits, on, setEndedHandler, state, takeCallMeta, hasPending, setPending, canCallNow, hoursLabel, restricted, toE164, isPR, findClientByPhone, testConnection, reset };
 })();

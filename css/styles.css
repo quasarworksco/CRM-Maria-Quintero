@@ -851,3 +851,9 @@ input.invalid { border-color: var(--bad) !important; box-shadow: 0 0 0 3px var(-
 .dial-rec { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--text); cursor: pointer; font: inherit; }
 .dial-rec .grow { flex: 1; }
 .dial-rec:hover { background: var(--surface-2, rgba(0,0,0,.04)); }
+.grid.cols-1 { grid-template-columns: minmax(0, 1fr); }
+.stack-cards { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.stack-cards > .grid { margin-bottom: 0 !important; }
+.dialer.compact { max-width: 340px; }
+.dialer.compact .dial-key { height: 46px; }
+.dialer.compact .dial-display input { font-size: 20px; }

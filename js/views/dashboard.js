@@ -34,6 +34,8 @@ Views.dashboard = (() => {
     const overdue = myFollow.filter((c) => new Date(c.nextFollowUp).getTime() < now);
     const upcoming = U.sortBy(clients.filter((c) => { const a = Store.activeAppointment(c); return a && new Date(a.at) >= U.startOfDay(); }), (c) => Store.activeAppointment(c).at).slice(0, 8);
     const recent = U.sortBy(Store.myActivities(), (a) => a.createdAt, -1).slice(0, 8);
+    // Marcador en el Inicio para quien puede usarlo (administración y supervisión, o agentes si se activa)
+    const dial = typeof Phone !== 'undefined' && Phone.canDial() && !Store.isViewingAs();
 
     el.innerHTML = `
       <div class="page-head">
@@ -77,7 +79,8 @@ Views.dashboard = (() => {
         ${kpi('Prospectos activos', U.num(m.openLeads), `${m.newLeads} nuevos en el periodo · ${overdue.length} seguimientos vencidos`, 'users', '#52525b')}`}
       </div>
 
-      <div class="grid span-2-1" style="margin-bottom:16px">
+      ${dial ? `<div class="grid span-2-1" style="margin-bottom:16px"><div class="stack-cards">` : ''}
+      <div class="grid ${dial ? 'cols-1' : 'span-2-1'}" style="margin-bottom:16px">
         ${fin ? `<div class="card">
           <div class="card-head"><h2>Ventas por día · últimos 30 días</h2><span class="muted small">${U.money(Metrics.forUser(uid, U.startOfDay(U.addDays(new Date(), -29)), U.endOfDay()).salesAmount)} total</span></div>
           <div class="card-body">${UI.barChart(Metrics.dailySeries(30, (f, t) => U.sum(Store.all('orders').filter((o) => (!uid || o.userId === uid) && o.status !== 'cancelada' && Metrics.inRange(o.createdAt, f, t)), (o) => o.total)), { labelEvery: 3 })}</div>
@@ -92,6 +95,7 @@ Views.dashboard = (() => {
           </div>
         </div>
       </div>
+      ${dial ? `</div>${Phone.dialerCard()}</div>` : ''}
 
       <div class="grid cols-3">
         <div class="card">
@@ -129,6 +133,7 @@ Views.dashboard = (() => {
     if (cw) cw.onclick = () => { try { localStorage.setItem('crm_mq_welcome', '1'); } catch (e) {} el.querySelector('#welcome').remove(); };
     el.querySelectorAll('#rangeSeg button').forEach((b) => b.onclick = () => { range = b.dataset.r; render(el); });
     el.querySelectorAll('[data-go]').forEach((x) => x.onclick = () => { location.hash = x.dataset.go; });
+    if (dial) Phone.bindDialerCard(el);
   }
 
   // Bienvenida (con datos demo) o lista de primeros pasos (CRM vacío, listo para usar)
