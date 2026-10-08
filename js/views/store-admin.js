@@ -289,15 +289,34 @@ Views.tienda = (() => {
   function openContact(el) {
     const c = state.over._config || {};
     UI.modal({
-      title: 'Datos de contacto de la tienda',
+      title: 'Datos de contacto y portada de la tienda',
       body: `<div class="form-grid">
         <label class="field">WhatsApp <span class="hint">(número con WhatsApp)</span><input name="whatsapp" value="${U.esc(c.whatsapp || '')}" placeholder="(407) 555-0123"></label>
         <label class="field">Teléfono para llamar<input name="phone" value="${U.esc(c.phone || '')}" placeholder="Por defecto: (321) 496-7088"></label>
         <label class="field full">Correo electrónico<input name="email" type="email" value="${U.esc(c.email || '')}"></label>
         <label class="field">Instagram <span class="hint">(enlace)</span><input name="instagram" value="${U.esc(c.instagram || '')}" placeholder="https://instagram.com/…"></label>
         <label class="field">Facebook <span class="hint">(enlace)</span><input name="facebook" value="${U.esc(c.facebook || '')}" placeholder="https://facebook.com/…"></label>
+        <div class="field full"><span>Foto de portada <span class="hint">(opcional: reemplaza la ilustración de la portada; ideal horizontal, de la tienda o de un producto)</span></span>
+          <div class="row" style="gap:10px;align-items:center">
+            <div id="heroPrev" style="width:120px;aspect-ratio:4/3;border-radius:10px;background:var(--surface-3) center/cover no-repeat;${c.heroImage ? `background-image:url('${U.esc(c.heroImage)}')` : ''}"></div>
+            <div class="stack" style="gap:6px"><button type="button" class="btn sm" id="heroUp">${icon('upload', 'sm')} Subir foto</button><button type="button" class="btn sm ghost" id="heroRm" ${c.heroImage ? '' : 'hidden'}>Quitar foto</button></div>
+            <input type="file" id="heroFile" accept="image/*" hidden><input type="hidden" name="heroImage" value="${U.esc(c.heroImage || '')}">
+          </div></div>
         <p class="small muted full" style="margin:0">Ubicación: The Florida Mall, 8001 S Orange Blossom Trail, Orlando, FL 32809. Lo que dejes vacío no se muestra (o usa el valor por defecto).</p>
       </div>`,
+      onOpen: (form) => {
+        const $ = (x) => form.querySelector(x);
+        const set = (u) => { form.querySelector('[name=heroImage]').value = u; $('#heroPrev').style.backgroundImage = u ? `url('${u}')` : ''; $('#heroRm').hidden = !u; };
+        $('#heroUp').onclick = () => { if (!UI.cloudinaryReady()) return UI.toast('Configura Cloudinary para subir fotos', 'bad'); $('#heroFile').click(); };
+        $('#heroRm').onclick = () => set('');
+        $('#heroFile').onchange = async (e) => {
+          const f = e.target.files[0]; e.target.value = '';
+          if (!f) return;
+          $('#heroUp').disabled = true; $('#heroUp').textContent = 'Subiendo…';
+          try { const r = await UI.uploadToCloudinary(f, 'tienda'); set(r.url); } catch (err) { UI.toast(err.message || 'No se pudo subir', 'bad'); }
+          $('#heroUp').disabled = false; $('#heroUp').innerHTML = `${icon('upload', 'sm')} Subir foto`;
+        };
+      },
       onSubmit: async (d) => {
         const digits = (v) => String(v || '').replace(/\D/g, '');
         const wa = digits(d.whatsapp), ph = digits(d.phone);
@@ -305,7 +324,7 @@ Views.tienda = (() => {
         const doc = {
           whatsapp: wa ? (wa.length === 10 ? '1' + wa : wa) : '',
           phone: ph ? '+' + (ph.length === 10 ? '1' + ph : ph) : '',
-          email: d.email.trim(), instagram: url(d.instagram), facebook: url(d.facebook),
+          email: d.email.trim(), instagram: url(d.instagram), facebook: url(d.facebook), heroImage: d.heroImage || '',
           updatedAt: new Date().toISOString(), updatedBy: Store.realUser().id
         };
         try { await putOver('_config', doc); UI.toast('Datos de contacto guardados', 'good'); render(el); }
