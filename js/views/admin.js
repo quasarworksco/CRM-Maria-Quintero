@@ -352,8 +352,73 @@ Views.admin = (() => {
             <p style="margin:0" class="muted">Configura <code>cloudName</code> y un <code>uploadPreset</code> sin firma en <code>js/config.js</code>.</p>
           </div></div>
       </div>
+      ${storeCard()}
       ${phoneCard()}`;
+    bindStoreCard(el);
     bindPhoneCard(el);
+  }
+
+  /* ---------- MQ Store (catálogo web) ---------- */
+  function storeCard() {
+    if (typeof WebLeads === 'undefined') return '';
+    const s = Store.settings();
+    const st = WebLeads.status();
+    const badge = Store.mode() !== 'firestore' ? '<span class="badge">Solo en línea</span>' : st === 'on' ? '<span class="badge good">Recibiendo solicitudes</span>' : st === 'denied' ? '<span class="badge bad">Faltan las reglas</span>' : '<span class="badge warn">Conectando…</span>';
+    const pend = WebLeads.pendingReviews();
+    const sellers = WebLeads.sellers();
+    const isAdmin = Store.isAdmin();
+    return `<div class="card" style="margin-top:16px" id="storeCard">
+      <div class="card-head"><h2>${icon('cart', 'sm')} MQ Store · catálogo web</h2>${badge}</div>
+      <div class="card-body stack" style="gap:16px">
+        <p class="small" style="margin:0">Cada formulario de <a href="${U.esc(WebLeads.storeUrl())}" target="_blank" rel="noopener">${U.esc(WebLeads.storeUrl().replace(/^https?:\/\//, ''))}</a> entra solo al CRM: las solicitudes de información o demostración como <strong>prospectos nuevos</strong> (fuente "${U.esc(WebLeads.SOURCE)}"), las de empleo en <strong>Reclutamiento</strong> y las reseñas aquí abajo para aprobarlas. Se procesan mientras alguien de la administración o la supervisión tenga el CRM abierto.</p>
+        ${st === 'denied' ? '<div class="archived-note">' + icon('alert', 'sm') + '<div><strong>Publica las reglas nuevas de Firestore</strong><div class="small">Sin ellas la tienda no puede enviar solicitudes al CRM.</div></div></div>' : ''}
+        <div class="form-grid">
+          <label class="field">Asignar las solicitudes a <span class="hint">(si no vienen del enlace de una agente)</span>
+            <select id="storeOwner"><option value="auto" ${!s.storeLeadOwner || s.storeLeadOwner === 'auto' ? 'selected' : ''}>Automático: la agente con menos prospectos abiertos</option>
+            ${sellers.map((u) => `<option value="${u.id}" ${s.storeLeadOwner === u.id ? 'selected' : ''}>${U.esc(u.name)}</option>`).join('')}</select></label>
+        </div>
+        <div>
+          <strong class="small">Enlace de cada persona</strong>
+          <div class="small muted" style="margin:2px 0 8px">Quien entre a la tienda por su enlace y deje sus datos queda asignado a esa persona.</div>
+          <div class="table-wrap"><table class="table compact"><tbody>
+            ${sellers.map((u) => `<tr><td>${U.esc(u.name)}</td><td><code class="small">${U.esc(WebLeads.linkOf(u))}</code></td><td style="text-align:right"><button type="button" class="btn xs" data-copylink="${U.esc(WebLeads.linkOf(u))}">${icon('copy', 'sm')} Copiar</button></td></tr>`).join('')}
+          </tbody></table></div>
+        </div>
+        <div>
+          <strong class="small">Reseñas por aprobar ${pend.length ? `<span class="badge warn">${pend.length}</span>` : ''}</strong>
+          ${pend.length ? `<div class="stack" style="gap:8px;margin-top:8px">${pend.map((r) => `
+            <div class="list-item" style="align-items:flex-start;border:1px solid var(--border);border-radius:12px">
+              <div class="grow"><div class="title">${U.esc(r.name)} · ${'★'.repeat(Number(r.rating) || 0)}${'☆'.repeat(5 - (Number(r.rating) || 0))}</div>
+                <div class="small">“${U.esc(r.message || '')}”</div>
+                <div class="small muted">${U.esc([(r.productNames || [])[0], r.city, U.dateTime(r.createdAt)].filter(Boolean).join(' · '))}</div></div>
+              ${isAdmin ? `<div class="row" style="gap:6px"><button type="button" class="btn xs primary" data-rev-ok="${r.id}">Publicar</button><button type="button" class="btn xs" data-rev-no="${r.id}">Descartar</button></div>` : ''}
+            </div>`).join('')}</div>` : '<div class="small muted" style="margin-top:4px">No hay reseñas nuevas.</div>'}
+          ${isAdmin ? '<button type="button" class="btn sm" id="revPublished" style="margin-top:10px">Ver reseñas publicadas</button><div id="revList" class="stack" style="gap:6px;margin-top:8px"></div>' : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+  function bindStoreCard(el) {
+    const card = el.querySelector('#storeCard');
+    if (!card) return;
+    const own = card.querySelector('#storeOwner');
+    if (own) own.onchange = () => { Store.saveSettings({ storeLeadOwner: own.value }); UI.toast('Guardado', 'good'); };
+    card.querySelectorAll('[data-copylink]').forEach((b) => b.onclick = async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copylink); UI.toast('Enlace copiado', 'good'); } catch (e) { window.prompt('Copia el enlace:', b.dataset.copylink); }
+    });
+    const find = (id) => WebLeads.pendingReviews().find((r) => r.id === id);
+    card.querySelectorAll('[data-rev-ok]').forEach((b) => b.onclick = async () => { b.disabled = true; try { await WebLeads.approveReview(find(b.dataset.revOk)); UI.toast('Reseña publicada en la tienda', 'good'); } catch (e) { b.disabled = false; UI.toast('No se pudo publicar: ' + (e.code || e.message), 'bad'); } });
+    card.querySelectorAll('[data-rev-no]').forEach((b) => b.onclick = async () => { b.disabled = true; try { await WebLeads.rejectReview(find(b.dataset.revNo)); UI.toast('Reseña descartada'); } catch (e) { b.disabled = false; UI.toast('No se pudo descartar', 'bad'); } });
+    const pub = card.querySelector('#revPublished');
+    if (pub) pub.onclick = async () => {
+      const box = card.querySelector('#revList');
+      box.innerHTML = '<div class="small muted">Cargando…</div>';
+      try {
+        const list = await WebLeads.publishedReviews();
+        box.innerHTML = list.length ? list.map((r) => `<div class="row between small" style="gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:10px"><span><strong>${U.esc(r.name)}</strong> · ${'★'.repeat(Number(r.rating) || 0)} · “${U.esc(r.text)}”</span><button type="button" class="btn xs danger" data-rev-del="${r.id}">Quitar</button></div>`).join('') : '<div class="small muted">Aún no hay reseñas publicadas.</div>';
+        box.querySelectorAll('[data-rev-del]').forEach((x) => x.onclick = async () => { if (!(await UI.confirm('¿Quitar esta reseña de la tienda?'))) return; await WebLeads.removeReview(x.dataset.revDel); x.closest('.row').remove(); UI.toast('Reseña quitada'); });
+      } catch (e) { box.innerHTML = `<div class="small" style="color:var(--bad)">No se pudieron cargar (${U.esc(e.code || e.message)})</div>`; }
+    };
   }
 
   /* ---------- Teléfono integrado (Twilio) ---------- */

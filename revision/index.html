@@ -125,7 +125,7 @@
     <div class="hero">
       <div>
         <h1>Todo lo que se hizo en el CRM</h1>
-        <p class="updated">Actualizado el <strong>5 de octubre de 2026</strong> · Los cambios más recientes están arriba.</p>
+        <p class="updated">Actualizado el <strong>8 de octubre de 2026</strong> · Los cambios más recientes están arriba.</p>
         <p>Cada cambio con una explicación corta y cómo comprobarlo. Marca la casilla cuando lo revises: el avance queda guardado en este navegador.</p>
         <div class="bar"><span id="bar"></span></div>
         <div class="tools">
@@ -134,10 +134,11 @@
           <button type="button" id="resetBtn">Desmarcar todo</button>
         </div>
       </div>
-      <div><div class="ring" id="ring" style="--p:0"><span id="pct">0%</span></div><small style="display:block;text-align:center;margin-top:6px;color:var(--text-3);font-size:12px"><span id="done">0</span> de 67 revisados</small></div>
+      <div><div class="ring" id="ring" style="--p:0"><span id="pct">0%</span></div><small style="display:block;text-align:center;margin-top:6px;color:var(--text-3);font-size:12px"><span id="done">0</span> de 75 revisados</small></div>
     </div>
 
     <nav class="chips" aria-label="Secciones">
+      <a href="#paso9">Paso 9 · Tienda MQ Store conectada al CRM</a>
       <a href="#paso8">Paso 8 · Teléfono integrado (Twilio)</a>
       <a href="#paso7">Paso 7 · Resultados de llamada, ventas y comisiones</a>
       <a href="#paso6">Paso 6 · Productividad, tareas y ahorro de datos</a>
@@ -150,8 +151,29 @@
       <a href="#base">Base del CRM</a>
     </nav>
 
-    <section class="sec new" id="paso8">
-      <div class="sec-head"><div><span class="tag">Nuevo · 5 de octubre de 2026</span><h2>Paso 8 · Teléfono integrado (Twilio)</h2><p>Lo más reciente: llamar desde el computador con audífonos y registro automático de cada llamada.</p></div><span class="count" data-count="paso8">0 / 9</span></div>
+    <section class="sec new" id="paso9">
+      <div class="sec-head"><div><span class="tag">Nuevo · 8 de octubre de 2026</span><h2>Paso 9 · Tienda MQ Store conectada al CRM</h2><p>Lo más reciente: catálogo digital en mqstore.dgp-link.com, administrado desde el CRM, con todas las solicitudes entrando como prospectos.</p></div><span class="count" data-count="paso9">0 / 8</span></div>
+      <ul class="list" data-sec="paso9">
+      <li class="item"><label><input type="checkbox" data-id="p9-tienda"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Catálogo digital MQ Store</strong><span class="desc">6 categorías (Agua pura y bienestar, Limpieza, Cocina, Relajación con Bodyfriend, Exteriores y Energía), fichas con fotos, descripción, beneficios y video. Sin precios. Español e inglés.</span><span class="how"><b>Cómo verificarlo:</b> Abre mqstore.dgp-link.com.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p9-orienta"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Diseño que orienta al cliente</strong><span class="desc">Logo nuevo, buscador, &quot;¿Qué estás buscando?&quot; por categoría, &quot;¿Qué necesitas?&quot; según la necesidad (agua dura, agua de pozo, apagones…), barra de categorías fija y botón de solicitud siempre visible en el celular.</span><span class="how"><b>Cómo verificarlo:</b> Navega la tienda desde el celular.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p9-solicitud"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>&quot;Solicitar información o demostración&quot; → prospecto en el CRM</strong><span class="desc">Cada solicitud entra sola como prospecto nuevo (fuente &quot;MQ Store&quot;), con el producto de interés, asignado a la agente de su enlace o a la que tenga menos prospectos. Si el teléfono ya existe, se suma a su historial.</span><span class="how"><b>Cómo verificarlo:</b> Envía una solicitud de prueba y búscala en Clientes y prospectos. <a class="glink" href="../guia/#clientes">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p9-lista"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>&quot;Mi lista&quot;: varios productos en una sola solicitud</strong><span class="desc">El cliente guarda los productos que le interesan y pide información de todos juntos.</span><span class="how"><b>Cómo verificarlo:</b> Tienda → guarda 2 productos → Mi lista → Solicitar.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p9-empleo"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Oportunidades de venta → Reclutamiento</strong><span class="desc">Sección &quot;Crece con nosotros en ventas&quot; (The Florida Mall, Orlando); quien deja sus datos entra como candidato en Reclutamiento.</span><span class="how"><b>Cómo verificarlo:</b> Tienda → Trabaja con nosotros → envía el formulario. <a class="glink" href="../guia/#reclutamiento">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p9-resenas"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Testimonios con aprobación</strong><span class="desc">Los clientes dejan su reseña en la tienda; solo se publica cuando la administración la aprueba en Panel admin → Conexiones → MQ Store.</span><span class="how"><b>Cómo verificarlo:</b> Deja una reseña y apruébala en Conexiones. <a class="glink" href="../guia/#admin">Ver en la guía →</a></span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p9-admin"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Tienda administrada desde el CRM</strong><span class="desc">Menú Tienda MQ Store: subir varias fotos por producto, video, textos en español e inglés, crear productos nuevos, ocultar, destacar, ordenar y cambiar WhatsApp, teléfono, correo y redes.</span><span class="how"><b>Cómo verificarlo:</b> CRM → Tienda MQ Store → Editar un producto → Subir fotos.</span></span></label></li>
+      <li class="item"><label><input type="checkbox" data-id="p9-enlaces"><span class="box" aria-hidden="true"></span>
+        <span class="body"><strong>Enlace de cada agente</strong><span class="desc">Cada persona tiene su enlace (mqstore.dgp-link.com/?a=nombre); lo que llega por su enlace queda asignado a ella.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Conexiones → MQ Store → Copiar. <a class="glink" href="../guia/#admin">Ver en la guía →</a></span></span></label></li>
+      </ul>
+    </section>
+    <section class="sec" id="paso8">
+      <div class="sec-head"><div><span class="tag">5 – 7 de octubre de 2026</span><h2>Paso 8 · Teléfono integrado (Twilio)</h2><p>Llamar desde el computador con audífonos y registro automático de cada llamada.</p></div><span class="count" data-count="paso8">0 / 9</span></div>
       <ul class="list" data-sec="paso8">
       <li class="item"><label><input type="checkbox" data-id="p8-llamar"><span class="box" aria-hidden="true"></span>
         <span class="body"><strong>Llamar desde el CRM con audífonos</strong><span class="desc">El botón Llamar marca desde el computador. Barra del teléfono con tiempo real, Silenciar, Teclado y Colgar.</span><span class="how"><b>Cómo verificarlo:</b> Panel admin → Conexiones → Teléfono → Modo: Demostración; luego Modo llamadas → Llamar. <a class="glink" href="../guia/#telefono">Ver en la guía →</a></span></span></label></li>

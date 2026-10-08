@@ -19,6 +19,7 @@ const App = (() => {
     { id: 'ventas', label: 'Ventas y pedidos', icon: 'cart', perm: 'sales' },
     { id: 'recaudo', label: 'Recaudo / Cartera', icon: 'wallet', perm: 'finance' },
     { id: 'productos', label: 'Productos', icon: 'box', perm: 'sales' },
+    { id: 'tienda', label: 'Tienda MQ Store', icon: 'image', perm: 'manageUsers' },
     { section: 'Gestión' },
     { id: 'reportes', label: 'Reportes y equipo', icon: 'chart', perm: 'reports' },
     { id: 'admin', label: 'Panel de administración', icon: 'shield', perm: 'manageUsers' }
@@ -423,6 +424,7 @@ const App = (() => {
     route();
     if (typeof Reminders !== 'undefined') Reminders.start();
     if (typeof Phone !== 'undefined') Phone.init();
+    if (typeof WebLeads !== 'undefined') WebLeads.start();
     if (Store.authMode()) {
       const me = Store.realUser();
       if (me.email && Store.get('users', me.id)) {

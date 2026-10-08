@@ -857,3 +857,27 @@ input.invalid { border-color: var(--bad) !important; box-shadow: 0 0 0 3px var(-
 .dialer.compact { max-width: 340px; }
 .dialer.compact .dial-key { height: 46px; }
 .dialer.compact .dial-display input { font-size: 20px; }
+
+/* Tienda MQ Store (administración) */
+.st-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.st-card { cursor: pointer; overflow: hidden; transition: transform .15s, box-shadow .15s; }
+.st-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg, var(--shadow)); }
+.st-card.is-hidden { opacity: .6; }
+.st-media { position: relative; aspect-ratio: 4 / 3; background: var(--surface-3); }
+.st-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.st-badges { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 4px; }
+.st-badges .badge { background: rgba(255, 255, 255, .94); }
+.st-body { padding: 12px 14px 14px; display: grid; gap: 2px; }
+.st-ph { width: 100%; height: 100%; display: grid; place-items: center; font-weight: 800; font-size: 28px; color: #fff; background: linear-gradient(140deg, var(--c), color-mix(in srgb, var(--c) 60%, #0b2a5b)); }
+.st-editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 22px; }
+.st-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.st-photo { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--surface-3); border: 2px solid transparent; }
+.st-photo.main { border-color: var(--primary); grid-column: span 2; grid-row: span 2; }
+.st-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.st-main { position: absolute; left: 6px; top: 6px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.st-ph-tools { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 3px; justify-content: center; padding: 6px; background: linear-gradient(transparent, rgba(0, 0, 0, .55)); opacity: 0; transition: opacity .15s; }
+.st-photo:hover .st-ph-tools, .st-photo:focus-within .st-ph-tools { opacity: 1; }
+.st-ph-tools .btn { background: rgba(255, 255, 255, .95); }
+.st-empty { grid-column: 1 / -1; display: flex; gap: 12px; align-items: center; justify-content: center; padding: 30px 14px; border: 2px dashed var(--border); border-radius: 12px; color: var(--text-2); }
+@media (hover: none) { .st-ph-tools { opacity: 1; } }
+@media (max-width: 760px) { .st-editor { grid-template-columns: 1fr; } }

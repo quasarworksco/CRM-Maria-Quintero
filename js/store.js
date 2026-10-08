@@ -184,6 +184,43 @@ const FirestoreAdapter = {
     return snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
   },
 
+  /* ---------- MQ Store (catálogo web) ---------- */
+  // Solicitudes nuevas que llegan desde la tienda (solo quien ve todo el equipo)
+  watchWebLeads(cb, onErr) {
+    const fs = this.fs;
+    const ts = (v) => (v && v.toDate ? v.toDate().toISOString() : v || new Date().toISOString());
+    return fs.onSnapshot(fs.query(fs.collection(this.fdb, 'webLeads'), fs.where('status', '==', 'nuevo')),
+      (snap) => cb(snap.docs.map((d) => Object.assign({}, d.data(), { id: d.id, createdAt: ts(d.data().createdAt) }))),
+      (e) => onErr && onErr(e));
+  },
+  // Toma una solicitud para procesarla (si otra sesión ya la tomó, devuelve false)
+  claimWebLead(id, patch) {
+    const fs = this.fs;
+    const ref = fs.doc(this.fdb, 'webLeads', id);
+    return fs.runTransaction(this.fdb, async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists() || snap.data().status !== 'nuevo') return false;
+      tx.update(ref, patch);
+      return true;
+    });
+  },
+  updateWebLead(id, patch) { return this.fs.updateDoc(this.fs.doc(this.fdb, 'webLeads', id), patch); },
+  // Catálogo de la tienda: fotos, textos y productos que edita la administración
+  async getCatalog() {
+    const snap = await this.fs.getDocs(this.fs.collection(this.fdb, 'catalog'));
+    const out = {};
+    snap.docs.forEach((d) => { out[d.id] = d.data(); });
+    return out;
+  },
+  putCatalog(id, data) { return this.fs.setDoc(this.fs.doc(this.fdb, 'catalog', id), cleanDoc(data)); },
+  deleteCatalog(id) { return this.fs.deleteDoc(this.fs.doc(this.fdb, 'catalog', id)); },
+  putReview(id, data) { return this.fs.setDoc(this.fs.doc(this.fdb, 'reviews', id), cleanDoc(data)); },
+  deleteReview(id) { return this.fs.deleteDoc(this.fs.doc(this.fdb, 'reviews', id)); },
+  async getReviews() {
+    const snap = await this.fs.getDocs(this.fs.collection(this.fdb, 'reviews'));
+    return snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+  },
+
   /* ---------- Cuentas (Firebase Authentication) ---------- */
   signIn(email, pass) { return this.authMod.signInWithEmailAndPassword(this.auth, email.trim(), pass).then((c) => c.user); },
   createOwnAccount(email, pass) { return this.authMod.createUserWithEmailAndPassword(this.auth, email.trim(), pass).then((c) => c.user); },
@@ -242,7 +279,7 @@ const FirestoreAdapter = {
 const LOST_REASON_DEFAULTS = ['Sin respuesta (12 intentos)', 'No interesado', 'Número incorrecto', 'Pidió no volver a llamar', 'Precio alto', 'Compró con la competencia', 'No lo necesita', 'Sin presupuesto', 'Otro'];
 
 // Fuentes / cómo llegó (las nuevas van primero; se conservan las anteriores)
-const SOURCE_DEFAULTS = ['Florida Mall / Tienda', 'Feria / Evento', 'Referido', 'Cliente anterior', 'Leads', 'Facebook', 'Instagram', 'Indeed', 'Base de datos', 'Llamada entrante', 'Llamada en frío', 'Google', 'WhatsApp', 'Volante', 'Sitio web', 'Cliente recurrente'];
+const SOURCE_DEFAULTS = ['MQ Store (catálogo web)', 'Florida Mall / Tienda', 'Feria / Evento', 'Referido', 'Cliente anterior', 'Leads', 'Facebook', 'Instagram', 'Indeed', 'Base de datos', 'Llamada entrante', 'Llamada en frío', 'Google', 'WhatsApp', 'Volante', 'Sitio web', 'Cliente recurrente'];
 
 // Ajusta documentos guardados con versiones anteriores del CRM
 function normalizeDoc(col, d) {
