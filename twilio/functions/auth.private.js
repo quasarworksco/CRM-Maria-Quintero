@@ -17,10 +17,16 @@ exports.verify = async (context, idToken) => {
   if (!email || p.aud !== project || p.iss !== 'https://securetoken.google.com/' + project) throw err(401, 'Sesión no válida');
   if (!p.exp || p.exp * 1000 < Date.now()) throw err(401, 'La sesión venció: recarga el CRM');
   const isOwner = !!context.OWNER_EMAIL && email === String(context.OWNER_EMAIL).toLowerCase();
-  const url = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/access/${encodeURIComponent(email)}`;
+  const url = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/access/${encodeURIComponent(email).replace(/%40/g, '@')}`;
   const r = await fetch(url, { headers: { Authorization: 'Bearer ' + idToken } });
-  if (r.status === 401) throw err(401, 'Sesión no válida');
-  if (!r.ok && !(r.status === 404 && isOwner)) throw err(403, 'Tu usuario no tiene acceso al CRM');
+  if (r.status === 401) throw err(401, 'Sesión no válida: cierra sesión y vuelve a entrar al CRM');
+  // Firebase en plan gratuito (Spark) corta las lecturas al llegar al límite del día
+  if (r.status === 429) throw err(503, 'La base de datos (Firebase) llegó a su límite diario gratuito. La administradora debe activar el plan Blaze en Firebase');
+  if (r.status === 404 && !isOwner) throw err(403, `Tu usuario (${email}) no tiene acceso al CRM: la administradora debe abrirlo en Usuarios y guardarlo de nuevo`);
+  if (!r.ok && r.status !== 404) {
+    console.error('Firestore', r.status, await r.text().catch(() => ''));
+    throw err(r.status === 403 ? 403 : 502, `No se pudo comprobar tu acceso (${email}, código ${r.status})`);
+  }
   const f = r.ok ? ((await r.json()).fields || {}) : {};
   const val = (x) => (x ? (x.booleanValue !== undefined ? x.booleanValue : x.stringValue) : undefined);
   if (!isOwner && val(f.active) !== true) throw err(403, 'Tu usuario está desactivado');
