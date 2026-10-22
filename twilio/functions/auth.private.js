@@ -20,8 +20,8 @@ exports.verify = async (context, idToken) => {
   const url = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/access/${encodeURIComponent(email).replace(/%40/g, '@')}`;
   const r = await fetch(url, { headers: { Authorization: 'Bearer ' + idToken } });
   if (r.status === 401) throw err(401, 'Sesión no válida: cierra sesión y vuelve a entrar al CRM');
-  // Firebase en plan gratuito (Spark) corta las lecturas al llegar al límite del día
-  if (r.status === 429) throw err(503, 'La base de datos (Firebase) llegó a su límite diario gratuito. La administradora debe activar el plan Blaze en Firebase');
+  // La base de datos no responde por un momento (servicio ocupado)
+  if (r.status === 429 || r.status >= 500) throw err(503, 'El servicio de llamadas no está disponible en este momento. Intenta de nuevo en unos minutos');
   if (r.status === 404 && !isOwner) throw err(403, `Tu usuario (${email}) no tiene acceso al CRM: la administradora debe abrirlo en Usuarios y guardarlo de nuevo`);
   if (!r.ok && r.status !== 404) {
     console.error('Firestore', r.status, await r.text().catch(() => ''));
